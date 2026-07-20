@@ -23,7 +23,7 @@ connectDB();
 const app = express();
 
 // ---- Global middleware ----
-app.use(helmet({ crossOriginResourcePolicy: false })); // allow serving uploaded files cross-origin
+app.use(helmet({ crossOriginResourcePolicy: false })); 
 app.use(
   cors({
     origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : '*',
