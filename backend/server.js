@@ -22,6 +22,10 @@ connectDB();
 
 const app = express();
 
+
+app.get('/', (req, res) => {
+  res.json({ message: 'API is running' });
+});
 // ---- Global middleware ----
 app.use(helmet({ crossOriginResourcePolicy: false })); // allow serving uploaded files cross-origin
 app.use(
