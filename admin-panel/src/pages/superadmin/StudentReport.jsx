@@ -10,6 +10,7 @@ import {
   updateOverallRemarksAdmin,
   updateGradeCardAdmin,
   uploadStudentProfilePhotoAdmin,
+  fileUrl,
 } from '../../api.js';
 
 const CATEGORIES = ['academic', 'attendance', 'behavior', 'project', 'exam', 'other'];
@@ -139,7 +140,6 @@ export default function SuperAdminStudentReport() {
 
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
-  const [photoBroken, setPhotoBroken] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -153,7 +153,6 @@ export default function SuperAdminStudentReport() {
   };
 
   useEffect(load, [studentId]);
-  useEffect(() => setPhotoBroken(false), [report?.student?.profileImage]);
 
   const openCreate = () => {
     setEditingEntry(null);
@@ -262,28 +261,17 @@ export default function SuperAdminStudentReport() {
 
   const gc = report?.gradeCard;
   const student = report?.student;
-  const apiOrigin = import.meta.env.VITE_API_URL?.replace('/api', '');
 
   return (
     <Layout>
       <div className="page-header">
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
           <div style={{ textAlign: 'center' }}>
-            {student?.profileImage && !photoBroken ? (
-              <img
-                src={`${apiOrigin}${student.profileImage}`}
-                alt={student?.name || 'Student'}
-                onError={() => setPhotoBroken(true)}
-                style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)' }}
-              />
-            ) : (
-              <div
-                className="avatar-initial"
-                style={{ width: 64, height: 64, fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}
-              >
-                {student?.name?.[0]?.toUpperCase() || '?'}
-              </div>
-            )}
+            <img
+              src={fileUrl(student?.profileImage) || '/avatar-placeholder.png'}
+              alt={student?.name || 'Student'}
+              style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)' }}
+            />
             <label className="btn btn-ghost btn-sm" style={{ display: 'block', marginTop: 6, cursor: 'pointer' }}>
               {photoUploading ? 'Uploading…' : 'Change photo'}
               <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} disabled={photoUploading} />
@@ -451,7 +439,7 @@ export default function SuperAdminStudentReport() {
                       <td>{doc.description || '—'}</td>
                       <td className="cell-mono">{new Date(doc.createdAt).toLocaleDateString()}</td>
                       <td>
-                        <a className="btn btn-ghost btn-sm" href={`${apiOrigin}${doc.filePath}`} target="_blank" rel="noreferrer">
+                        <a className="btn btn-ghost btn-sm" href={fileUrl(doc.filePath)} target="_blank" rel="noreferrer">
                           View
                         </a>
                       </td>

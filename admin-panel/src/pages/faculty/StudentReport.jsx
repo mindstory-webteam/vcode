@@ -9,6 +9,7 @@ import {
   deleteProgressEntry,
   updateOverallRemarks,
   updateGradeCard,
+  fileUrl,
 } from '../../api.js';
 
 const CATEGORIES = ['academic', 'attendance', 'behavior', 'project', 'exam', 'other'];
@@ -383,7 +384,7 @@ export default function StudentReport() {
                       <td>{doc.description || '—'}</td>
                       <td className="cell-mono">{new Date(doc.createdAt).toLocaleDateString()}</td>
                       <td>
-                        <a className="btn btn-ghost btn-sm" href={`${import.meta.env.VITE_API_URL?.replace('/api','')}${doc.filePath}`} target="_blank" rel="noreferrer">
+                        <a className="btn btn-ghost btn-sm" href={fileUrl(doc.filePath)} target="_blank" rel="noreferrer">
                           View
                         </a>
                       </td>

@@ -2,6 +2,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const StudentApplication = require('../models/StudentApplication');
 const ProgressReport = require('../models/ProgressReport');
+const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
 
 // ---------------------------------------------------------------------------
 // FACULTY MANAGEMENT
@@ -145,6 +146,7 @@ const approveApplication = asyncHandler(async (req, res) => {
     role: 'student',
     status: 'approved',
     profileImage: application.profileImage,
+    profileImagePublicId: application.profileImagePublicId,
     studentInfo: {
       rollNumber: application.rollNumber,
       department: application.department,
@@ -188,6 +190,15 @@ const rejectApplication = asyncHandler(async (req, res) => {
   }
   if (application.status !== 'pending') {
     return res.status(400).json({ success: false, message: `Application already ${application.status}` });
+  }
+
+  // Clean up the applicant's uploaded profile image from Cloudinary
+  if (application.profileImagePublicId) {
+    try {
+      await deleteFromCloudinary(application.profileImagePublicId, 'image');
+    } catch (err) {
+      console.error('Cloudinary delete failed:', err.message);
+    }
   }
 
   application.status = 'rejected';
@@ -315,6 +326,27 @@ const deleteUser = asyncHandler(async (req, res) => {
   }
 
   if (user.role === 'student') {
+    // Clean up the student's files from Cloudinary before deleting DB records
+    const report = await ProgressReport.findOne({ student: user._id });
+    if (report && Array.isArray(report.documents)) {
+      for (const doc of report.documents) {
+        if (doc.publicId) {
+          const resourceType = doc.fileType && doc.fileType.startsWith('image/') ? 'image' : 'raw';
+          try {
+            await deleteFromCloudinary(doc.publicId, resourceType);
+          } catch (err) {
+            console.error('Cloudinary delete failed:', err.message);
+          }
+        }
+      }
+    }
+    if (user.profileImagePublicId) {
+      try {
+        await deleteFromCloudinary(user.profileImagePublicId, 'image');
+      } catch (err) {
+        console.error('Cloudinary delete failed:', err.message);
+      }
+    }
     await ProgressReport.findOneAndDelete({ student: user._id });
   }
   if (user.role === 'faculty') {
@@ -575,7 +607,17 @@ const uploadStudentProfilePhotoAdmin = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Please attach an image file' });
   }
 
-  student.profileImage = `/uploads/profiles/${req.file.filename}`;
+  // Delete the previous photo from Cloudinary so orphaned images don't pile up
+  if (student.profileImagePublicId) {
+    try {
+      await deleteFromCloudinary(student.profileImagePublicId, 'image');
+    } catch (err) {
+      console.error('Cloudinary delete failed:', err.message);
+    }
+  }
+
+  student.profileImage = req.file.path; // Cloudinary secure URL
+  student.profileImagePublicId = req.file.filename; // Cloudinary public_id
   await student.save();
 
   res.json({

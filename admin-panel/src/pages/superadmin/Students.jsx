@@ -10,6 +10,7 @@ import {
   assignFacultyToStudent,
   toggleUserActive,
   deleteUser,
+  fileUrl,
 } from '../../api.js';
 
 const emptyForm = {
@@ -140,7 +141,7 @@ export default function Students() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       {s.profileImage ? (
                         <img
-                          src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}${s.profileImage}`}
+                          src={fileUrl(s.profileImage)}
                           alt={s.name}
                           style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)' }}
                         />

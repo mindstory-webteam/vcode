@@ -1,5 +1,6 @@
 const asyncHandler = require('../middleware/asyncHandler');
 const ProgressReport = require('../models/ProgressReport');
+const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
 
 // @desc    Get logged-in student's own progress report
 // @route   GET /api/student/progress-report
@@ -33,7 +34,8 @@ const uploadDocument = asyncHandler(async (req, res) => {
 
   report.documents.push({
     fileName: req.file.originalname,
-    filePath: `/uploads/documents/${req.file.filename}`,
+    filePath: req.file.path, // Cloudinary secure URL
+    publicId: req.file.filename, // Cloudinary public_id (needed for deletion)
     fileType: req.file.mimetype,
     fileSize: req.file.size,
     description: req.body.description || '',
@@ -60,6 +62,18 @@ const deleteDocument = asyncHandler(async (req, res) => {
   const doc = report.documents.id(req.params.docId);
   if (!doc) {
     return res.status(404).json({ success: false, message: 'Document not found' });
+  }
+
+  // Remove the file from Cloudinary first
+  // (PDF/DOCX were uploaded as 'raw', images as 'image')
+  if (doc.publicId) {
+    const resourceType = doc.fileType && doc.fileType.startsWith('image/') ? 'image' : 'raw';
+    try {
+      await deleteFromCloudinary(doc.publicId, resourceType);
+    } catch (err) {
+      // Don't block DB cleanup if Cloudinary delete fails; log for later cleanup
+      console.error('Cloudinary delete failed:', err.message);
+    }
   }
 
   report.documents.pull({ _id: req.params.docId });

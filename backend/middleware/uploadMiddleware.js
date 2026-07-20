@@ -1,31 +1,49 @@
+// middleware/upload.js
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 
-const ensureDir = (dir) => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+// ---------- helpers ----------
+const makePublicId = (file) => {
+  const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+  const ext = path.extname(file.originalname);
+  const safeBase = path
+    .basename(file.originalname, ext)
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .slice(0, 40);
+  return `${safeBase}-${uniqueSuffix}`;
 };
 
-const documentsDir = path.join(__dirname, '..', 'uploads', 'documents');
-const profilesDir = path.join(__dirname, '..', 'uploads', 'profiles');
-ensureDir(documentsDir);
-ensureDir(profilesDir);
+// ---------- storage: documents (PDF, DOC/DOCX, images) ----------
+const documentStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const isImage = file.mimetype.startsWith('image/');
+    return {
+      folder: 'uploads/documents',
+      public_id: makePublicId(file),
+      // 'auto' lets Cloudinary treat PDFs/DOCX as raw files and JPG/PNG as images
+      resource_type: isImage ? 'image' : 'raw',
+      // keep the original extension for raw files so download links work
+      format: isImage ? undefined : path.extname(file.originalname).slice(1),
+    };
+  },
+});
 
-const makeStorage = (destDir) =>
-  multer.diskStorage({
-    destination: (req, file, cb) => cb(null, destDir),
-    filename: (req, file, cb) => {
-      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-      const ext = path.extname(file.originalname);
-      const safeBase = path
-        .basename(file.originalname, ext)
-        .replace(/[^a-zA-Z0-9_-]/g, '_')
-        .slice(0, 40);
-      cb(null, `${safeBase}-${uniqueSuffix}${ext}`);
-    },
-  });
+// ---------- storage: profile pictures (images only) ----------
+const profileStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => ({
+    folder: 'uploads/profiles',
+    public_id: makePublicId(file),
+    resource_type: 'image',
+    // auto-optimize profile pictures
+    transformation: [{ width: 500, height: 500, crop: 'limit', quality: 'auto' }],
+  }),
+});
 
-// Allowed types for student document uploads (certificates, assignments, reports, images)
+// ---------- file filters (unchanged logic from your original) ----------
 const documentFileFilter = (req, file, cb) => {
   const allowed = [
     'application/pdf',
@@ -42,7 +60,6 @@ const documentFileFilter = (req, file, cb) => {
   }
 };
 
-// Only images for profile pictures
 const imageFileFilter = (req, file, cb) => {
   const allowed = ['image/jpeg', 'image/png', 'image/jpg'];
   if (allowed.includes(file.mimetype)) {
@@ -54,16 +71,23 @@ const imageFileFilter = (req, file, cb) => {
 
 const maxSizeBytes = (parseInt(process.env.MAX_FILE_SIZE_MB, 10) || 10) * 1024 * 1024;
 
+// ---------- exported uploaders ----------
 const uploadDocument = multer({
-  storage: makeStorage(documentsDir),
+  storage: documentStorage,
   fileFilter: documentFileFilter,
   limits: { fileSize: maxSizeBytes },
 });
 
 const uploadProfileImage = multer({
-  storage: makeStorage(profilesDir),
+  storage: profileStorage,
   fileFilter: imageFileFilter,
   limits: { fileSize: maxSizeBytes },
 });
 
-module.exports = { uploadDocument, uploadProfileImage };
+// ---------- delete helper (use when replacing/removing files) ----------
+// publicId is req.file.filename; pass resourceType 'raw' for PDFs/DOCX
+const deleteFromCloudinary = async (publicId, resourceType = 'image') => {
+  return cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+};
+
+module.exports = { uploadDocument, uploadProfileImage, deleteFromCloudinary };

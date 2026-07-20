@@ -1,6 +1,7 @@
 const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const ProgressReport = require('../models/ProgressReport');
+const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
 
 // @desc    Get all students assigned to the logged-in faculty
 // @route   GET /api/faculty/students
@@ -238,7 +239,17 @@ const uploadStudentProfilePhoto = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Please attach an image file' });
   }
 
-  student.profileImage = `/uploads/profiles/${req.file.filename}`;
+  // Delete the previous photo from Cloudinary so orphaned images don't pile up
+  if (student.profileImagePublicId) {
+    try {
+      await deleteFromCloudinary(student.profileImagePublicId, 'image');
+    } catch (err) {
+      console.error('Cloudinary delete failed:', err.message);
+    }
+  }
+
+  student.profileImage = req.file.path; // Cloudinary secure URL
+  student.profileImagePublicId = req.file.filename; // Cloudinary public_id
   await student.save();
 
   res.json({

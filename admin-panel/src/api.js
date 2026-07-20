@@ -26,6 +26,15 @@ api.interceptors.response.use(
   }
 );
 
+// Resolves a stored file reference to a usable URL.
+// Handles both new Cloudinary URLs (already absolute) and
+// old local paths like /uploads/profiles/x.png
+export const fileUrl = (p) => {
+  if (!p) return null;
+  if (p.startsWith('http')) return p; // Cloudinary
+  return `${baseURL.replace('/api', '')}${p}`; // legacy local path
+};
+
 // ---- Auth ----
 export const login = (email, password) => api.post('/auth/login', { email, password });
 export const getMe = () => api.get('/auth/me');

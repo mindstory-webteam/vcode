@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
-import { getMyStudents } from '../../api.js';
+import { getMyStudents, fileUrl } from '../../api.js';
 
 export default function MyStudents() {
   const [students, setStudents] = useState([]);
@@ -54,7 +54,7 @@ export default function MyStudents() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       {s.profileImage ? (
                         <img
-                          src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}${s.profileImage}`}
+                          src={fileUrl(s.profileImage)}
                           alt={s.name}
                           style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)' }}
                         />
