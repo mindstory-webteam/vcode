@@ -119,7 +119,6 @@ function CenteredMessage({
 }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-ink px-6 text-center text-paper">
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Viral Cat Academy</p>
       <h1 className="font-display text-2xl font-medium">{title}</h1>
       {subtitle && <p className="max-w-md text-sm text-paper/60">{subtitle}</p>}
       {action && (

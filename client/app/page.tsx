@@ -1,94 +1,114 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
+import { ApiError } from "../lib/api";
+import VcaCat from "../components/VcaCat";
 
-export default function LandingPage() {
-  const { user, loading, logout } = useAuth();
+
+export default function LoginPage() {
+  const { login } = useAuth();
   const router = useRouter();
+  const params = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!loading && user) router.replace("/dashboard");
-  }, [loading, user, router]);
-
-  const handleLogout = async () => {
-    await logout();
-    router.replace("/login");
-  };
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await login(email, password);
+      router.replace(params.get("redirect") || "/dashboard");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6 py-16 text-paper">
-      {/* faint grid texture, matching Hero */}
+    <div className="flex min-h-screen">
+      {/* ── LEFT PANEL — purple cat ── */}
       <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-40 top-1/4 h-[480px] w-[480px] rounded-full bg-gold/10 blur-[140px]"
-      />
-
-      {/* logout — pinned to the top-left corner, only shown while a session exists */}
-      {!loading && user && (
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="absolute left-6 top-6 z-10 rounded-full border border-paper/25 bg-ink/70 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.22em] text-paper/70 backdrop-blur transition hover:border-gold hover:text-gold"
-        >
-          Log out
-        </button>
-      )}
-
-      <div className="relative mx-auto w-full max-w-3xl text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Viral Cat Academy</p>
-        <h1 className="mt-3 font-display text-5xl font-semibold tracking-tight md:text-6xl">
-          Student Portal
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-paper/60">
-          Access your verified grade card and progress report, or apply to join the next batch.
-        </p>
-
-        <div className="mt-12 grid gap-5 sm:grid-cols-2">
-          <Link
-            href="/login"
-            className="group rounded-2xl border border-paper/15 bg-[#1b2231]/60 p-8 text-left transition-colors hover:border-gold/50"
-          >
-            <span className="rounded-full bg-mint px-4 py-1.5 font-mono text-[10px] font-medium uppercase tracking-widest text-ink">
-              Existing Student
-            </span>
-            <h2 className="mt-5 font-display text-2xl font-medium">Log in</h2>
-            <p className="mt-2 text-sm text-paper/55">
-              Already enrolled? Sign in with your email and password to view your progress report.
-            </p>
-            <span className="mt-6 inline-block font-mono text-xs uppercase tracking-widest text-gold group-hover:underline">
-              Continue →
-            </span>
-          </Link>
-
-          <Link
-            href="/register"
-            className="group rounded-2xl border border-paper/15 bg-[#1b2231]/60 p-8 text-left transition-colors hover:border-gold/50"
-          >
-            <span className="rounded-full border border-paper/25 px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-paper/70">
-              New Student
-            </span>
-            <h2 className="mt-5 font-display text-2xl font-medium">Apply now</h2>
-            <p className="mt-2 text-sm text-paper/55">
-              Submit your registration and documents. A SuperAdmin will review and approve your account.
-            </p>
-            <span className="mt-6 inline-block font-mono text-xs uppercase tracking-widest text-gold group-hover:underline">
-              Get started →
-            </span>
-          </Link>
+        className="relative hidden w-[38%] flex-col items-center justify-center overflow-hidden lg:flex"
+        style={{ background: "linear-gradient(160deg, #6b2d72 0%, #853a8c 50%, #5a2460 100%)" }}
+      >
+        {/* radial glow */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 65%)" }}
+        />
+        {/* cat + tagline — perfectly centred */}
+        <div className="relative z-10 flex flex-col items-center gap-10 px-10">
+          <VcaCat />
+          <p className="text-center text-sm font-medium leading-relaxed text-white/65">
+            Your academic journey,<br />all in one place.
+          </p>
+        </div>
+        {/* footer pinned to bottom */}
+        <div className="absolute bottom-6 z-10 flex gap-5 text-[11px] text-white">
+          <span>About</span>
+          <span>Privacy</span>
+          <span>Terms of Use</span>
         </div>
       </div>
-    </main>
+
+      {/* ── RIGHT PANEL — form ── */}
+      <div className="flex flex-1 flex-col items-center justify-center bg-white px-8 py-16">
+        <div className="w-full max-w-sm">
+          <h1 className="text-3xl font-light leading-snug text-gray-700">
+            Login to your<br />
+            <span className="font-semibold text-gray-800">student dashboard</span>
+          </h1>
+
+          <form onSubmit={handleSubmit} className="mt-10 space-y-4">
+            <input
+              type="email"
+              placeholder="EMAIL"
+              value={email}
+              required
+              autoComplete="email"
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded border border-gray-300 px-4 py-3 text-sm tracking-wide text-gray-700 placeholder:text-[11px] placeholder:font-semibold placeholder:tracking-[0.2em] placeholder:text-gray-400 focus:border-[#853a8c] focus:outline-none focus:ring-1 focus:ring-[#853a8c]/30 transition"
+            />
+            <input
+              type="password"
+              placeholder="PASSWORD"
+              value={password}
+              required
+              autoComplete="current-password"
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded border border-gray-300 px-4 py-3 text-sm tracking-wide text-gray-700 placeholder:text-[11px] placeholder:font-semibold placeholder:tracking-[0.2em] placeholder:text-gray-400 focus:border-[#853a8c] focus:outline-none focus:ring-1 focus:ring-[#853a8c]/30 transition"
+            />
+
+            {error && (
+              <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-500">{error}</p>
+            )}
+
+            <div className="flex items-center gap-5 pt-1">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="rounded px-8 py-2.5 text-sm font-bold uppercase tracking-widest text-white transition-opacity disabled:opacity-60"
+                style={{ background: "#853a8c" }}
+              >
+                {submitting ? "Signing in…" : "Login"}
+              </button>
+              <Link
+                href="/register"
+                className="text-sm text-gray-400 transition-colors"
+              >
+                Don&apos;t have an account? <span className="underline hover:text-[#853a8c] ">Register</span>
+              </Link>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }

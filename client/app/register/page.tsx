@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { api, ApiError } from "../../lib/api";
+import VcaCat from "../../components/VcaCat";
 
 const initialForm = {
   name: "",
@@ -50,89 +51,84 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-ink px-6 py-16 text-paper">
-      <div className="w-full max-w-2xl">
-        <p className="text-center font-mono text-xs uppercase tracking-[0.3em] text-gold">
-          Viral Cat Academy
-        </p>
-        <h1 className="mt-3 text-center font-display text-3xl font-medium">Student Registration</h1>
-        <p className="mt-2 text-center text-sm text-paper/55">
-          Fill in your details and submit for SuperAdmin approval.
-        </p>
-
-        <form
-          onSubmit={handleSubmit}
-          className="mt-10 space-y-6 rounded-2xl border border-paper/15 bg-[#1b2231]/60 p-8"
-        >
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Full name" value={form.name} onChange={(v) => update("name", v)} required />
-            <Field
-              label="Email"
-              type="email"
-              value={form.email}
-              onChange={(v) => update("email", v)}
-              required
-            />
-            <Field
-              label="Password"
-              type="password"
-              value={form.password}
-              onChange={(v) => update("password", v)}
-              required
-            />
-            <Field label="Phone" value={form.phone} onChange={(v) => update("phone", v)} />
-            <Field
-              label="Roll number"
-              value={form.rollNumber}
-              onChange={(v) => update("rollNumber", v)}
-            />
-            <Field
-              label="Department"
-              value={form.department}
-              onChange={(v) => update("department", v)}
-            />
-            <Field label="Course" value={form.course} onChange={(v) => update("course", v)} />
-            <Field label="Semester" value={form.semester} onChange={(v) => update("semester", v)} />
-          </div>
-
-          <label className="block">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-paper/60">
-              Profile photo / document
-            </span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="mt-2 w-full rounded-lg border border-dashed border-paper/25 bg-ink/60 px-4 py-3 text-sm text-paper/70 file:mr-4 file:rounded-full file:border-0 file:bg-mint file:px-4 file:py-1.5 file:font-mono file:text-[11px] file:uppercase file:tracking-widest file:text-ink"
-            />
-          </label>
-
-          {error && (
-            <p className="rounded-lg bg-[#b8402e]/10 px-3 py-2 text-sm text-[#e6836f]">{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-full bg-mint px-5 py-3 font-mono text-xs font-medium uppercase tracking-widest text-ink transition-opacity disabled:opacity-50"
-          >
-            {submitting ? "Submitting…" : "Submit application"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-paper/50">
-          Already approved?{" "}
-          <Link href="/login" className="text-gold hover:underline">
-            Log in
-          </Link>
-        </p>
-        <p className="mt-2 text-center text-sm text-paper/50">
-          <Link href="/" className="text-paper/40 hover:text-paper/70 hover:underline">
-            ← Back
-          </Link>
-        </p>
+    <div className="flex min-h-screen">
+      {/* ── LEFT PANEL — purple cat ── */}
+      <div
+        className="relative hidden w-[38%] flex-col items-center justify-center overflow-hidden lg:flex"
+        style={{ background: "linear-gradient(160deg, #6b2d72 0%, #853a8c 50%, #5a2460 100%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 65%)" }}
+        />
+        <div className="relative z-10 flex flex-col items-center gap-10 px-10">
+          <VcaCat />
+          <p className="text-center text-sm font-medium leading-relaxed text-white/65">
+            Your academic journey,<br />all in one place.
+          </p>
+        </div>
+        <div className="absolute bottom-6 z-10 flex gap-5 text-[11px] text-white">
+          <span>About</span>
+          <span>Privacy</span>
+          <span>Terms of Use</span>
+        </div>
       </div>
-    </main>
+
+      {/* ── RIGHT PANEL — form ── */}
+      <div className="flex flex-1 flex-col items-center justify-center bg-white px-8 py-16">
+        <div className="w-full max-w-xl">
+          <h1 className="text-3xl font-light leading-snug text-gray-700">
+            Student <span className="font-semibold text-gray-800">Registration</span>
+          </h1>
+          <p className="mt-2 text-sm text-gray-500">
+            Fill in your details and submit for SuperAdmin approval.
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-10 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Full name" value={form.name} onChange={(v) => update("name", v)} required />
+              <Field label="Email" type="email" value={form.email} onChange={(v) => update("email", v)} required />
+              <Field label="Password" type="password" value={form.password} onChange={(v) => update("password", v)} required />
+              <Field label="Phone" value={form.phone} onChange={(v) => update("phone", v)} />
+              <Field label="Roll number" value={form.rollNumber} onChange={(v) => update("rollNumber", v)} />
+              <Field label="Department" value={form.department} onChange={(v) => update("department", v)} />
+              <Field label="Course" value={form.course} onChange={(v) => update("course", v)} />
+              <Field label="Semester" value={form.semester} onChange={(v) => update("semester", v)} />
+            </div>
+
+            <div className="relative pt-2">
+              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
+                Profile photo / document
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="w-full rounded border border-gray-300 bg-white px-4 py-3 text-sm tracking-wide text-gray-700 file:mr-4 file:cursor-pointer file:rounded file:border-0 file:bg-[#853a8c] file:px-4 file:py-1.5 file:font-semibold file:text-[11px] file:uppercase file:tracking-[0.2em] file:text-white hover:file:bg-[#6b2d72] focus:border-[#853a8c] focus:outline-none focus:ring-1 focus:ring-[#853a8c]/30 transition"
+              />
+            </div>
+
+            {error && (
+              <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-500">{error}</p>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-5 pt-6">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="rounded px-8 py-2.5 text-sm font-bold uppercase tracking-widest text-white transition-opacity disabled:opacity-60"
+                style={{ background: "#853a8c" }}
+              >
+                {submitting ? "Registering…" : "Register"}
+              </button>
+              <Link href="/" className="text-sm text-gray-400 transition-colors ">
+                Already have an account? <span className="underline hover:text-[#853a8c]">Log in</span>
+              </Link>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -150,16 +146,16 @@ function Field({
   required?: boolean;
 }) {
   return (
-    <label className="block">
-      <span className="font-mono text-[11px] uppercase tracking-widest text-paper/60">{label}</span>
+    <div className="relative">
       <input
         type={type}
+        placeholder={label.toUpperCase()}
         value={value}
         required={required}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-2 w-full rounded-lg border border-paper/20 bg-ink/60 px-4 py-2.5 text-sm text-paper placeholder:text-paper/30 focus:border-gold focus:outline-none"
+        className="w-full rounded border border-gray-300 px-4 py-3 text-sm tracking-wide text-gray-700 placeholder:text-[11px] placeholder:font-semibold placeholder:tracking-[0.2em] placeholder:text-gray-400 focus:border-[#853a8c] focus:outline-none focus:ring-1 focus:ring-[#853a8c]/30 transition"
       />
-    </label>
+    </div>
   );
 }
 
@@ -182,31 +178,59 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-ink px-6 text-center text-paper">
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Viral Cat Academy</p>
-      <h1 className="font-display text-3xl font-medium">Application submitted</h1>
-      <p className="max-w-md text-sm text-paper/60">
-        Thanks! Your registration for <span className="text-paper">{email}</span> is now{" "}
-        <span className="font-mono uppercase text-gold">{status}</span>. A SuperAdmin will review it
-        shortly.
-      </p>
-      {reason && <p className="max-w-md text-sm text-[#e6836f]">Reason: {reason}</p>}
-
-      <div className="mt-2 flex gap-3">
-        <button
-          onClick={checkStatus}
-          disabled={checking}
-          className="rounded-full border border-paper/25 px-5 py-2 font-mono text-xs uppercase tracking-widest text-paper/80 hover:border-gold hover:text-gold disabled:opacity-50"
-        >
-          {checking ? "Checking…" : "Check status"}
-        </button>
-        <Link
-          href="/login"
-          className="rounded-full bg-mint px-5 py-2 font-mono text-xs font-medium uppercase tracking-widest text-ink"
-        >
-          Go to login
-        </Link>
+    <div className="flex min-h-screen">
+      {/* ── LEFT PANEL — purple cat ── */}
+      <div
+        className="relative hidden w-[38%] flex-col items-center justify-center overflow-hidden lg:flex"
+        style={{ background: "linear-gradient(160deg, #6b2d72 0%, #853a8c 50%, #5a2460 100%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 65%)" }}
+        />
+        <div className="relative z-10 flex flex-col items-center gap-10 px-10">
+          <VcaCat />
+          <p className="text-center text-sm font-medium leading-relaxed text-white/65">
+            Your academic journey,<br />all in one place.
+          </p>
+        </div>
+        <div className="absolute bottom-6 z-10 flex gap-5 text-[11px] text-white">
+          <span>About</span>
+          <span>Privacy</span>
+          <span>Terms of Use</span>
+        </div>
       </div>
-    </main>
+
+      {/* ── RIGHT PANEL — status ── */}
+      <div className="flex flex-1 flex-col items-center justify-center bg-white px-8 py-16">
+        <div className="w-full max-w-md text-center">
+          <h1 className="text-3xl font-light leading-snug text-gray-700">
+            Application <span className="font-semibold text-gray-800">submitted</span>
+          </h1>
+          <p className="mt-6 text-sm text-gray-500 leading-relaxed">
+            Thanks! Your registration for <span className="font-medium text-gray-700">{email}</span> is now{" "}
+            <span className="font-bold uppercase tracking-wider" style={{ color: "#853a8c" }}>{status}</span>. A SuperAdmin will review it shortly.
+          </p>
+          {reason && <p className="mt-2 text-sm text-red-500">Reason: {reason}</p>}
+
+          <div className="mt-8 flex justify-center gap-4">
+            <button
+              onClick={checkStatus}
+              disabled={checking}
+              className="rounded border border-gray-300 px-6 py-2 text-[11px] font-bold uppercase tracking-widest text-gray-600 transition-colors hover:border-[#853a8c] hover:text-[#853a8c] disabled:opacity-50"
+            >
+              {checking ? "Checking…" : "Check status"}
+            </button>
+            <Link
+              href="/"
+              className="rounded px-6 py-2 text-[11px] font-bold uppercase tracking-widest text-white transition-opacity"
+              style={{ background: "#853a8c" }}
+            >
+              Go to login
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
