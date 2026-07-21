@@ -47,10 +47,7 @@ export default function Hero() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start p-8 md:p-10 pb-6 md:pb-8 gap-6">
             <div className="flex items-start gap-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200 mt-1">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-              </svg>
+            
               <div>
                 <h2 className="font-serif text-2xl md:text-[28px] text-gray-900 leading-tight">
                   Viral Cat Academy

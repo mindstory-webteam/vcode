@@ -6,7 +6,7 @@ import { useStudentData } from "../data/StudentDataContext";
 import CountUp from "./CountUp";
 
 export default function ReadinessBars() {
-  const { readinessBars } = useStudentData();
+  const { student, readinessBars } = useStudentData();
   const scope = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
@@ -14,53 +14,92 @@ export default function ReadinessBars() {
     if (!el || prefersReducedMotion()) return;
 
     const ctx = gsap.context(() => {
-      gsap.utils.toArray<HTMLElement>("[data-fill]").forEach((bar, i) => {
+      gsap.from("[data-animate-readiness]", {
+        y: 20,
+        opacity: 0,
+        duration: 0.6,
+        scrollTrigger: { trigger: el, start: "top 80%", once: true },
+        ease: "power3.out"
+      });
+
+      const circle = el.querySelector("[data-circle-progress]") as SVGCircleElement;
+      if (circle) {
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
         gsap.fromTo(
-          bar,
-          { width: "0%" },
+          circle,
+          { strokeDasharray: circumference, strokeDashoffset: circumference },
           {
-            width: bar.dataset.value + "%",
-            duration: 1.3,
-            delay: i * 0.12,
+            strokeDashoffset: circumference - (student.readiness / 100) * circumference,
+            duration: 1.5,
             ease: "power3.inOut",
-            scrollTrigger: { trigger: el, start: "top 75%", once: true },
+            scrollTrigger: { trigger: circle, start: "top 85%", once: true }
           }
         );
-      });
+      }
     }, el);
 
     return () => ctx.revert();
-  }, [readinessBars]);
+  }, [student.readiness]);
 
   return (
-    <section ref={scope} className="py-20 text-gray-900 border-b border-gray-100">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="mb-10 border-b border-gray-200 pb-4">
-          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-gray-500 font-bold">
-            Section 02
-          </p>
-          <h2 className="mt-1 font-serif text-3xl font-medium tracking-tight md:text-4xl">
-            Industry Readiness
-          </h2>
-        </div>
+    <section ref={scope} className="bg-[#f9fafb] pb-16">
+      <div className="w-full max-w-[1600px] mx-auto relative px-4 sm:px-[100px]">
+        <div data-animate-readiness className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden px-8 md:px-14 pt-10 md:pt-12 pb-14">
+          
+          {/* Header */}
+          <div className="flex items-start gap-4 pb-8 border-b border-gray-200 mb-14">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#005bb5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              <path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>
+            </svg>
+            <div>
+              <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase">
+                Section 02
+              </p>
+              <h2 className="mt-1 font-serif text-3xl md:text-4xl text-gray-900 leading-tight">
+                Industry Readiness
+              </h2>
+            </div>
+          </div>
 
-        <div className="space-y-8 max-w-4xl">
-          {readinessBars.map((b) => (
-            <div key={b.label}>
-              <div className="mb-2 flex items-baseline justify-between">
-                <span className="text-sm font-semibold text-gray-700">{b.label}</span>
-                <CountUp to={b.value} suffix="%" className="font-serif text-[22px] text-gray-900" />
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
-                <div
-                  data-fill
-                  data-value={b.value}
-                  className="h-full rounded-full bg-gradient-to-r from-blue-400 to-[#005bb5]"
-                  style={{ width: `${b.value}%` }}
+          {/* Circular Progress Gauge */}
+          <div className="flex justify-center mb-16">
+            <div className="relative w-[280px] h-[280px] flex items-center justify-center">
+              <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="46" fill="none" stroke="#f3f4f6" strokeWidth="5.5" />
+                <circle 
+                  data-circle-progress 
+                  cx="50" 
+                  cy="50" 
+                  r="46" 
+                  fill="none" 
+                  stroke="#005bb5" 
+                  strokeWidth="5.5" 
+                  strokeLinecap="butt" 
                 />
+              </svg>
+              <div className="flex flex-col items-center justify-center text-center mt-2">
+                <CountUp to={student.readiness} suffix="%" className="font-serif text-[64px] text-gray-900 leading-none tracking-tight" />
+                <span className="font-mono text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mt-3">
+                  Industry Readiness
+                </span>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Sub-items List */}
+          <div className="max-w-3xl mx-auto space-y-6 md:space-y-7 pb-8">
+            {readinessBars.map((b) => (
+              <div key={b.label} className="flex items-center justify-between">
+                <span className="text-[15px] font-medium text-gray-700">{b.label}</span>
+                <span className="font-mono text-[13px] font-bold text-gray-900">
+                  <CountUp to={b.value} suffix="%" />
+                </span>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
     </section>

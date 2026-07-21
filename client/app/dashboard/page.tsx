@@ -15,11 +15,13 @@ import Hero from "../../components/Hero";
 import Evaluation from "../../components/Evaluation";
 import ReadinessBars from "../../components/ReadinessBars";
 import RadarChart from "../../components/RadarChart";
+import SkillScores from "../../components/SkillScores";
 import Experience from "../../components/Experience";
 import Skills from "../../components/Skills";
 import Portfolio from "../../components/Portfolio";
 import Achievements from "../../components/Achievements";
 import Mentor from "../../components/Mentor";
+import InterviewReadiness from "../../components/InterviewReadiness";
 import Verification from "../../components/Verification";
 
 export default function DashboardPage() {
@@ -97,11 +99,13 @@ export default function DashboardPage() {
         <Evaluation />
         <ReadinessBars />
         <RadarChart />
+        <SkillScores />
         <Experience />
         <Skills />
         <Portfolio />
         <Achievements />
         <Mentor />
+        <InterviewReadiness />
         <Verification />
       </main>
     </StudentDataProvider>

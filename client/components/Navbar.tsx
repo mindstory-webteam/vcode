@@ -23,15 +23,12 @@ export default function Navbar() {
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
-    
     const handleScroll = () => {
-      if (window.scrollY > lastScrollY && window.scrollY > 80) {
+      if (window.scrollY > 80) {
         setHidden(true);
       } else {
         setHidden(false);
       }
-      lastScrollY = window.scrollY;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });

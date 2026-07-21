@@ -168,24 +168,6 @@ export default function Verification() {
 
   return (
     <>
-      {/* Section 11 · Interview readiness */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <SectionHeading
-          eyebrow="Section 11"
-          title="Interview Readiness"
-          badge={{ label: "Ready for placement", tone: "green" }}
-        />
-
-        <Reveal stagger="[data-item]" className="grid grid-cols-2 gap-4 md:grid-cols-5">
-          {interviewReadiness.map((m) => (
-            <div key={m.label} data-item className="rounded-2xl border border-gray-200 bg-white p-5 text-center shadow-sm">
-              <CountUp to={m.value} suffix="%" className="font-serif text-[32px] font-semibold text-[#005bb5]" />
-              <p className="mt-2 text-xs text-gray-500 font-medium">{m.label}</p>
-            </div>
-          ))}
-        </Reveal>
-      </section>
-
       {/* Verification footer — physical certificate */}
       <footer ref={scope} className="py-20 text-gray-900 border-t border-gray-200">
         <div className="mx-auto max-w-6xl px-6">

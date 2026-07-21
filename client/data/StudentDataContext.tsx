@@ -23,6 +23,7 @@ export interface PortfolioItem {
   role: string;
   tools: string[];
   result: string;
+  link?: string;
 }
 
 export interface StudentData {

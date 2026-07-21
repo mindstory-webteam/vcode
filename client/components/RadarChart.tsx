@@ -1,176 +1,143 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Radar } from "react-chartjs-2";
 import { gsap, prefersReducedMotion } from "../lib/gsap";
 import { useStudentData } from "../data/StudentDataContext";
-import SectionHeading from "./SectionHeading";
 
-const SIZE = 460;
-const CENTER = SIZE / 2;
-const RADIUS = 160;
-const RINGS = [0.25, 0.5, 0.75, 1];
-
-function polar(angle: number, r: number) {
-  return {
-    x: CENTER + r * Math.cos(angle - Math.PI / 2),
-    y: CENTER + r * Math.sin(angle - Math.PI / 2),
-  };
-}
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend
+);
 
 export default function RadarChart() {
-  const { evaluation, student } = useStudentData();
+  const { evaluation } = useStudentData();
   const scope = useRef<HTMLElement>(null);
-
-  const { gridPolys, axes, dataPoints, labels } = useMemo(() => {
-    const n = evaluation.length;
-    if (n === 0) return { gridPolys: [], axes: [], dataPoints: [], labels: [] };
-
-    const angleAt = (i: number) => (i / n) * Math.PI * 2;
-
-    const gridPolys = RINGS.map((f) =>
-      evaluation
-        .map((_, i) => {
-          const p = polar(angleAt(i), RADIUS * f);
-          return `${p.x},${p.y}`;
-        })
-        .join(" ")
-    );
-
-    const axes = evaluation.map((_, i) => polar(angleAt(i), RADIUS));
-
-    const dataPoints = evaluation.map((s, i) =>
-      polar(angleAt(i), RADIUS * (s.score / 100))
-    );
-
-    const labels = evaluation.map((s, i) => {
-      const p = polar(angleAt(i), RADIUS + 34);
-      return { ...p, text: s.label, score: s.score };
-    });
-
-    return { gridPolys, axes, dataPoints, labels };
-  }, [evaluation]);
-
-  const dataPolygon = dataPoints.map((p) => `${p.x},${p.y}`).join(" ");
 
   useLayoutEffect(() => {
     const el = scope.current;
     if (!el || prefersReducedMotion()) return;
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: el, start: "top 70%", once: true },
-      });
-
-      tl.from("[data-radar-grid]", {
-        scale: 0,
-        transformOrigin: "50% 50%",
+      gsap.from("[data-animate-radar]", {
+        y: 20,
         opacity: 0,
-        duration: 0.7,
-        stagger: 0.08,
-        ease: "power2.out",
-      })
-        .from("[data-radar-shape]", {
-          scale: 0,
-          transformOrigin: "50% 50%",
-          duration: 1,
-          ease: "elastic.out(1, 0.6)",
-        }, "-=0.2")
-        .from("[data-radar-dot]", {
-          scale: 0,
-          transformOrigin: "50% 50%",
-          duration: 0.4,
-          stagger: 0.04,
-          ease: "back.out(2)",
-        }, "-=0.6")
-        .from("[data-radar-label]", { opacity: 0, duration: 0.5, stagger: 0.03 }, "-=0.4");
+        duration: 0.6,
+        scrollTrigger: { trigger: el, start: "top 80%", once: true },
+        ease: "power3.out"
+      });
     }, el);
 
     return () => ctx.revert();
-  }, [evaluation]);
+  }, []);
 
   if (evaluation.length === 0) return null;
 
+  const data = {
+    labels: evaluation.map((s) => s.label),
+    datasets: [
+      {
+        label: "Competency Score",
+        data: evaluation.map((s) => s.score),
+        backgroundColor: "rgba(0, 91, 181, 0.12)",
+        borderColor: "#005bb5",
+        borderWidth: 2,
+        pointBackgroundColor: "#005bb5",
+        pointBorderColor: "#ffffff",
+        pointHoverBackgroundColor: "#ffffff",
+        pointHoverBorderColor: "#005bb5",
+        pointRadius: 4.5,
+        pointBorderWidth: 1.5,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        titleColor: "#1f2937",
+        bodyColor: "#1f2937",
+        bodyFont: { weight: "bold" as const },
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        padding: 12,
+        displayColors: false,
+      },
+    },
+    scales: {
+      r: {
+        min: 0,
+        max: 100,
+        ticks: {
+          display: false,
+          stepSize: 20,
+        },
+        grid: {
+          color: "#e5e7eb",
+          circular: false,
+          borderDash: [4, 4],
+        },
+        angleLines: {
+          color: "#e5e7eb",
+          borderDash: [4, 4],
+        },
+        pointLabels: {
+          font: {
+            size: 13,
+            weight: "600",
+            family: "ui-sans-serif, system-ui, sans-serif",
+          },
+          color: "#4b5563",
+        },
+      },
+    },
+  };
+
   return (
-    <section ref={scope} className="mx-auto max-w-6xl px-6 py-20">
-      <SectionHeading
-        eyebrow="Section 03"
-        title="Competency Radar"
-        badge={{ label: `${student.readiness}% Industry Readiness`, tone: "green" }}
-      />
+    <section ref={scope} className="bg-[#f9fafb] pb-16">
+      <div className="w-full max-w-[1600px] mx-auto relative px-4 sm:px-[100px]">
+        <div data-animate-radar className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden px-8 md:px-14 pt-10 md:pt-12 pb-14">
+          
+          {/* Header */}
+          <div className="flex items-start gap-4 pb-8 border-b border-gray-200 mb-12">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#005bb5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1">
+               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+               <circle cx="12" cy="11" r="3"/>
+            </svg>
+            <div>
+              <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase">
+                Section 03
+              </p>
+              <h2 className="mt-1 font-serif text-3xl md:text-4xl text-gray-900 leading-tight">
+                Competency Radar
+              </h2>
+            </div>
+          </div>
 
-      <div className="flex justify-center">
-        <svg
-          viewBox={`0 0 ${SIZE} ${SIZE}`}
-          className="w-full max-w-xl"
-          role="img"
-          aria-label="Radar chart of competency scores"
-        >
-          {/* grid rings */}
-          {gridPolys.map((points, i) => (
-            <polygon
-              key={i}
-              data-radar-grid
-              points={points}
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth="1"
-            />
-          ))}
+          <div className="flex justify-center h-[400px] md:h-[600px] w-full max-w-4xl mx-auto">
+            <Radar data={data} options={options} />
+          </div>
 
-          {/* axes */}
-          {axes.map((p, i) => (
-            <line
-              key={i}
-              data-radar-grid
-              x1={CENTER}
-              y1={CENTER}
-              x2={p.x}
-              y2={p.y}
-              stroke="#e5e7eb"
-              strokeWidth="1"
-            />
-          ))}
-
-          {/* data shape */}
-          <polygon
-            data-radar-shape
-            points={dataPolygon}
-            fill="#005bb5"
-            fillOpacity="0.1"
-            stroke="#005bb5"
-            strokeWidth="2.5"
-            strokeLinejoin="round"
-          />
-
-          {/* data dots */}
-          {dataPoints.map((p, i) => (
-            <circle
-              key={i}
-              data-radar-dot
-              cx={p.x}
-              cy={p.y}
-              r="5"
-              fill="#005bb5"
-              stroke="white"
-              strokeWidth="2"
-            />
-          ))}
-
-          {/* labels */}
-          {labels.map((l, i) => (
-            <text
-              key={i}
-              data-radar-label
-              x={l.x}
-              y={l.y}
-              textAnchor="middle"
-              className="fill-gray-600 text-[11px] font-semibold"
-            >
-              <tspan x={l.x} dy="-2">{l.text}</tspan>
-              <tspan x={l.x} dy="14" className="fill-[#005bb5] font-serif text-[13px]">{l.score}</tspan>
-            </text>
-          ))}
-        </svg>
+        </div>
       </div>
     </section>
   );
