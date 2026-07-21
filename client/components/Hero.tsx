@@ -7,16 +7,11 @@ import { gsap, prefersReducedMotion } from "../lib/gsap";
 import { useStudentData } from "../data/StudentDataContext";
 import { useAuth } from "../contexts/AuthContext";
 
-const RING_R = 26;
-const RING_C = 2 * Math.PI * RING_R;
-
 export default function Hero() {
   const { student } = useStudentData();
   const { logout } = useAuth();
   const router = useRouter();
   const scope = useRef<HTMLElement>(null);
-  // Falls back to the bundled placeholder if student.photo is missing
-  // (e.g. no profile image uploaded) or the image file fails to load.
   const [photoSrc, setPhotoSrc] = useState(student.photo ?? "/student.svg");
 
   const handleLogout = async () => {
@@ -31,208 +26,198 @@ export default function Hero() {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      tl.from("[data-hero-meta]", { y: 20, opacity: 0, duration: 0.6, stagger: 0.08 })
-        .from("[data-hero-name] span", {
-          yPercent: 110,
-          duration: 0.9,
-          stagger: 0.05,
-          ease: "power4.out",
-        }, "-=0.3")
-        .from("[data-hero-sub]", { y: 24, opacity: 0, duration: 0.6, stagger: 0.1 }, "-=0.5")
-        .from("[data-photo-frame]", {
-          y: 40,
-          opacity: 0,
-          duration: 0.9,
-          ease: "power3.out",
-        }, "-=0.7")
-        .from("[data-photo-offset]", {
-          x: 0,
-          y: 0,
-          duration: 0.8,
-          ease: "power3.inOut",
-        }, "-=0.6")
-        .from("[data-verified-tag]", {
-          scale: 0,
-          rotation: -12,
-          duration: 0.5,
-          ease: "back.out(2)",
-        }, "-=0.4")
-        .from("[data-grade-badge]", {
-          y: 24,
-          opacity: 0,
-          duration: 0.6,
-          ease: "back.out(1.6)",
-        }, "-=0.35")
-        .fromTo("[data-ring]",
-          { strokeDashoffset: RING_C },
-          {
-            strokeDashoffset: RING_C * (1 - student.readiness / 100),
-            duration: 1.4,
-            ease: "power2.inOut",
-          },
-          "-=0.3"
-        )
-        .from("[data-ring-num]", {
-          textContent: 0,
-          snap: { textContent: 1 },
-          duration: 1.4,
-          ease: "power2.inOut",
-        }, "<");
+      tl.from("[data-animate]", { 
+        y: 20, 
+        opacity: 0, 
+        duration: 0.6, 
+        stagger: 0.05 
+      });
     }, el);
 
     return () => ctx.revert();
-  }, [student.readiness]);
-
-  const nameLetters = student.name.split("");
+  }, []);
 
   return (
-    <header ref={scope} className="relative overflow-hidden bg-ink text-paper">
-      {/* faint grid texture */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-        }}
-      />
-      {/* soft gold glow behind the portrait */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-40 top-1/4 h-[480px] w-[480px] rounded-full bg-gold/10 blur-[140px]"
-      />
+    <header ref={scope} className="bg-[#f9fafb] text-gray-900 font-sans selection:bg-blue-100 pb-16 pt-[120px]">
+      <div className="w-full max-w-[1600px] mx-auto relative px-[100px]">
+        
+        {/* Certificate Card */}
+        <div data-animate className="bg-white rounded-3xl overflow-hidden">
+          
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start p-8 md:p-10 pb-6 md:pb-8 gap-6">
+            <div className="flex items-start gap-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200 mt-1">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>
+              <div>
+                <h2 className="font-serif text-2xl md:text-[28px] text-gray-900 leading-tight">
+                  Viral Cat Academy
+                </h2>
+                <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mt-2">
+                  Grade Card · Industry Readiness Report
+                </p>
+              </div>
+            </div>
+            
+            <div className="text-left sm:text-right flex flex-col gap-1.5">
+              <p className="font-mono text-[11px] md:text-xs text-gray-500 tracking-wider">
+                Doc &bull; {student.docNo}
+              </p>
+              <p className="text-sm md:text-[15px] text-gray-700 font-medium">
+                Issued {student.issued}
+              </p>
+            </div>
+          </div>
 
-      <div className="relative mx-auto max-w-6xl px-6 py-16 md:py-24">
-        {/* document meta row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.22em] text-paper/60">
-          <span data-hero-meta>Viral Cat Academy · Grade Card</span>
-          <span data-hero-meta className="hidden sm:inline">Doc {student.docNo}</span>
-          <span data-hero-meta>Issued {student.issued}</span>
-          <button
-            data-hero-meta
-            type="button"
-            onClick={handleLogout}
-            className="rounded-full border border-paper/25 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.22em] text-paper/70 transition hover:border-gold hover:text-gold"
-          >
-            Log out
-          </button>
-        </div>
+          {/* Divider */}
+          <div className="h-px bg-gray-100 w-full"></div>
 
-        <div className="mt-12 grid items-center gap-14 md:mt-16 md:grid-cols-[1.15fr_auto] lg:gap-20">
-          {/* ── left: identity ─────────────────────────────── */}
-          <div>
-            <p data-hero-sub className="font-mono text-xs uppercase tracking-[0.3em] text-gold">
-              Student · Batch {student.batch}
-            </p>
+          {/* Body */}
+          <div className="p-8 md:p-12 md:pt-14">
+            
+            {/* Photo & Badge */}
+            <div className="relative inline-block mb-10">
+              <div className="w-32 h-32 md:w-[140px] md:h-[140px] rounded-3xl bg-gray-100 border border-gray-200 shadow-inner overflow-hidden relative flex items-center justify-center">
+                <Image
+                  src={photoSrc || "/student.svg"}
+                  alt={`Portrait of ${student.name}`}
+                  fill
+                  sizes="140px"
+                  className="object-cover opacity-90"
+                  unoptimized={photoSrc?.endsWith(".svg") ?? true}
+                  onError={() => setPhotoSrc("/student.svg")}
+                />
+              </div>
+              <div className="absolute -bottom-3 -right-6 bg-white border border-gray-200 rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#005bb5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span className="text-[#005bb5] text-[11px] font-bold tracking-wide">Verified</span>
+              </div>
+            </div>
 
-            <h1
-              data-hero-name
-              className="mt-3 overflow-hidden font-display text-7xl font-semibold leading-none tracking-tight md:text-[8rem]"
-              aria-label={student.name}
-            >
-              {nameLetters.map((ch, i) => (
-                <span key={i} className="inline-block" aria-hidden>
-                  {ch}
-                </span>
-              ))}
-            </h1>
+            {/* Student Name */}
+            <div>
+              <p className="font-mono text-[11px] md:text-xs font-bold tracking-[0.2em] text-gray-500 uppercase">
+                Student &middot; Batch {student.batch}
+              </p>
+              <h1 className="font-serif text-[64px] md:text-[88px] text-gray-900 leading-none tracking-tight mt-3">
+                {student.name}
+              </h1>
+            </div>
 
-            <p data-hero-sub className="mt-5 max-w-xl text-lg text-paper/80">
-              {student.program} · {student.duration}
-            </p>
-            <p data-hero-sub className="mt-4 max-w-xl text-sm leading-relaxed text-paper/60">
+            {/* Program Title */}
+            <h2 className="text-[#005bb5] text-2xl md:text-[28px] font-medium tracking-tight mt-10 md:mt-12">
+              {student.program}
+            </h2>
+
+            {/* Meta row */}
+            <div className="mt-5 flex flex-wrap items-center gap-6 text-sm md:text-[15px] text-gray-600">
+              <span className="font-mono text-gray-900 font-semibold tracking-widest uppercase text-xs md:text-sm">
+                VC-{student.id}
+              </span>
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                  <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                <span>{student.program}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>{student.duration}</span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <p className="mt-8 text-gray-600 leading-relaxed text-[15px] md:text-[17px]">
               {student.summary}
             </p>
 
-            <div data-hero-sub className="mt-8 flex flex-wrap items-center gap-3">
-              <span className="rounded-full bg-mint px-5 py-2 font-mono text-xs font-medium uppercase tracking-widest text-ink">
-                {student.status}
-              </span>
-              <span className="rounded-full border border-paper/25 px-5 py-2 font-mono text-xs uppercase tracking-widest text-paper/70">
-                ID {student.id}
-              </span>
+            {/* Stats Grid */}
+            <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Card 1 */}
+              <div className="border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px] bg-white">
+                <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
+                  Overall Grade
+                </div>
+                <div className="font-serif text-[34px] md:text-[40px] text-gray-900 flex items-start leading-none tracking-tight">
+                  {student.overallGrade?.replace('+', '') || '—'}
+                  {student.overallGrade?.includes('+') && <span className="text-[20px] md:text-[24px] mt-1.5">+</span>}
+                  {student.overallGrade?.includes('-') && <span className="text-[20px] md:text-[24px] mt-1.5">-</span>}
+                </div>
+              </div>
+
+              {/* Card 2 */}
+              <div className="border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px] bg-white">
+                <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
+                  Industry Readiness
+                </div>
+                <div className="font-serif text-[34px] md:text-[40px] text-gray-900 leading-none tracking-tight">
+                  {student.readiness}%
+                </div>
+              </div>
+
+              {/* Card 3 */}
+              <div className="border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px] bg-white">
+                <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                  Status
+                </div>
+                <div className="font-serif text-[28px] md:text-[34px] text-gray-900 tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis capitalize">
+                  {student.status?.replace('_', ' ') || '—'}
+                </div>
+              </div>
+
+              {/* Card 4 */}
+              <div className="border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px] bg-white">
+                <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
+                  Cohort
+                </div>
+                <div className="font-serif text-[28px] md:text-[34px] text-gray-900 tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                  {student.batch || '—'}
+                </div>
+              </div>
             </div>
 
-            <p data-hero-sub className="mt-10 font-mono text-[11px] text-paper/45">
-              Verify · {student.verifyUrl}
-            </p>
-          </div>
+            {/* QR Verification Section */}
+            <div className="mt-20 flex flex-col items-center pb-10">
+              {/* Blank QR Box Placeholder */}
+              <div className="w-[140px] h-[140px] border border-gray-200 rounded-2xl shadow-sm bg-white mb-6 flex items-center justify-center p-2 relative overflow-hidden">
+                {/* Very subtle grid background */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:10px_10px]"></div>
+              </div>
 
-          {/* ── right: student portrait ─────────────────────── */}
-          <div data-photo-frame className="relative mx-auto w-64 sm:w-72 md:w-80">
-            {/* offset gold frame behind the photo */}
-            <div
-              data-photo-offset
-              aria-hidden
-              className="absolute -right-4 -top-4 h-full w-full rounded-3xl border-2 border-gold/50"
-            />
-
-            {/* photo */}
-            <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-paper/15 bg-[#1c2333] shadow-2xl shadow-black/50">
-              <Image
-                src={photoSrc || "/student.svg"}
-                alt={`Portrait of ${student.name}`}
-                fill
-                sizes="(min-width: 768px) 320px, 288px"
-                className="object-cover"
-                priority
-                unoptimized={photoSrc?.endsWith(".svg") ?? true}
-                onError={() => setPhotoSrc("/student.svg")}
-              />
-              {/* bottom fade so the badge sits cleanly on the photo */}
-              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-ink/90 to-transparent" />
-
-              {/* verified tag */}
-              <span
-                data-verified-tag
-                className="absolute right-3 top-3 rounded-full border border-gold/60 bg-ink/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-gold backdrop-blur"
-              >
-                ✓ Verified
-              </span>
-            </div>
-
-            {/* grade + readiness badge overlapping the photo */}
-            <div
-              data-grade-badge
-              className="absolute -bottom-8 left-1/2 flex w-[105%] -translate-x-1/2 items-center gap-4 rounded-2xl border border-paper/10 bg-[#1b2231]/95 p-4 shadow-xl shadow-black/40 backdrop-blur"
-            >
-              {/* mini readiness ring */}
-              <div className="relative h-16 w-16 shrink-0">
-                <svg viewBox="0 0 64 64" className="h-full w-full -rotate-90">
-                  <circle cx="32" cy="32" r={RING_R} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="5" />
-                  <circle
-                    data-ring
-                    cx="32"
-                    cy="32"
-                    r={RING_R}
-                    fill="none"
-                    stroke="var(--color-gold)"
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                    strokeDasharray={RING_C}
-                    strokeDashoffset={RING_C * (1 - student.readiness / 100)}
-                  />
+              {/* Verification Link */}
+              <a href={student.verifyUrl || "#"} className="flex items-center gap-2 text-[#005bb5] hover:text-blue-800 transition-colors font-semibold text-[15px]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="5" height="5" x="3" y="3" rx="1"/>
+                  <rect width="5" height="5" x="16" y="3" rx="1"/>
+                  <rect width="5" height="5" x="3" y="16" rx="1"/>
+                  <path d="M21 16h-3a2 2 0 0 0-2 2v3"/>
+                  <path d="M21 21v.01"/>
+                  <path d="M12 7v3a2 2 0 0 1-2 2H7"/>
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center font-mono text-sm text-paper">
-                  <span data-ring-num>{student.readiness}</span>%
-                </span>
-              </div>
+                Verify Student Profile
+              </a>
 
-              <div className="min-w-0">
-                <p className="font-display text-3xl font-semibold leading-none text-gold">
-                  {student.overallGrade}
-                </p>
-                <p className="mt-1 truncate font-mono text-[10px] uppercase tracking-[0.2em] text-paper/55">
-                  Overall Grade · Industry Readiness
-                </p>
+              {/* Plain Text URL */}
+              <div className="mt-3 text-gray-500 font-mono text-[11px] tracking-widest uppercase">
+                {student.verifyUrl ? student.verifyUrl.replace('https://', '') : `viralcat.academy/v/${student.id}`}
               </div>
             </div>
+
           </div>
         </div>
-
-        {/* spacer for the overlapping badge */}
-        <div className="h-10 md:h-6" />
       </div>
     </header>
   );

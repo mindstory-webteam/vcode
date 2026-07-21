@@ -21,6 +21,19 @@ export default function LoginPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+
+    const emailRegex = /^[^\s@]+@gmail\.com$/i;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid @gmail.com address.");
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError("Must be 8+ characters with uppercase, lowercase, number, and symbol.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       await login(email, password);

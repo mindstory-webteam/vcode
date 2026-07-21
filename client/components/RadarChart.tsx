@@ -112,7 +112,7 @@ export default function RadarChart() {
               data-radar-grid
               points={points}
               fill="none"
-              stroke="var(--color-line)"
+              stroke="#e5e7eb"
               strokeWidth="1"
             />
           ))}
@@ -126,7 +126,7 @@ export default function RadarChart() {
               y1={CENTER}
               x2={p.x}
               y2={p.y}
-              stroke="var(--color-line)"
+              stroke="#e5e7eb"
               strokeWidth="1"
             />
           ))}
@@ -135,9 +135,9 @@ export default function RadarChart() {
           <polygon
             data-radar-shape
             points={dataPolygon}
-            fill="var(--color-cobalt)"
-            fillOpacity="0.14"
-            stroke="var(--color-cobalt)"
+            fill="#005bb5"
+            fillOpacity="0.1"
+            stroke="#005bb5"
             strokeWidth="2.5"
             strokeLinejoin="round"
           />
@@ -150,7 +150,7 @@ export default function RadarChart() {
               cx={p.x}
               cy={p.y}
               r="5"
-              fill="var(--color-gold)"
+              fill="#005bb5"
               stroke="white"
               strokeWidth="2"
             />
@@ -164,10 +164,10 @@ export default function RadarChart() {
               x={l.x}
               y={l.y}
               textAnchor="middle"
-              className="fill-ink/70 text-[11px] font-medium"
+              className="fill-gray-600 text-[11px] font-semibold"
             >
               <tspan x={l.x} dy="-2">{l.text}</tspan>
-              <tspan x={l.x} dy="14" className="fill-cobalt font-mono">{l.score}</tspan>
+              <tspan x={l.x} dy="14" className="fill-[#005bb5] font-serif text-[13px]">{l.score}</tspan>
             </text>
           ))}
         </svg>

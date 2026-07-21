@@ -10,21 +10,21 @@ export default function SectionHeading({
   badge,
 }: SectionHeadingProps) {
   return (
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-gray-200 pb-4">
       <div>
-        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-cobalt">
+        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-gray-500 font-bold">
           {eyebrow}
         </p>
-        <h2 className="mt-1 font-display text-3xl font-medium tracking-tight text-ink md:text-4xl">
+        <h2 className="mt-1 font-serif text-3xl font-medium tracking-tight text-gray-900 md:text-4xl">
           {title}
         </h2>
       </div>
       {badge && (
         <span
-          className={`rounded-full border px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest ${
+          className={`rounded-full border px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest font-semibold ${
             badge.tone === "green"
-              ? "border-mint/40 bg-mint/10 text-mint"
-              : "border-cobalt/30 bg-cobalt/5 text-cobalt"
+              ? "border-green-200 bg-green-50 text-green-700"
+              : "border-blue-200 bg-blue-50 text-[#005bb5]"
           }`}
         >
           {badge.label}

@@ -16,9 +16,9 @@ export default function Achievements() {
           <div
             key={a}
             data-item
-            className="flex min-h-28 items-center justify-center rounded-2xl border border-gold/30 bg-gold/5 px-4 text-center"
+            className="flex min-h-28 items-center justify-center rounded-2xl border border-yellow-200 bg-yellow-50 px-4 text-center shadow-sm"
           >
-            <p className="text-sm font-medium text-gold-deep">{a}</p>
+            <p className="text-sm font-medium text-yellow-800">{a}</p>
           </div>
         ))}
       </Reveal>

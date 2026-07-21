@@ -17,12 +17,12 @@ export default function Portfolio() {
             <article
               key={p.title}
               data-item
-              className="group flex flex-col rounded-2xl border border-line bg-paper p-6 transition-all hover:-translate-y-1 hover:border-cobalt/30 hover:shadow-xl hover:shadow-ink/5"
+              className="group flex flex-col rounded-2xl border border-gray-200 bg-white p-6 transition-all hover:-translate-y-1 hover:border-blue-300 shadow-sm hover:shadow-md"
             >
-              <p className="font-mono text-[11px] uppercase tracking-widest text-cobalt">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-[#005bb5] font-semibold">
                 {p.role}
               </p>
-              <h3 className="mt-2 font-display text-xl font-medium text-ink">
+              <h3 className="mt-2 font-serif text-xl font-medium text-gray-900">
                 {p.title}
               </h3>
 
@@ -30,14 +30,14 @@ export default function Portfolio() {
                 {p.tools.map((t) => (
                   <span
                     key={t}
-                    className="rounded-md bg-ink/5 px-2 py-0.5 font-mono text-[11px] text-ink/60"
+                    className="rounded-md bg-gray-100 px-2 py-0.5 font-mono text-[11px] text-gray-600"
                   >
                     {t}
                   </span>
                 ))}
               </div>
 
-              <p className="mt-auto pt-6 text-sm font-medium text-mint">
+              <p className="mt-auto pt-6 text-sm font-medium text-green-700">
                 {p.result}
               </p>
             </article>

@@ -92,7 +92,7 @@ export default function DashboardPage() {
 
   return (
     <StudentDataProvider data={data}>
-      <main>
+      <main className="bg-[#f9fafb] text-gray-900 min-h-screen">
         <Hero />
         <Evaluation />
         <ReadinessBars />

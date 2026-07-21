@@ -178,48 +178,48 @@ export default function Verification() {
 
         <Reveal stagger="[data-item]" className="grid grid-cols-2 gap-4 md:grid-cols-5">
           {interviewReadiness.map((m) => (
-            <div key={m.label} data-item className="rounded-2xl border border-line bg-white p-5 text-center">
-              <CountUp to={m.value} suffix="%" className="font-display text-3xl font-semibold text-cobalt" />
-              <p className="mt-2 text-xs text-ink/60">{m.label}</p>
+            <div key={m.label} data-item className="rounded-2xl border border-gray-200 bg-white p-5 text-center shadow-sm">
+              <CountUp to={m.value} suffix="%" className="font-serif text-[32px] font-semibold text-[#005bb5]" />
+              <p className="mt-2 text-xs text-gray-500 font-medium">{m.label}</p>
             </div>
           ))}
         </Reveal>
       </section>
 
       {/* Verification footer — physical certificate */}
-      <footer ref={scope} className="bg-ink py-20 text-paper">
+      <footer ref={scope} className="py-20 text-gray-900 border-t border-gray-200">
         <div className="mx-auto max-w-6xl px-6">
-          <p className="mb-8 text-center font-mono text-[11px] uppercase tracking-[0.3em] text-gold">
+          <p className="mb-8 text-center font-mono text-[11px] uppercase tracking-[0.3em] text-gray-500 font-bold">
             Verified Professional Grade Card
           </p>
 
           <Reveal>
             <div
               data-certificate
-              className="relative overflow-hidden rounded-2xl bg-paper text-ink shadow-2xl shadow-black/50"
+              className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 text-gray-900 shadow-xl shadow-gray-200/50"
             >
               {/* ── punch-hole perforation strip (left edge) ── */}
               <div aria-hidden className="absolute inset-y-0 left-0 hidden w-12 sm:block">
                 <div className="flex h-full flex-col items-center justify-around py-6">
                   {Array.from({ length: 12 }, (_, i) => (
-                    <span key={i} className="h-3.5 w-3.5 rounded-full bg-ink shadow-inner" />
+                    <span key={i} className="h-3.5 w-3.5 rounded-full bg-gray-100 shadow-inner" />
                   ))}
                 </div>
                 {/* tear line */}
-                <div className="absolute inset-y-4 right-0 border-r border-dashed border-ink/25" />
+                <div className="absolute inset-y-4 right-0 border-r border-dashed border-gray-200" />
               </div>
 
               <div className="grid gap-12 p-8 sm:pl-20 md:grid-cols-2 md:p-12 md:pl-24">
                 {/* ── LEFT · seal, stamps & punch marks ── */}
                 <div>
-                  <h2 className="font-display text-3xl font-medium md:text-4xl">
+                  <h2 className="font-serif text-3xl font-medium md:text-4xl text-gray-900">
                     Authenticated by
                     <br />
                     Viral Cat Academy
                   </h2>
-                  <p className="mt-4 max-w-sm text-sm text-ink/60">
+                  <p className="mt-4 max-w-sm text-sm text-gray-500">
                     Verify this credential at{" "}
-                    <span className="font-medium text-ink">{student.verifyUrl}</span>.
+                    <span className="font-medium text-[#005bb5]">{student.verifyUrl}</span>.
                   </p>
 
                   <div className="mt-8 flex flex-wrap items-center gap-6">
@@ -242,7 +242,7 @@ export default function Verification() {
                     {/* date stamp */}
                     <div
                       data-date-stamp
-                      className="rotate-[5deg] select-none rounded border-2 border-ink/50 px-3 py-1.5 font-mono text-xs uppercase tracking-[0.2em] text-ink/60"
+                      className="rotate-[5deg] select-none rounded border-2 border-gray-300 px-3 py-1.5 font-mono text-xs uppercase tracking-[0.2em] text-gray-500 font-semibold"
                     >
                       {student.issued}
                     </div>
@@ -250,7 +250,7 @@ export default function Verification() {
 
                   <div className="mt-8 flex items-center gap-4">
                     <QrBlock code={student.id} />
-                    <p className="max-w-40 font-mono text-[10px] uppercase leading-relaxed tracking-widest text-ink/50">
+                    <p className="max-w-40 font-mono text-[10px] uppercase leading-relaxed tracking-widest text-gray-400 font-semibold">
                       Verification QR · Scan to authenticate
                     </p>
                   </div>
@@ -260,16 +260,16 @@ export default function Verification() {
                 <div className="flex flex-col justify-end md:items-end md:text-right">
                   <div className="w-full max-w-xs">
                     <Signature />
-                    <div className="mt-2 border-t border-ink/30 pt-3">
-                      <p className="font-medium text-ink">Mentor Signature</p>
-                      <p className="mt-0.5 text-sm text-ink/55">Head of Digital Marketing · VCA</p>
+                    <div className="mt-2 border-t border-gray-200 pt-3">
+                      <p className="font-medium text-gray-900">Mentor Signature</p>
+                      <p className="mt-0.5 text-sm text-gray-500">Head of Digital Marketing · VCA</p>
                     </div>
 
-                    <div className="mt-8 rounded-xl border border-line bg-white p-4 text-left md:text-right">
-                      <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-ink/45">
+                    <div className="mt-8 rounded-xl border border-gray-200 bg-gray-50 p-4 text-left md:text-right">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gray-500 font-semibold">
                         Academy Seal · Official mark of authenticity
                       </p>
-                      <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.25em] text-ink/45">
+                      <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.25em] text-gray-500 font-semibold">
                         Doc {student.docNo}
                       </p>
                     </div>
@@ -278,8 +278,8 @@ export default function Verification() {
               </div>
 
               {/* bottom strip */}
-              <div className="border-t border-line bg-white/60 px-8 py-4 sm:pl-20 md:pl-24">
-                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-ink/40">
+              <div className="border-t border-gray-200 bg-gray-50 px-8 py-4 sm:pl-20 md:pl-24">
+                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-gray-400 font-semibold">
                   Generated by Viral Cat Academy Portal · Student {student.name} · ID {student.id}
                 </p>
               </div>

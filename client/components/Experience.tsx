@@ -18,16 +18,16 @@ export default function Experience() {
 
       <Reveal
         stagger="[data-item]"
-        className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-4"
+        className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 md:grid-cols-4 shadow-sm"
       >
         {experience.stats.map((s) => (
-          <div key={s.label} data-item className="bg-white p-6 md:p-8">
+          <div key={s.label} data-item className="bg-white p-6 flex flex-col justify-between h-[120px]">
             <CountUp
               to={s.value}
               suffix={s.suffix}
-              className="font-display text-4xl font-semibold text-ink md:text-5xl"
+              className="font-serif text-[34px] md:text-[40px] text-gray-900 leading-none tracking-tight"
             />
-            <p className="mt-2 text-sm text-ink/60">{s.label}</p>
+            <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 mt-2">{s.label}</p>
           </div>
         ))}
       </Reveal>

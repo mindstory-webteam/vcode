@@ -20,10 +20,10 @@ export default function Skills() {
           <span
             key={s.label}
             data-item
-            className="inline-flex items-center gap-2.5 rounded-full border border-line bg-white py-2 pl-4 pr-2 text-sm text-ink transition-colors hover:border-cobalt/40"
+            className="inline-flex items-center gap-2.5 rounded-full border border-gray-200 bg-white py-2 pl-4 pr-2 text-sm text-gray-700 font-medium transition-colors hover:border-blue-300 shadow-sm"
           >
             {s.label}
-            <span className="rounded-full bg-cobalt/10 px-2.5 py-0.5 font-mono text-xs text-cobalt">
+            <span className="rounded-full bg-blue-50 px-2.5 py-0.5 font-mono text-xs text-[#005bb5] font-semibold">
               {s.score}
             </span>
           </span>

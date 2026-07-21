@@ -3,11 +3,9 @@
 import { useLayoutEffect, useRef } from "react";
 import { gsap, prefersReducedMotion } from "../lib/gsap";
 import { useStudentData } from "../data/StudentDataContext";
-import SectionHeading from "./SectionHeading";
-import Reveal from "./Reveal";
 
 export default function Evaluation() {
-  const { evaluation } = useStudentData();
+  const { student, evaluation } = useStudentData();
   const scope = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
@@ -15,64 +13,64 @@ export default function Evaluation() {
     if (!el || prefersReducedMotion()) return;
 
     const ctx = gsap.context(() => {
-      gsap.utils.toArray<HTMLElement>("[data-bar]").forEach((bar) => {
-        gsap.fromTo(
-          bar,
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            duration: 1.1,
-            ease: "power3.out",
-            scrollTrigger: { trigger: bar, start: "top 90%", once: true },
-          }
-        );
+      gsap.from("[data-animate-eval]", {
+        y: 20,
+        opacity: 0,
+        duration: 0.6,
+        scrollTrigger: { trigger: el, start: "top 80%", once: true },
+        ease: "power3.out"
       });
     }, el);
 
     return () => ctx.revert();
-  }, [evaluation]);
+  }, []);
 
   return (
-    <section ref={scope} className="mx-auto max-w-6xl px-6 py-20">
-      <SectionHeading
-        eyebrow="Section 01"
-        title="Professional Evaluation"
-        badge={{ label: "Overall A+ · Verified", tone: "blue" }}
-      />
-
-      <Reveal stagger="[data-item]" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {evaluation.map((s) => (
-          <article
-            key={s.label}
-            data-item
-            className="group rounded-2xl border border-line bg-white p-6 transition-shadow hover:shadow-lg hover:shadow-ink/5"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-sm font-medium text-ink">{s.label}</h3>
-              <span
-                className={`rounded-lg px-2.5 py-1 font-display text-lg font-semibold leading-none ${
-                  s.grade === "A+" ? "bg-gold/15 text-gold-deep" : "bg-cobalt/10 text-cobalt"
-                }`}
-              >
-                {s.grade}
-              </span>
+    <section ref={scope} className="bg-[#f9fafb] pb-16">
+      <div className="w-full max-w-[1600px] mx-auto relative px-4 sm:px-[100px]">
+        <div data-animate-eval className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden px-8 md:px-14 pt-10 md:pt-12 pb-6 md:pb-10">
+          
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-8 border-b border-gray-200 mb-2 gap-4">
+            <div className="flex items-start gap-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#005bb5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1">
+                <circle cx="12" cy="8" r="6"/>
+                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+              </svg>
+              <div>
+                <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase">
+                  Section 01
+                </p>
+                <h2 className="mt-1 font-serif text-3xl md:text-4xl text-gray-900 leading-tight">
+                  Professional Evaluation
+                </h2>
+              </div>
             </div>
-
-            <p className="mt-5 font-mono text-3xl text-ink">
-              {s.score}
-              <span className="text-sm text-ink/40">/100</span>
-            </p>
-
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line">
-              <div
-                data-bar
-                className="h-full origin-left rounded-full bg-cobalt"
-                style={{ width: `${s.score}%` }}
-              />
+            
+            <div className="font-mono text-[11px] md:text-xs font-bold tracking-widest text-gray-400 uppercase sm:mt-4">
+              Overall {student.overallGrade?.replace('+', '') || 'A'}{student.overallGrade?.includes('+') ? '+' : ''}
             </div>
-          </article>
-        ))}
-      </Reveal>
+          </div>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-20">
+            {evaluation.map((s, i) => (
+              <div key={s.label} className="flex items-center justify-between py-6 border-b border-gray-100">
+                <div>
+                  <h3 className="text-[17px] font-medium text-gray-900">{s.label}</h3>
+                  <p className="text-[12px] font-mono text-gray-400 mt-1 uppercase tracking-widest">
+                    Score {s.score}/100
+                  </p>
+                </div>
+                <div className={`font-serif text-[22px] font-bold ${s.grade.includes('+') ? 'text-gray-400' : 'text-[#005bb5]'}`}>
+                  {s.grade}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+        </div>
+      </div>
     </section>
   );
 }
