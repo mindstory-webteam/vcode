@@ -49,11 +49,7 @@ export default function InterviewReadiness() {
           {/* Header */}
           <div className="flex items-center justify-between pb-8 border-b border-gray-200 mb-14">
             <div className="flex items-start gap-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#005bb5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1">
-                <circle cx="12" cy="12" r="10" />
-                <circle cx="12" cy="12" r="6" />
-                <circle cx="12" cy="12" r="2" />
-              </svg>
+          
               <div>
                 <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase">
                   Section 11

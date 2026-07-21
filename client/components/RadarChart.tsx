@@ -119,10 +119,7 @@ export default function RadarChart() {
           
           {/* Header */}
           <div className="flex items-start gap-4 pb-8 border-b border-gray-200 mb-12">
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#005bb5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1">
-               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
-               <circle cx="12" cy="11" r="3"/>
-            </svg>
+           
             <div>
               <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase">
                 Section 03
@@ -134,7 +131,7 @@ export default function RadarChart() {
           </div>
 
           <div className="flex justify-center h-[400px] md:h-[600px] w-full max-w-4xl mx-auto">
-            <Radar data={data} options={options} />
+            <Radar data={data} options={options as any} />
           </div>
 
         </div>

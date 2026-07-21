@@ -17,7 +17,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/login");
+    router.replace("/");
   };
 
   const [hidden, setHidden] = useState(false);

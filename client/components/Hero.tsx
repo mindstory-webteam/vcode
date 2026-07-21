@@ -42,7 +42,7 @@ export default function Hero() {
       <div className="w-full max-w-[1600px] mx-auto relative px-[100px]">
         
         {/* Certificate Card */}
-        <div data-animate className="bg-white rounded-3xl overflow-hidden">
+        <div data-animate className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
           
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start p-8 md:p-10 pb-6 md:pb-8 gap-6">

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { ApiError } from "../lib/api";
 import VcaCat from "../components/VcaCat";
+import { encodeVCode } from "../lib/hashUrl";
 
 
 export default function LoginPage() {
@@ -36,8 +37,19 @@ export default function LoginPage() {
 
     setSubmitting(true);
     try {
-      await login(email, password);
-      router.replace(params.get("redirect") || "/dashboard");
+      const authUser = await login(email, password);
+      
+      let redirectUrl = params.get("redirect");
+      if (!redirectUrl || redirectUrl === "/dashboard") {
+        if (authUser.role === "student" && authUser.studentInfo?.rollNumber) {
+          redirectUrl = `/student-progress-card/${encodeVCode(authUser.studentInfo.rollNumber)}`;
+        } else {
+          // Fallback if not a student or missing rollNumber
+          redirectUrl = "/student-progress-card/unknown";
+        }
+      }
+      
+      router.replace(redirectUrl);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
     } finally {

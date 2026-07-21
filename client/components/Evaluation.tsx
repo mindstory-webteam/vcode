@@ -33,10 +33,6 @@ export default function Evaluation() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-8 border-b border-gray-200 mb-2 gap-4">
             <div className="flex items-start gap-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#005bb5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-1">
-                <circle cx="12" cy="8" r="6"/>
-                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
-              </svg>
               <div>
                 <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase">
                   Section 01
