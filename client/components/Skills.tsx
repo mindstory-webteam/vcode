@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from "react";
 import { gsap, prefersReducedMotion } from "../lib/gsap";
 import { useStudentData } from "../data/StudentDataContext";
 import CountUp from "./CountUp";
+import { BadgeCheck } from "lucide-react";
 
 export default function Skills() {
   const { verifiedSkills } = useStudentData();
@@ -61,10 +62,7 @@ export default function Skills() {
                 className="flex items-center justify-between border border-gray-200 rounded-full px-6 py-3.5 transition-colors hover:border-blue-200"
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#005bb5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                    <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
-                    <path d="m9 12 2 2 4-4"/>
-                  </svg>
+                  <BadgeCheck size={18} className="text-[#005bb5] flex-shrink-0" />
                   <span className="text-[15px] font-bold text-gray-800 truncate">
                     {s.label}
                   </span>

@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { gsap, prefersReducedMotion } from "../lib/gsap";
 import { useStudentData } from "../data/StudentDataContext";
+import { Check } from "lucide-react";
 import CountUp from "./CountUp";
 
 export default function InterviewReadiness() {
@@ -62,9 +63,7 @@ export default function InterviewReadiness() {
 
             {/* Status Pill */}
             <div className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full border border-green-300 bg-green-50 text-green-700">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6 9 17l-5-5"/>
-              </svg>
+              <Check size={16} strokeWidth={3} />
               <span className="font-bold text-[12px] tracking-wide uppercase">
                 {student?.status || "Ready for Placement"}
               </span>

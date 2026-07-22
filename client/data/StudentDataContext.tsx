@@ -44,7 +44,13 @@ export interface StudentData {
   };
   evaluation: SkillScore[];
   readinessBars: { label: string; value: number }[];
-  experience: { role: string; stats: { value: number; suffix: string; label: string }[] };
+  experience: {
+    role: string;
+    organization: string;
+    durationLabel: string;
+    hours: number | null;
+    stats: { value: number; suffix: string; label: string }[];
+  };
   verifiedSkills: { label: string; score: number }[];
   portfolio: PortfolioItem[];
   achievements: string[];
@@ -177,7 +183,10 @@ export function mapReportToStudentData(user: any, report: any): StudentData {
       { label: "Portfolio Depth", value: readinessBreakdown.portfolioDepth ?? 0 },
     ],
     experience: {
-      role: [experience.role, experience.organization].filter(Boolean).join(" · "),
+      role: experience.role || "",
+      organization: experience.organization || "",
+      durationLabel: experience.durationLabel || "",
+      hours: experience.hours ?? null,
       stats: (experience.stats || []).map((s: any) => ({
         label: s.label,
         ...parseStat(s.value),

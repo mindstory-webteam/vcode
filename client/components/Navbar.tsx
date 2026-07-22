@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect, useRef } from "react";
+import { LogOut } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -26,6 +27,7 @@ export default function Navbar() {
     const handleScroll = () => {
       if (window.scrollY > 80) {
         setHidden(true);
+        setDropdownOpen(false);
       } else {
         setHidden(false);
       }
@@ -90,11 +92,7 @@ export default function Navbar() {
                   onClick={handleLogout}
                   className="flex items-center gap-3 px-4 py-3 mt-1 text-sm text-red-600 font-medium hover:bg-red-50 transition-colors w-full text-left"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
+                  <LogOut size={16} />
                   Log out
                 </button>
               </div>

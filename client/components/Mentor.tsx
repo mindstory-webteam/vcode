@@ -3,20 +3,13 @@
 import { useLayoutEffect, useRef } from "react";
 import { gsap, prefersReducedMotion } from "../lib/gsap";
 import { useStudentData } from "../data/StudentDataContext";
+import { Star } from "lucide-react";
 
-function Star({ filled }: { filled: boolean }) {
+function StarIcon({ filled }: { filled: boolean }) {
   if (filled) {
-    return (
-      <svg data-star viewBox="0 0 24 24" className="h-[22px] w-[22px] fill-[#005bb5] stroke-[#005bb5] stroke-[1.5]" aria-hidden>
-        <path strokeLinejoin="round" strokeLinecap="round" d="M12 2l2.9 6.26 6.86.6-5.2 4.53 1.55 6.7L12 16.55 5.89 20.1l1.55-6.7-5.2-4.54 6.86-.6L12 2z" />
-      </svg>
-    );
+    return <Star size={22} className="fill-[#005bb5] text-[#005bb5]" aria-hidden />;
   }
-  return (
-    <svg data-star viewBox="0 0 24 24" className="h-[22px] w-[22px] fill-transparent stroke-gray-300 stroke-[1.5]" aria-hidden>
-      <path strokeLinejoin="round" strokeLinecap="round" d="M12 2l2.9 6.26 6.86.6-5.2 4.53 1.55 6.7L12 16.55 5.89 20.1l1.55-6.7-5.2-4.54 6.86-.6L12 2z" />
-    </svg>
-  );
+  return <Star size={22} className="fill-transparent text-gray-300" aria-hidden />;
 }
 
 export default function Mentor() {
@@ -86,7 +79,7 @@ export default function Mentor() {
                 <span className="text-[15px] md:text-[16px] font-bold text-gray-800">{r.label}</span>
                 <div className="flex gap-1.5" aria-label={`${r.stars} out of 5 stars`}>
                   {Array.from({ length: 5 }, (_, i) => (
-                    <Star key={i} filled={i < r.stars} />
+                    <StarIcon key={i} filled={i < r.stars} />
                   ))}
                 </div>
               </div>
