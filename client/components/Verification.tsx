@@ -1,73 +1,8 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
-import { gsap, prefersReducedMotion } from "../lib/gsap";
 import { useStudentData } from "../data/StudentDataContext";
-import SectionHeading from "./SectionHeading";
-import CountUp from "./CountUp";
 import Reveal from "./Reveal";
 import { QrCode } from "lucide-react";
-
-
-
-/* ── Animated handwritten signature ───────────────────────────── */
-function Signature() {
-  const ref = useRef<SVGSVGElement>(null);
-
-  useLayoutEffect(() => {
-    const svg = ref.current;
-    if (!svg) return;
-    const paths = svg.querySelectorAll<SVGPathElement>("[data-sig-path]");
-
-    if (prefersReducedMotion()) return;
-
-    const tl = gsap.timeline({
-      scrollTrigger: { trigger: svg, start: "top 85%", once: true },
-    });
-
-    paths.forEach((p) => {
-      const len = p.getTotalLength();
-      gsap.set(p, { strokeDasharray: len, strokeDashoffset: len });
-      tl.to(p, { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut" }, ">-0.15");
-    });
-
-    return () => {
-      tl.scrollTrigger?.kill();
-      tl.kill();
-    };
-  }, []);
-
-  return (
-    <svg ref={ref} viewBox="0 0 320 120" className="h-24 w-full max-w-xs" aria-label="Mentor signature">
-      {/* flowing signature strokes */}
-      <path
-        data-sig-path
-        d="M28,84 C22,60 34,30 52,26 C70,22 74,44 62,58 C50,72 34,74 40,60 C50,38 82,30 104,42 C118,50 112,70 96,74 C112,64 138,50 158,54 C172,57 168,72 156,74 C170,68 192,56 210,60"
-        fill="none"
-        stroke="var(--color-ink)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <path
-        data-sig-path
-        d="M214,58 C230,50 252,44 268,52 C258,56 244,66 252,72 C260,78 282,68 296,54"
-        fill="none"
-        stroke="var(--color-ink)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      {/* underline flourish */}
-      <path
-        data-sig-path
-        d="M30,96 C110,104 220,102 300,90"
-        fill="none"
-        stroke="var(--color-gold-deep)"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 /* ── Certificate footer ───────────────────────────────────────── */
 export default function Verification() {
@@ -75,7 +10,8 @@ export default function Verification() {
 
   return (
     <>
-      <footer className="pb-20 text-gray-900 ">
+      {/* Verification footer — physical certificate */}
+      <footer className="pb-20 text-gray-900">
         <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-[100px]">
 
           <Reveal>
@@ -86,10 +22,9 @@ export default function Verification() {
               <div className="grid gap-10 p-8 md:p-12 md:grid-cols-3 items-center">
 
                 {/* ── LEFT · Mentor Signature ── */}
-                <div className="flex flex-col items-start">
+                <div className="flex flex-col items-start justify-end pt-24">
                   <div className="w-full max-w-xs">
-                    <Signature />
-                    <div className="mt-2 border-t border-gray-200 pt-3">
+                    <div className="mt-2 pt-3 ">
                       <p className="font-bold text-gray-900">Mentor Signature</p>
                       <p className="mt-0.5 text-sm text-gray-500">Head of Digital Marketing · VCA</p>
                     </div>
@@ -97,12 +32,16 @@ export default function Verification() {
                 </div>
 
                 {/* ── CENTER · Academy Seal ── */}
-                <div className="flex flex-col items-center justify-center text-center">
-                  <p className="font-bold text-[15px] text-gray-900 mt-2">Academy Seal</p>
-                  <p className="text-sm text-gray-500">Official mark of authenticity</p>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gray-400 font-semibold mt-1">
-                    Doc {student.docNo}
-                  </p>
+                <div className="flex flex-col items-center justify-end text-center pt-24">
+                  <div className="w-full max-w-xs">
+                    <div className="mt-2 pt-3">
+                      <p className="font-bold text-gray-900">Academy Seal</p>
+                      <p className="text-sm text-gray-500">Official mark of authenticity</p>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gray-400 font-semibold mt-1">
+                        Doc {student.docNo}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* ── RIGHT · Real QR Code (styled like Hero.tsx) ── */}
