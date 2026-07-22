@@ -67,7 +67,12 @@ export function useStudentData(): StudentData {
 
 /** Returns false when the faculty hasn't filled in any evaluation yet. */
 export function hasGradeCardData(data: StudentData): boolean {
-  return data.evaluation.length > 0;
+  return (
+    data.evaluation.length > 0 ||
+    data.readinessBars.some((b) => b.value > 0) ||
+    data.student.overallGrade !== "—" ||
+    data.student.program !== ""
+  );
 }
 
 // ── mapping helpers ─────────────────────────────────────────
@@ -136,11 +141,13 @@ export function mapReportToStudentData(user: any, report: any): StudentData {
   const verificationCode =
     verification.verificationCode || program.code || user?.studentInfo?.rollNumber || "";
 
-  // Always build the verify URL from the student's name + verification code,
-  // rather than the raw admin-entered "Verify URL" field, so it reads as a
-  // personalized credential link (e.g. viralcat.academy/verify/jishnu-mindstory-vc-240001).
-  const verifySlug = buildVerifySlug(user?.name || "", verificationCode);
-  const verifyUrl = verifySlug ? `${VERIFY_BASE}/${verifySlug}` : verification.verifyUrl || "";
+  let verifyUrl = verification.verifyUrl || "";
+  if (typeof window !== "undefined" && verificationCode) {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    let urlSlug = verificationCode;
+    if (!urlSlug.startsWith("VC-")) urlSlug = `VC-${urlSlug}`;
+    verifyUrl = `${baseUrl}/student-progress-card/${urlSlug}`;
+  }
 
   return {
     student: {

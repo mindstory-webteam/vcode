@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../contexts/AuthContext";
 import { api, ApiError } from "../../../lib/api";
@@ -24,7 +24,8 @@ import Mentor from "../../../components/Mentor";
 import InterviewReadiness from "../../../components/InterviewReadiness";
 import Verification from "../../../components/Verification";
 
-export default function DashboardPage() {
+export default function DashboardPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = use(params);
   const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
   const [data, setData] = useState<StudentData | null>(null);
@@ -32,44 +33,33 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authLoading) return;
-
-    if (!user) {
-      router.replace("/login?redirect=/dashboard");
-      return;
-    }
-
-    if (user.role !== "student") {
-      setFetching(false);
-      return;
-    }
-
     (async () => {
       try {
-        const res = await api.get("/api/student/progress-report");
-        setData(mapReportToStudentData(user, res.report));
+        const res = await api.get(`/api/public/verify/${resolvedParams.slug}`);
+        const studentData = mapReportToStudentData(res.user, res.report);
+        setData(studentData);
+
+        // Silently correct the URL if they landed here via a fallback (like rollNumber)
+        if (typeof window !== "undefined" && studentData.student.verifyUrl) {
+          try {
+            const expectedPath = new URL(studentData.student.verifyUrl).pathname;
+            if (window.location.pathname !== expectedPath) {
+              window.history.replaceState(null, "", expectedPath);
+            }
+          } catch (e) {
+            // Ignore URL parsing errors
+          }
+        }
       } catch (err) {
         setError(err instanceof ApiError ? err.message : "Failed to load progress report");
       } finally {
         setFetching(false);
       }
     })();
-  }, [authLoading, user, router]);
+  }, [resolvedParams.slug, router]);
 
-  if (authLoading || fetching) {
+  if (fetching) {
     return <CenteredMessage title="Loading your grade card…" />;
-  }
-
-  if (!user) return null;
-
-  if (user.role !== "student") {
-    return (
-      <CenteredMessage
-        title="This portal is for students"
-        subtitle={`You're signed in as ${user.role}. Please use your own portal to manage students.`}
-        action={{ label: "Log out", onClick: logout }}
-      />
-    );
   }
 
   if (error) {
@@ -77,7 +67,7 @@ export default function DashboardPage() {
       <CenteredMessage
         title="Couldn't load your progress report"
         subtitle={error}
-        action={{ label: "Log out", onClick: logout }}
+        action={user ? { label: "Log out", onClick: logout } : undefined}
       />
     );
   }
@@ -87,7 +77,7 @@ export default function DashboardPage() {
       <CenteredMessage
         title="Your grade card isn't ready yet"
         subtitle="Your mentor hasn't published your evaluation yet. Check back soon."
-        action={{ label: "Log out", onClick: logout }}
+        action={user ? { label: "Log out", onClick: logout } : undefined}
       />
     );
   }

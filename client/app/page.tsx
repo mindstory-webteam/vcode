@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import { ApiError } from "../lib/api";
+import { api, ApiError } from "../lib/api";
 import VcaCat from "../components/VcaCat";
-import { encodeVCode } from "../lib/hashUrl";
 
 
-export default function LoginPage() {
+function LoginContent() {
   const { login } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
@@ -41,10 +40,21 @@ export default function LoginPage() {
       
       let redirectUrl = params.get("redirect");
       if (!redirectUrl || redirectUrl === "/dashboard") {
-        if (authUser.role === "student" && authUser.studentInfo?.rollNumber) {
-          redirectUrl = `/student-progress-card/${encodeVCode(authUser.studentInfo.rollNumber)}`;
+        if (authUser.role === "student") {
+          try {
+            const res = await api.get("/api/student/progress-report");
+            const report = res.report;
+            let vcode = report?.gradeCard?.program?.code || report?.verification?.verificationCode || authUser.studentInfo?.rollNumber || "unknown";
+            if (!vcode.startsWith("VC-")) vcode = `VC-${vcode}`;
+            redirectUrl = `/student-progress-card/${vcode}`;
+          } catch (err) {
+            // Fallback if report doesn't exist or fetch fails
+            let fallbackCode = authUser.studentInfo?.rollNumber || "unknown";
+            if (!fallbackCode.startsWith("VC-")) fallbackCode = `VC-${fallbackCode}`;
+            redirectUrl = `/student-progress-card/${fallbackCode}`;
+          }
         } else {
-          // Fallback if not a student or missing rollNumber
+          // Fallback if not a student
           redirectUrl = "/student-progress-card/unknown";
         }
       }
@@ -155,5 +165,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   );
 }

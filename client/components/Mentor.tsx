@@ -117,7 +117,7 @@ export default function Mentor() {
             </div>
           </div>
 
-          <figure data-quote className="border-l-[3px] border-[#005bb5] pl-6 md:pl-8 py-2 max-w-4xl">
+          <figure data-quote className="  pl-6 md:pl-8 py-2 max-w-4xl">
             <blockquote className="font-serif text-[22px] md:text-[26px] leading-[1.6] text-gray-800">
               “{mentorRemark.quote}
               {mentorRemark.roles && mentorRemark.roles.length > 0 && (

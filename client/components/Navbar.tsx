@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -35,6 +35,19 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <nav className={`fixed top-0 w-full z-50 flex items-center justify-between px-[100px] py-6 pointer-events-none transition-transform duration-300 ease-in-out ${hidden ? "-translate-y-full" : "translate-y-0"}`}>
       <Link href="/" className="pointer-events-auto">
@@ -49,13 +62,45 @@ export default function Navbar() {
       </Link>
       
       {user && !isAuthPage && (
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="pointer-events-auto rounded-full border border-gray-200 px-5 py-2 font-mono text-[11px] uppercase tracking-widest text-gray-500 bg-white/80 backdrop-blur transition hover:border-red-500 hover:text-red-600 shadow-sm"
-        >
-          Log out
-        </button>
+        <div className="flex items-center pointer-events-auto" ref={dropdownRef}>
+          {/* Profile Dropdown */}
+          <div className="relative">
+            <button 
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white shadow-sm overflow-hidden hover:border-blue-500 transition-colors focus:outline-none"
+            >
+              {user.profileImage ? (
+                <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-bold text-gray-700 text-sm">
+                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </span>
+              )}
+            </button>
+            
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-3 flex flex-col z-50 overflow-hidden">
+                <div className="px-4 pb-3 border-b border-gray-100 flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Signed in as</span>
+                  <span className="text-sm font-medium text-gray-900 truncate" title={user.email}>{user.email}</span>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 px-4 py-3 mt-1 text-sm text-red-600 font-medium hover:bg-red-50 transition-colors w-full text-left"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </nav>
   );

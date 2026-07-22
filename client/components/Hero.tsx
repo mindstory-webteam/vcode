@@ -114,7 +114,7 @@ export default function Hero() {
             {/* Meta row */}
             <div className="mt-5 flex flex-wrap items-center gap-6 text-sm md:text-[15px] text-gray-600">
               <span className="font-mono text-gray-900 font-semibold tracking-widest uppercase text-xs md:text-sm">
-                VC-{student.id}
+                {student.id.startsWith("VC-") ? student.id : `VC-${student.id}`}
               </span>
               <div className="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
@@ -188,10 +188,15 @@ export default function Hero() {
 
             {/* QR Verification Section */}
             <div className="mt-20 flex flex-col items-center pb-10">
-              {/* Blank QR Box Placeholder */}
-              <div className="w-[140px] h-[140px] border border-gray-200 rounded-2xl shadow-sm bg-white mb-6 flex items-center justify-center p-2 relative overflow-hidden">
-                {/* Very subtle grid background */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:10px_10px]"></div>
+              {/* QR Code */}
+              <div className="w-[140px] h-[140px]   bg-white mb-6 flex items-center justify-center p-2 relative overflow-hidden group transition-colors">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=${encodeURIComponent(student.verifyUrl)}`} 
+                  alt="Student Verification QR" 
+                  className="w-full h-full object-contain relative z-10 transition-transform " 
+                />
+                {/* Very subtle grid background as fallback */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:10px_10px] z-0 opacity-50"></div>
               </div>
 
               {/* Verification Link */}
