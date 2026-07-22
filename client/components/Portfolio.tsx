@@ -85,10 +85,12 @@ export default function Portfolio() {
                   <p className="font-bold text-[13px] md:text-[14px] text-gray-900 max-w-[80%] leading-snug">
                     {p.result}
                   </p>
-                  <a href={p.link || "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[#005bb5] font-bold text-[13px] hover:underline transition-all">
-                    View
-                    <ExternalLink size={14} />
-                  </a>
+                  {p.link ? (
+                    <a href={p.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[#005bb5] font-bold text-[13px]  transition-all">
+                      View
+                      <ExternalLink size={14} />
+                    </a>
+                  ) : null}
                 </div>
               </div>
             ))}

@@ -201,6 +201,7 @@ export function mapReportToStudentData(user: any, report: any): StudentData {
       role: p.role || "",
       tools: p.tools || [],
       result: p.result || "",
+      link: p.link || "",
     })),
     achievements: gc.achievements || [],
     mentorRatings: (mentorEvaluation.ratings || []).map((r: any) => ({
