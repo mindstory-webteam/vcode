@@ -6,73 +6,9 @@ import { useStudentData } from "../data/StudentDataContext";
 import SectionHeading from "./SectionHeading";
 import CountUp from "./CountUp";
 import Reveal from "./Reveal";
+import { QrCode } from "lucide-react";
 
-/* ── Rotating circular-text academy seal ─────────────────────── */
-function Seal() {
-  const ref = useRef<SVGSVGElement>(null);
 
-  useLayoutEffect(() => {
-    if (!ref.current || prefersReducedMotion()) return;
-    const tween = gsap.to(ref.current.querySelector("[data-seal-text]"), {
-      rotation: 360,
-      transformOrigin: "50% 50%",
-      duration: 24,
-      repeat: -1,
-      ease: "none",
-    });
-    return () => {
-      tween.kill();
-    };
-  }, []);
-
-  return (
-    <svg ref={ref} viewBox="0 0 160 160" className="h-32 w-32 md:h-36 md:w-36" aria-label="Academy seal">
-      <defs>
-        <path id="sealCircle" d="M80,80 m-58,0 a58,58 0 1,1 116,0 a58,58 0 1,1 -116,0" />
-      </defs>
-      <circle cx="80" cy="80" r="72" fill="none" stroke="var(--color-gold)" strokeWidth="2" />
-      <circle cx="80" cy="80" r="44" fill="none" stroke="var(--color-gold)" strokeWidth="1" strokeDasharray="3 4" />
-      <g data-seal-text>
-        <text className="fill-gold font-mono text-[10.5px] uppercase" letterSpacing="3.5">
-          <textPath href="#sealCircle">
-            Viral Cat Academy · Verified Professional · Grade Card ·
-          </textPath>
-        </text>
-      </g>
-      <text x="80" y="86" textAnchor="middle" className="fill-gold font-display text-xl font-semibold">
-        VCA
-      </text>
-    </svg>
-  );
-}
-
-/* ── Fake QR block built from a deterministic dot grid ────────── */
-function QrBlock({ code }: { code: string }) {
-  const cells: boolean[] = [];
-  let seed = 42;
-  for (let i = 0; i < 121; i++) {
-    seed = (seed * 1103515245 + 12345) % 2147483648;
-    cells.push(seed % 3 !== 0);
-  }
-  return (
-    <svg viewBox="0 0 110 110" className="h-20 w-20" aria-label={`Verification QR for code ${code}`}>
-      <rect width="110" height="110" fill="white" />
-      {cells.map((on, i) =>
-        on ? (
-          <rect key={i} x={(i % 11) * 10} y={Math.floor(i / 11) * 10} width="9" height="9" fill="var(--color-ink)" />
-        ) : null
-      )}
-      {/* finder squares */}
-      {[[0, 0], [80, 0], [0, 80]].map(([x, y]) => (
-        <g key={`${x}${y}`}>
-          <rect x={x} y={y} width="30" height="30" fill="var(--color-ink)" />
-          <rect x={x + 5} y={y + 5} width="20" height="20" fill="white" />
-          <rect x={x + 10} y={y + 10} width="10" height="10" fill="var(--color-ink)" />
-        </g>
-      ))}
-    </svg>
-  );
-}
 
 /* ── Animated handwritten signature ───────────────────────────── */
 function Signature() {
@@ -135,134 +71,71 @@ function Signature() {
 
 /* ── Certificate footer ───────────────────────────────────────── */
 export default function Verification() {
-  const { interviewReadiness, student } = useStudentData();
-  const scope = useRef<HTMLElement>(null);
-
-  useLayoutEffect(() => {
-    const el = scope.current;
-    if (!el || prefersReducedMotion()) return;
-
-    const ctx = gsap.context(() => {
-      // Rubber stamp slams down when the certificate scrolls into view
-      gsap.from("[data-stamp]", {
-        scale: 2,
-        opacity: 0,
-        rotation: -24,
-        duration: 0.55,
-        ease: "power4.in",
-        scrollTrigger: { trigger: "[data-certificate]", start: "top 70%", once: true },
-      });
-      gsap.from("[data-date-stamp]", {
-        scale: 1.8,
-        opacity: 0,
-        rotation: 10,
-        duration: 0.45,
-        delay: 0.35,
-        ease: "power4.in",
-        scrollTrigger: { trigger: "[data-certificate]", start: "top 70%", once: true },
-      });
-    }, el);
-
-    return () => ctx.revert();
-  }, []);
+  const { student } = useStudentData();
 
   return (
     <>
-      {/* Verification footer — physical certificate */}
-      <footer ref={scope} className="py-20 text-gray-900 border-t border-gray-200">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="mb-8 text-center font-mono text-[11px] uppercase tracking-[0.3em] text-gray-500 font-bold">
-            Verified Professional Grade Card
-          </p>
+      <footer className="pb-20 text-gray-900 ">
+        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-[100px]">
 
           <Reveal>
             <div
               data-certificate
-              className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 text-gray-900 shadow-xl shadow-gray-200/50"
+              className="relative overflow-hidden rounded-3xl bg-white border border-gray-200 text-gray-900 shadow-sm"
             >
-              {/* ── punch-hole perforation strip (left edge) ── */}
-              <div aria-hidden className="absolute inset-y-0 left-0 hidden w-12 sm:block">
-                <div className="flex h-full flex-col items-center justify-around py-6">
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <span key={i} className="h-3.5 w-3.5 rounded-full bg-gray-100 shadow-inner" />
-                  ))}
-                </div>
-                {/* tear line */}
-                <div className="absolute inset-y-4 right-0 border-r border-dashed border-gray-200" />
-              </div>
+              <div className="grid gap-10 p-8 md:p-12 md:grid-cols-3 items-center">
 
-              <div className="grid gap-12 p-8 sm:pl-20 md:grid-cols-2 md:p-12 md:pl-24">
-                {/* ── LEFT · seal, stamps & punch marks ── */}
-                <div>
-                  <h2 className="font-serif text-3xl font-medium md:text-4xl text-gray-900">
-                    Authenticated by
-                    <br />
-                    Viral Cat Academy
-                  </h2>
-                  <p className="mt-4 max-w-sm text-sm text-gray-500">
-                    Verify this credential at{" "}
-                    <span className="font-medium text-[#005bb5]">{student.verifyUrl}</span>.
-                  </p>
-
-                  <div className="mt-8 flex flex-wrap items-center gap-6">
-                    <Seal />
-
-                    {/* rubber stamp */}
-                    <div
-                      data-stamp
-                      className="-rotate-[8deg] select-none rounded-md border-[3px] border-[#b8402e] px-4 py-2 text-center"
-                      style={{ boxShadow: "inset 0 0 0 1.5px #b8402e" }}
-                    >
-                      <p className="font-mono text-lg font-bold uppercase tracking-[0.25em] text-[#b8402e]">
-                        ✓ Verified
-                      </p>
-                      <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-[#b8402e]/80">
-                        Viral Cat Academy
-                      </p>
-                    </div>
-
-                    {/* date stamp */}
-                    <div
-                      data-date-stamp
-                      className="rotate-[5deg] select-none rounded border-2 border-gray-300 px-3 py-1.5 font-mono text-xs uppercase tracking-[0.2em] text-gray-500 font-semibold"
-                    >
-                      {student.issued}
-                    </div>
-                  </div>
-
-                  <div className="mt-8 flex items-center gap-4">
-                    <QrBlock code={student.id} />
-                    <p className="max-w-40 font-mono text-[10px] uppercase leading-relaxed tracking-widest text-gray-400 font-semibold">
-                      Verification QR · Scan to authenticate
-                    </p>
-                  </div>
-                </div>
-
-                {/* ── RIGHT · mentor signature ── */}
-                <div className="flex flex-col justify-end md:items-end md:text-right">
+                {/* ── LEFT · Mentor Signature ── */}
+                <div className="flex flex-col items-start">
                   <div className="w-full max-w-xs">
                     <Signature />
                     <div className="mt-2 border-t border-gray-200 pt-3">
-                      <p className="font-medium text-gray-900">Mentor Signature</p>
+                      <p className="font-bold text-gray-900">Mentor Signature</p>
                       <p className="mt-0.5 text-sm text-gray-500">Head of Digital Marketing · VCA</p>
-                    </div>
-
-                    <div className="mt-8 rounded-xl border border-gray-200 bg-gray-50 p-4 text-left md:text-right">
-                      <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gray-500 font-semibold">
-                        Academy Seal · Official mark of authenticity
-                      </p>
-                      <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.25em] text-gray-500 font-semibold">
-                        Doc {student.docNo}
-                      </p>
                     </div>
                   </div>
                 </div>
+
+                {/* ── CENTER · Academy Seal ── */}
+                <div className="flex flex-col items-center justify-center text-center">
+                  <p className="font-bold text-[15px] text-gray-900 mt-2">Academy Seal</p>
+                  <p className="text-sm text-gray-500">Official mark of authenticity</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gray-400 font-semibold mt-1">
+                    Doc {student.docNo}
+                  </p>
+                </div>
+
+                {/* ── RIGHT · Real QR Code (styled like Hero.tsx) ── */}
+                <div className="flex flex-col items-center text-center justify-center">
+                  {/* QR Code */}
+                  <div className="w-[140px] h-[140px] bg-white mb-6 flex items-center justify-center p-2 relative overflow-hidden border border-gray-200 rounded-xl group transition-colors">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=${encodeURIComponent(student.verifyUrl)}`} 
+                      alt="Student Verification QR" 
+                      className="w-full h-full object-contain relative z-10 transition-transform" 
+                    />
+                    {/* Very subtle grid background as fallback */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:10px_10px] z-0 opacity-50"></div>
+                  </div>
+
+                  {/* Verification Link */}
+                  <a href={student.verifyUrl || "#"} className="flex items-center gap-2 text-[#005bb5] hover:text-blue-800 transition-colors font-semibold text-[15px]">
+                    <QrCode size={18} />
+                    Verify Student Profile
+                  </a>
+
+                  {/* Plain Text URL */}
+                  <div className="mt-3 text-gray-500 font-mono text-[11px] tracking-widest uppercase">
+                    {student.verifyUrl ? student.verifyUrl.replace('https://', '') : `viralcat.academy/v/${student.id}`}
+                  </div>
+                </div>
+
               </div>
 
               {/* bottom strip */}
-              <div className="border-t border-gray-200 bg-gray-50 px-8 py-4 sm:pl-20 md:pl-24">
+              <div className="border-t border-gray-200 bg-gray-50 px-8 py-4">
                 <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-gray-400 font-semibold">
-                  Generated by Viral Cat Academy Portal · Student {student.name} · ID {student.id}
+                  Generated by Viral Cat Academy Portal · {student.name} · {student.id}
                 </p>
               </div>
             </div>

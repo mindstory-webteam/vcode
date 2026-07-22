@@ -39,7 +39,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <header ref={scope} className="bg-[#f9fafb] text-gray-900 font-sans selection:bg-blue-100 pb-16 pt-[120px]">
+    <header ref={scope} className=" text-gray-900 font-sans selection:bg-blue-100 pb-16 pt-[120px]">
       <div className="w-full max-w-[1600px] mx-auto relative px-[100px]">
         
         {/* Certificate Card */}

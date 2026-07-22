@@ -26,7 +26,7 @@ export default function Evaluation() {
   }, []);
 
   return (
-    <section ref={scope} className="bg-[#f9fafb] pb-16">
+    <section ref={scope} className=" pb-16">
       <div className="w-full max-w-[1600px] mx-auto relative px-4 sm:px-[100px]">
         <div data-animate-eval className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden px-8 md:px-14 pt-10 md:pt-12 pb-6 md:pb-10">
           

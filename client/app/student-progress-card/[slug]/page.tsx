@@ -84,7 +84,7 @@ export default function DashboardPage({ params }: { params: Promise<{ slug: stri
 
   return (
     <StudentDataProvider data={data}>
-      <main className="bg-[#f9fafb] text-gray-900 min-h-screen">
+      <main className=" text-gray-900 min-h-screen">
         <Hero />
         <Evaluation />
         <ReadinessBars />
