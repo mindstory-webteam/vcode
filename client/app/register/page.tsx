@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 import VcaCat from "../../components/VcaCat";
 
@@ -129,10 +130,14 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded px-8 py-2.5 text-sm font-bold uppercase tracking-widest text-white transition-opacity disabled:opacity-60"
+                className="flex min-w-[130px] items-center justify-center rounded px-8 py-2.5 text-sm font-bold uppercase tracking-widest text-white transition-opacity disabled:opacity-60"
                 style={{ background: "#853a8c" }}
               >
-                {submitting ? "Registering…" : "Register"}
+                {submitting ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  "Register"
+                )}
               </button>
               <Link href="/" className="text-sm text-gray-400 transition-colors ">
                 Already have an account? <span className="underline hover:text-[#853a8c]">Log in</span>
@@ -253,9 +258,13 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
             <button
               onClick={checkStatus}
               disabled={checking}
-              className="rounded border border-gray-300 px-6 py-2 text-[11px] font-bold uppercase tracking-widest text-gray-600 transition-colors hover:border-[#853a8c] hover:text-[#853a8c] disabled:opacity-50"
+              className="flex min-w-[120px] items-center justify-center rounded border border-gray-300 px-6 py-2 text-[11px] font-bold uppercase tracking-widest text-gray-600 transition-colors hover:border-[#853a8c] hover:text-[#853a8c] disabled:opacity-50"
             >
-              {checking ? "Checking…" : "Check status"}
+              {checking ? (
+                <Loader2 className="h-4 w-4 animate-spin text-current" />
+              ) : (
+                "Check status"
+              )}
             </button>
             <Link
               href="/"

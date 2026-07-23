@@ -39,31 +39,31 @@ export default function Hero() {
   }, []);
 
   return (
-    <header ref={scope} className=" text-gray-900 font-sans selection:bg-blue-100 pb-16 pt-[120px]">
-      <div className="w-full max-w-[1600px] mx-auto relative px-[100px]">
+    <header ref={scope} className="text-gray-900 font-sans selection:bg-blue-100 pb-12 sm:pb-16 pt-24 sm:pt-28 md:pt-[120px]">
+      <div className="w-full max-w-[1600px] mx-auto relative px-4 sm:px-6 md:px-10 lg:px-16 xl:px-[100px]">
         
         {/* Certificate Card */}
         <div data-animate className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
           
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start p-8 md:p-10 pb-6 md:pb-8 gap-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start p-6 sm:p-8 md:p-10 pb-6 md:pb-8 gap-4 sm:gap-6">
             <div className="flex items-start gap-4">
             
               <div>
-                <h2 className="font-serif text-2xl md:text-[28px] text-gray-900 leading-tight">
+                <h2 className="font-serif text-xl sm:text-2xl md:text-[28px] text-gray-900 leading-tight">
                   Viral Cat Academy
                 </h2>
-                <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mt-2">
+                <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mt-1.5 sm:mt-2">
                   Grade Card · Industry Readiness Report
                 </p>
               </div>
             </div>
             
-            <div className="text-left sm:text-right flex flex-col gap-1.5">
-              <p className="font-mono text-[11px] md:text-xs text-gray-500 tracking-wider">
+            <div className="text-left sm:text-right flex flex-col gap-1 sm:gap-1.5">
+              <p className="font-mono text-[10px] sm:text-[11px] md:text-xs text-gray-500 tracking-wider">
                 Doc &bull; {student.docNo}
               </p>
-              <p className="text-sm md:text-[15px] text-gray-700 font-medium">
+              <p className="text-xs sm:text-sm md:text-[15px] text-gray-700 font-medium">
                 Issued {student.issued}
               </p>
             </div>
@@ -73,112 +73,112 @@ export default function Hero() {
           <div className="h-px bg-gray-100 w-full"></div>
 
           {/* Body */}
-          <div className="p-8 md:p-12 md:pt-14">
+          <div className="p-6 sm:p-8 md:p-12 md:pt-14">
             
             {/* Photo & Badge */}
-            <div className="relative inline-block mb-10">
-              <div className="w-32 h-32 md:w-[140px] md:h-[140px] rounded-3xl bg-gray-100 border border-gray-200 shadow-inner overflow-hidden relative flex items-center justify-center">
+            <div className="relative inline-block mb-8 sm:mb-10">
+              <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-[140px] md:h-[140px] rounded-3xl bg-gray-100 border border-gray-200 shadow-inner overflow-hidden relative flex items-center justify-center">
                 <Image
                   src={photoSrc || "/student.svg"}
                   alt={`Portrait of ${student.name}`}
                   fill
-                  sizes="140px"
+                  sizes="(max-width: 768px) 128px, 140px"
                   className="object-cover opacity-90"
                   unoptimized={photoSrc?.endsWith(".svg") ?? true}
                   onError={() => setPhotoSrc("/student.svg")}
                 />
               </div>
-              <div className="absolute -bottom-3 -right-6 bg-white border border-gray-200 rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-sm">
-                <BadgeCheck size={14} className="text-[#005bb5]" />
-                <span className="text-[#005bb5] text-[11px] font-bold tracking-wide">Verified</span>
+              <div className="absolute -bottom-3 -right-4 sm:-right-6 bg-white border border-gray-200 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-1.5 shadow-sm">
+                <BadgeCheck size={14} className="text-[#005bb5] shrink-0" />
+                <span className="text-[#005bb5] text-[10px] sm:text-[11px] font-bold tracking-wide">Verified</span>
               </div>
             </div>
 
             {/* Student Name */}
             <div>
-              <p className="font-mono text-[11px] md:text-xs font-bold tracking-[0.2em] text-gray-500 uppercase">
+              <p className="font-mono text-[10px] sm:text-[11px] md:text-xs font-bold tracking-[0.2em] text-gray-500 uppercase">
                 Student &middot; Batch {student.batch}
               </p>
-              <h1 className="font-serif text-[64px] md:text-[88px] text-gray-900 leading-none tracking-tight mt-3">
+              <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl lg:text-[88px] text-gray-900 leading-tight md:leading-none tracking-tight mt-2 sm:mt-3 break-words">
                 {student.name}
               </h1>
             </div>
 
             {/* Program Title */}
-            <h2 className="text-[#005bb5] text-2xl md:text-[28px] font-medium tracking-tight mt-10 md:mt-12">
+            <h2 className="text-[#005bb5] text-xl sm:text-2xl md:text-[28px] font-medium tracking-tight mt-6 sm:mt-8 md:mt-12">
               {student.program}
             </h2>
 
             {/* Meta row */}
-            <div className="mt-5 flex flex-wrap items-center gap-6 text-sm md:text-[15px] text-gray-600">
+            <div className="mt-4 sm:mt-5 flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm md:text-[15px] text-gray-600">
               <span className="font-mono text-gray-900 font-semibold tracking-widest uppercase text-xs md:text-sm">
                 {student.id.startsWith("VC-") ? student.id : `VC-${student.id}`}
               </span>
               <div className="flex items-center gap-2">
-                <Briefcase size={16} className="opacity-60" />
+                <Briefcase size={16} className="opacity-60 shrink-0" />
                 <span>{student.program}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock size={16} className="opacity-60" />
+                <Clock size={16} className="opacity-60 shrink-0" />
                 <span>{student.duration}</span>
               </div>
             </div>
 
             {/* Description */}
-            <p className="mt-8 text-gray-600 leading-relaxed text-[15px] md:text-[17px]">
+            <p className="mt-6 sm:mt-8 text-gray-600 leading-relaxed text-sm sm:text-[15px] md:text-[17px]">
               {student.summary}
             </p>
 
             {/* Stats Grid */}
-            <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="mt-8 sm:mt-10 md:mt-12 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {/* Card 1 */}
-              <div className="border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px] bg-white">
+              <div className="border border-gray-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[110px] md:h-[120px] bg-white">
                 <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
                   Overall Grade
                 </div>
-                <div className="font-serif text-[34px] md:text-[40px] text-gray-900 flex items-start leading-none tracking-tight">
+                <div className="font-serif text-2xl sm:text-3xl md:text-[40px] text-gray-900 flex items-start leading-none tracking-tight">
                   {student.overallGrade?.replace('+', '') || '—'}
-                  {student.overallGrade?.includes('+') && <span className="text-[20px] md:text-[24px] mt-1.5">+</span>}
-                  {student.overallGrade?.includes('-') && <span className="text-[20px] md:text-[24px] mt-1.5">-</span>}
+                  {student.overallGrade?.includes('+') && <span className="text-base sm:text-lg md:text-[24px] mt-1">+</span>}
+                  {student.overallGrade?.includes('-') && <span className="text-base sm:text-lg md:text-[24px] mt-1">-</span>}
                 </div>
               </div>
 
               {/* Card 2 */}
-              <div className="border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px] bg-white">
+              <div className="border border-gray-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[110px] md:h-[120px] bg-white">
                 <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
                   Industry Readiness
                 </div>
-                <div className="font-serif text-[34px] md:text-[40px] text-gray-900 leading-none tracking-tight">
+                <div className="font-serif text-2xl sm:text-3xl md:text-[40px] text-gray-900 leading-none tracking-tight">
                   {student.readiness}%
                 </div>
               </div>
 
               {/* Card 3 */}
-              <div className="border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px] bg-white">
+              <div className="border border-gray-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[110px] md:h-[120px] bg-white">
                   <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
-                    <BadgeCheck size={14} className="text-green-600" />
+                    <BadgeCheck size={14} className="text-green-600 shrink-0" />
                     Status
                   </div>
-                <div className="font-serif text-[28px] md:text-[34px] text-gray-900 tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis capitalize">
+                <div className="font-serif text-lg sm:text-2xl md:text-[34px] text-gray-900 tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis capitalize">
                   {student.status?.replace('_', ' ') || '—'}
                 </div>
               </div>
 
               {/* Card 4 */}
-              <div className="border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between h-[120px] bg-white">
+              <div className="border border-gray-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[110px] md:h-[120px] bg-white">
                 <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
                   Cohort
                 </div>
-                <div className="font-serif text-[28px] md:text-[34px] text-gray-900 tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                <div className="font-serif text-lg sm:text-2xl md:text-[34px] text-gray-900 tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis">
                   {student.batch || '—'}
                 </div>
               </div>
             </div>
 
             {/* QR Verification Section */}
-            <div className="mt-20 flex flex-col items-center pb-10">
+            <div className="mt-12 sm:mt-16 md:mt-20 flex flex-col items-center pb-6 sm:pb-10">
               {/* QR Code */}
-              <div className="w-[140px] h-[140px]   bg-white mb-6 flex items-center justify-center p-2 relative overflow-hidden group transition-colors">
+              <div className="w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] bg-white mb-4 sm:mb-6 flex items-center justify-center p-2 relative overflow-hidden group transition-colors">
                 <img 
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=${encodeURIComponent(student.verifyUrl)}`} 
                   alt="Student Verification QR" 
@@ -189,13 +189,13 @@ export default function Hero() {
               </div>
 
               {/* Verification Link */}
-              <a href={student.verifyUrl || "#"} className="flex items-center gap-2 text-[#005bb5] hover:text-blue-800 transition-colors font-semibold text-[15px]">
-                <QrCode size={18} />
+              <a href={student.verifyUrl || "#"} className="flex items-center gap-2 text-[#005bb5] hover:text-blue-800 transition-colors font-semibold text-sm sm:text-[15px] text-center">
+                <QrCode size={18} className="shrink-0" />
                 Verify Student Profile
               </a>
 
               {/* Plain Text URL */}
-              <div className="mt-3 text-gray-500 font-mono text-[11px] tracking-widest uppercase">
+              <div className="mt-3 text-gray-500 font-mono text-[10px] sm:text-[11px] tracking-widest uppercase text-center break-all">
                 {student.verifyUrl ? student.verifyUrl.replace('https://', '') : `viralcat.academy/v/${student.id}`}
               </div>
             </div>

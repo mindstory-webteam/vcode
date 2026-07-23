@@ -3,6 +3,7 @@
 import { useState, type FormEvent, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { api, ApiError } from "../lib/api";
 import VcaCat from "../components/VcaCat";
@@ -149,10 +150,14 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded px-8 py-2.5 text-sm font-bold uppercase tracking-widest text-white transition-opacity disabled:opacity-60"
+                className="flex min-w-[110px] items-center justify-center rounded px-8 py-2.5 text-sm font-bold uppercase tracking-widest text-white transition-opacity disabled:opacity-60"
                 style={{ background: "#853a8c" }}
               >
-                {submitting ? "Signing in…" : "Login"}
+                {submitting ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  "Login"
+                )}
               </button>
               <Link
                 href="/register"

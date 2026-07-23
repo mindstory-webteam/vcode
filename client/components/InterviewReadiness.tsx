@@ -43,39 +43,38 @@ export default function InterviewReadiness() {
   if (!displayMetrics || displayMetrics.length === 0) return null;
 
   return (
-    <section ref={scope} className=" pb-16">
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-[100px]">
-        <div data-animate-section className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden px-8 md:px-14 pt-10 md:pt-12 pb-16">
+    <section ref={scope} className="pb-12 sm:pb-16">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 xl:px-[100px]">
+        <div data-animate-section className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden px-5 sm:px-8 md:px-12 lg:px-14 pt-8 sm:pt-10 md:pt-12 pb-8 sm:pb-12 md:pb-16">
           
           {/* Header */}
-          <div className="flex items-center justify-between pb-8 border-b border-gray-200 mb-14">
+          <div className="flex items-center justify-between pb-6 sm:pb-8 border-b border-gray-200 mb-8 sm:mb-12 md:mb-14 gap-4">
             <div className="flex items-start gap-4">
-          
               <div>
                 <p className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase">
                   Section 11
                 </p>
-                <h2 className="mt-1 font-serif text-3xl md:text-4xl text-gray-900 leading-tight">
+                <h2 className="mt-1 font-serif text-2xl sm:text-3xl md:text-4xl text-gray-900 leading-tight">
                   Interview Readiness
                 </h2>
               </div>
             </div>
 
             {/* Status Pill */}
-            <div className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full border border-green-300 bg-green-50 text-green-700">
-              <Check size={16} strokeWidth={3} />
-              <span className="font-bold text-[12px] tracking-wide uppercase">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full border border-green-300 bg-green-50 text-green-700 shrink-0">
+              <Check size={16} strokeWidth={3} className="shrink-0" />
+              <span className="font-bold text-[11px] sm:text-[12px] tracking-wide uppercase">
                 {student?.status || "Ready for Placement"}
               </span>
             </div>
           </div>
 
-          {/* Cards Flex Layout */}
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 md:gap-[24px] w-full mt-4">
+          {/* Cards Flex Layout (centered 5-circle grid/wrap for iPad Pro & mid screens) */}
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-10 w-full max-w-6xl mx-auto mt-4">
             {displayMetrics.map((item) => (
               <div 
                 key={item.label}
-                className="relative w-[280px] h-[280px] flex items-center justify-center transition-all hover:scale-105"
+                className="relative w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] md:w-[190px] md:h-[190px] lg:w-[210px] lg:h-[210px] xl:w-[220px] xl:h-[220px] flex items-center justify-center transition-all hover:scale-105"
               >
                 <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                   <circle cx="50" cy="50" r="46" fill="none" stroke="#f3f4f6" strokeWidth="5.5" />
@@ -94,9 +93,9 @@ export default function InterviewReadiness() {
                     }}
                   />
                 </svg>
-                <div className="flex flex-col items-center justify-center text-center mt-2">
-                  <CountUp to={item.value} suffix="%" className="font-serif text-[64px] text-gray-900 leading-none tracking-tight" />
-                  <span className="font-mono text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase mt-3 px-4">
+                <div className="flex flex-col items-center justify-center text-center mt-1 sm:mt-2 p-2">
+                  <CountUp to={item.value} suffix="%" className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-[52px] text-gray-900 leading-none tracking-tight" />
+                  <span className="font-mono text-[9px] sm:text-[10px] md:text-[11px] font-bold tracking-[0.15em] sm:tracking-[0.2em] text-gray-500 uppercase mt-1.5 sm:mt-3 px-1 text-center">
                     {item.label}
                   </span>
                 </div>

@@ -11,32 +11,32 @@ export default function Verification() {
   return (
     <>
       {/* Verification footer — physical certificate */}
-      <footer className="pb-20 text-gray-900">
-        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-[100px]">
+      <footer className="pb-16 sm:pb-20 text-gray-900">
+        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 xl:px-[100px]">
 
           <Reveal>
             <div
               data-certificate
               className="relative overflow-hidden rounded-3xl bg-white border border-gray-200 text-gray-900 shadow-sm"
             >
-              <div className="grid gap-10 p-8 md:p-12 md:grid-cols-3 items-center">
+              <div className="grid gap-6 sm:gap-8 md:gap-10 p-6 sm:p-8 md:p-12 grid-cols-1 md:grid-cols-3 items-center">
 
                 {/* ── LEFT · Mentor Signature ── */}
-                <div className="flex flex-col items-start justify-end pt-24">
+                <div className="flex flex-col items-center md:items-start justify-end pt-6 md:pt-24 text-center md:text-left">
                   <div className="w-full max-w-xs">
-                    <div className="mt-2 pt-3 ">
+                    <div className="mt-2 pt-3">
                       <p className="font-bold text-gray-900">Mentor Signature</p>
-                      <p className="mt-0.5 text-sm text-gray-500">Head of Digital Marketing · VCA</p>
+                      <p className="mt-0.5 text-xs sm:text-sm text-gray-500">Head of Digital Marketing · VCA</p>
                     </div>
                   </div>
                 </div>
 
                 {/* ── CENTER · Academy Seal ── */}
-                <div className="flex flex-col items-center justify-end text-center pt-24">
+                <div className="flex flex-col items-center justify-end text-center pt-6 md:pt-24">
                   <div className="w-full max-w-xs">
                     <div className="mt-2 pt-3">
                       <p className="font-bold text-gray-900">Academy Seal</p>
-                      <p className="text-sm text-gray-500">Official mark of authenticity</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Official mark of authenticity</p>
                       <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gray-400 font-semibold mt-1">
                         Doc {student.docNo}
                       </p>
@@ -45,9 +45,9 @@ export default function Verification() {
                 </div>
 
                 {/* ── RIGHT · Real QR Code (styled like Hero.tsx) ── */}
-                <div className="flex flex-col items-center text-center justify-center">
+                <div className="flex flex-col items-center text-center justify-center pt-6 md:pt-0">
                   {/* QR Code */}
-                  <div className="w-[140px] h-[140px] bg-white mb-6 flex items-center justify-center p-2 relative overflow-hidden border border-gray-200 rounded-xl group transition-colors">
+                  <div className="w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] bg-white mb-4 sm:mb-6 flex items-center justify-center p-2 relative overflow-hidden border border-gray-200 rounded-xl group transition-colors">
                     <img 
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=${encodeURIComponent(student.verifyUrl)}`} 
                       alt="Student Verification QR" 
@@ -58,13 +58,13 @@ export default function Verification() {
                   </div>
 
                   {/* Verification Link */}
-                  <a href={student.verifyUrl || "#"} className="flex items-center gap-2 text-[#005bb5] hover:text-blue-800 transition-colors font-semibold text-[15px]">
-                    <QrCode size={18} />
+                  <a href={student.verifyUrl || "#"} className="flex items-center gap-2 text-[#005bb5] hover:text-blue-800 transition-colors font-semibold text-sm sm:text-[15px]">
+                    <QrCode size={18} className="shrink-0" />
                     Verify Student Profile
                   </a>
 
                   {/* Plain Text URL */}
-                  <div className="mt-3 text-gray-500 font-mono text-[11px] tracking-widest uppercase">
+                  <div className="mt-3 text-gray-500 font-mono text-[10px] sm:text-[11px] tracking-widest uppercase break-all">
                     {student.verifyUrl ? student.verifyUrl.replace('https://', '') : `viralcat.academy/v/${student.id}`}
                   </div>
                 </div>
@@ -72,8 +72,8 @@ export default function Verification() {
               </div>
 
               {/* bottom strip */}
-              <div className="border-t border-gray-200 bg-gray-50 px-8 py-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-gray-400 font-semibold">
+              <div className="border-t border-gray-200 bg-gray-50 px-4 sm:px-8 py-3 sm:py-4 text-center md:text-left">
+                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-gray-400 font-semibold break-words">
                   Generated by Viral Cat Academy Portal · {student.name} · {student.id}
                 </p>
               </div>

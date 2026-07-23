@@ -51,7 +51,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className={`fixed top-0 w-full z-50 flex items-center justify-between px-[100px] py-6 pointer-events-none transition-transform duration-300 ease-in-out ${hidden ? "-translate-y-full" : "translate-y-0"}`}>
+    <nav className={`fixed top-0 w-full z-50 flex items-center justify-between px-4 sm:px-6 md:px-10 lg:px-16 xl:px-[100px] py-4 sm:py-6 pointer-events-none transition-transform duration-300 ease-in-out ${hidden ? "-translate-y-full" : "translate-y-0"}`}>
       <Link href="/" className="pointer-events-auto">
         <Image
           src={logoSrc}
@@ -59,7 +59,7 @@ export default function Navbar() {
           width={120}
           height={48}
           priority
-          className="object-contain drop-shadow-sm"
+          className="w-24 sm:w-28 md:w-30 h-auto object-contain drop-shadow-sm"
         />
       </Link>
       
