@@ -12,11 +12,12 @@ const sendTokenResponse = (user, statusCode, res) => {
   const token = generateToken(user._id, user.role);
 
   const cookieExpireDays = parseInt(process.env.JWT_COOKIE_EXPIRE || '7', 10);
+  const isProd = process.env.NODE_ENV === 'production';
   const options = {
     expires: new Date(Date.now() + cookieExpireDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
   };
 
   res.status(statusCode).cookie('token', token, options).json({

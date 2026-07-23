@@ -69,7 +69,6 @@ export default function Achievements() {
         scrollTrigger: { trigger: el, start: "top 80%", once: true },
         ease: "power3.out"
       });
-      // Card stagger animation removed to prevent hot-reload blanking issues
     }, el);
 
     return () => ctx.revert();
