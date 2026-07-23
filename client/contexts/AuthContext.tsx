@@ -51,6 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await api.post("/api/auth/login", { email, password });
+    if (data.token && typeof window !== "undefined") {
+      localStorage.setItem("token", data.token);
+    }
     setUser(data.user);
     return data.user as AuthUser;
   }, []);
@@ -59,6 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await api.post("/api/auth/logout", {});
     } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
       setUser(null);
     }
   }, []);

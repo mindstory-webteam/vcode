@@ -17,6 +17,17 @@ export class ApiError extends Error {
   }
 }
 
+function getHeaders(customHeaders?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...customHeaders };
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+    if (token && !headers["Authorization"]) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+  return headers;
+}
+
 async function handle(res: Response) {
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const data = isJson ? await res.json().catch(() => ({})) : null;
@@ -31,13 +42,13 @@ async function handle(res: Response) {
 }
 
 export const api = {
-  get: (path: string) => fetch(`${API_URL}${path}`, { credentials: "include" }).then(handle),
+  get: (path: string) => fetch(`${API_URL}${path}`, { credentials: "include", headers: getHeaders() }).then(handle),
 
   post: (path: string, body?: unknown) =>
     fetch(`${API_URL}${path}`, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: body !== undefined ? JSON.stringify(body) : undefined,
     }).then(handle),
 
@@ -45,18 +56,19 @@ export const api = {
     fetch(`${API_URL}${path}`, {
       method: "PUT",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: body !== undefined ? JSON.stringify(body) : undefined,
     }).then(handle),
 
   delete: (path: string) =>
-    fetch(`${API_URL}${path}`, { method: "DELETE", credentials: "include" }).then(handle),
+    fetch(`${API_URL}${path}`, { method: "DELETE", credentials: "include", headers: getHeaders() }).then(handle),
 
   /** For multipart/form-data requests (file uploads). Don't set Content-Type manually. */
   postForm: (path: string, formData: FormData) =>
     fetch(`${API_URL}${path}`, {
       method: "POST",
       credentials: "include",
+      headers: getHeaders(),
       body: formData,
     }).then(handle),
 };
