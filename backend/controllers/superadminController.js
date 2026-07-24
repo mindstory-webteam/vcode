@@ -7,6 +7,7 @@ const { generateToken } = require('../utils/generateToken');
 const XLSX = require('xlsx');
 const { buildGradeCardWorkbook, parseGradeCardWorkbook } = require('../utils/gradeCardExcel');
 const { buildProgressReportWorkbook, parseProgressReportWorkbook } = require('../utils/progressReportExcel');
+const { buildBulkProgressTemplate, parseBulkProgressWorkbook } = require('../utils/bulkProgressImportExcel');
 
 const GRADE_CARD_FIELDS = [
   'program',
@@ -683,9 +684,8 @@ const bulkUploadEntriesAdmin = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: `Bulk import complete — ${results.added} entries added${
-      results.failed.length ? `, ${results.failed.length} failed` : ''
-    }`,
+    message: `Bulk import complete — ${results.added} entries added${results.failed.length ? `, ${results.failed.length} failed` : ''
+      }`,
     ...results,
     report,
   });
@@ -1162,6 +1162,125 @@ const uploadStudentProfilePhotoAdmin = asyncHandler(async (req, res) => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// BULK IMPORT STUDENTS & PROGRESS REPORTS
+// GET  /api/superadmin/students/bulk-import-template
+// POST /api/superadmin/students/bulk-import-progress
+// ---------------------------------------------------------------------------
+
+const downloadBulkProgressTemplateAdmin = asyncHandler(async (req, res) => {
+  const workbook = buildBulkProgressTemplate();
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  res.setHeader('Content-Disposition', 'attachment; filename="bulk_students_progress_template.xlsx"');
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buffer);
+});
+
+const bulkImportStudentsAndProgressReportsAdmin = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please attach an Excel file (.xlsx or .xls)' });
+  }
+
+  let parsedStudents;
+  try {
+    parsedStudents = parseBulkProgressWorkbook(req.file.buffer);
+  } catch (err) {
+    return res.status(400).json({ success: false, message: 'Could not parse Excel workbook: ' + err.message });
+  }
+
+  if (!parsedStudents || !parsedStudents.length) {
+    return res.status(400).json({ success: false, message: 'No student data found in the uploaded file.' });
+  }
+
+  const summary = { studentsCreated: 0, studentsUpdated: 0, reportsUpdated: 0, errors: [] };
+
+  for (const item of parsedStudents) {
+    const acc = item.account || {};
+    const email = (acc.email || '').toLowerCase().trim();
+    const rollNumber = (acc.rollNumber || '').trim();
+    if (!email && !rollNumber) { summary.errors.push({ reason: 'Skipped: missing email and roll number' }); continue; }
+
+    try {
+      // 1. Find or create User (student account)
+      let student = null;
+      if (email) student = await User.findOne({ email, role: 'student' });
+      if (!student && rollNumber) student = await User.findOne({ 'studentInfo.rollNumber': rollNumber, role: 'student' });
+
+      if (!student) {
+        let assignedFaculty = null;
+        if (acc.assignedFacultyEmail) {
+          const fac = await User.findOne({ email: acc.assignedFacultyEmail.toLowerCase().trim(), role: 'faculty' });
+          if (fac) assignedFaculty = fac._id;
+        }
+        student = await User.create({
+          name: acc.name || email.split('@')[0] || 'Student',
+          email: email || `${rollNumber.toLowerCase()}@student.local`,
+          password: acc.password || 'Student@123',
+          phone: acc.phone || '',
+          role: 'student',
+          status: 'approved',
+          isActive: true,
+          studentInfo: { rollNumber: rollNumber || '', department: acc.department || '', course: acc.course || '', semester: acc.semester || '', assignedFaculty },
+          createdBy: req.user._id,
+        });
+        // Sync any pending StudentApplication
+        if (email) {
+          const pendingApp = await StudentApplication.findOne({ email, status: 'pending' });
+          if (pendingApp) {
+            pendingApp.status = 'approved';
+            pendingApp.reviewedBy = req.user._id;
+            pendingApp.reviewedAt = new Date();
+            pendingApp.createdUser = student._id;
+            await pendingApp.save();
+          }
+        }
+        summary.studentsCreated += 1;
+      } else {
+        if (acc.name) student.name = acc.name;
+        if (acc.phone) student.phone = acc.phone;
+        if (acc.rollNumber) student.studentInfo.rollNumber = acc.rollNumber;
+        if (acc.department) student.studentInfo.department = acc.department;
+        if (acc.course) student.studentInfo.course = acc.course;
+        if (acc.semester) student.studentInfo.semester = acc.semester;
+        if (acc.assignedFacultyEmail) {
+          const fac = await User.findOne({ email: acc.assignedFacultyEmail.toLowerCase().trim(), role: 'faculty' });
+          if (fac) student.studentInfo.assignedFaculty = fac._id;
+        }
+        await student.save();
+        summary.studentsUpdated += 1;
+      }
+
+      // 2. Find or create ProgressReport (progress card)
+      let report = await ProgressReport.findOne({ student: student._id });
+      if (!report) report = await ProgressReport.create({ student: student._id, faculty: student.studentInfo?.assignedFaculty || null });
+
+      let reportChanged = false;
+      if (item.overallRemarks !== undefined) { report.overallRemarks = item.overallRemarks; reportChanged = true; }
+      if (item.entries && item.entries.length > 0) { report.entries = item.entries.map(e => ({ ...e, updatedBy: req.user._id })); reportChanged = true; }
+      if (item.attendance && item.attendance.length > 0) {
+        for (const a of item.attendance) {
+          const existing = report.attendance.find(x => { const d = new Date(x.date); d.setHours(0,0,0,0); return d.getTime() === a.date.getTime(); });
+          if (existing) { existing.status = a.status; existing.remarks = a.remarks; existing.markedBy = req.user._id; }
+          else report.attendance.push({ ...a, markedBy: req.user._id });
+        }
+        reportChanged = true;
+      }
+      if (item.gradeCard && Object.keys(item.gradeCard).length > 0) {
+        if (!report.gradeCard) report.gradeCard = {};
+        for (const field of GRADE_CARD_FIELDS) { if (item.gradeCard[field] !== undefined) report.gradeCard[field] = item.gradeCard[field]; }
+        report.gradeCard.lastUpdatedBy = req.user._id;
+        report.gradeCard.lastUpdatedAt = new Date();
+        reportChanged = true;
+      }
+      if (reportChanged) { await report.save(); summary.reportsUpdated += 1; }
+    } catch (err) {
+      summary.errors.push({ student: email || rollNumber, reason: err.message });
+    }
+  }
+
+  res.json({ success: true, message: `Bulk import complete: ${summary.studentsCreated} student(s) created, ${summary.studentsUpdated} updated, ${summary.reportsUpdated} progress report(s) saved.`, ...summary });
+});
+
 module.exports = {
   createFaculty,
   bulkCreateFaculty,
@@ -1193,4 +1312,6 @@ module.exports = {
   importGradeCardAdmin,
   exportFullProgressReportAdmin,
   importFullProgressReportAdmin,
+  downloadBulkProgressTemplateAdmin,
+  bulkImportStudentsAndProgressReportsAdmin,
 };

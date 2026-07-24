@@ -31,6 +31,8 @@ const {
   importGradeCardAdmin,
   exportFullProgressReportAdmin,
   importFullProgressReportAdmin,
+  downloadBulkProgressTemplateAdmin,
+  bulkImportStudentsAndProgressReportsAdmin,
 } = require('../controllers/superadminController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { uploadProfileImage, uploadExcel } = require('../middleware/uploadMiddleware');
@@ -51,7 +53,10 @@ router.get('/applications/:id', getApplicationById);
 router.put('/applications/:id/approve', approveApplication);
 router.put('/applications/:id/reject', rejectApplication);
 
-// Student management
+// Student management & bulk import
+// IMPORTANT: static paths must come BEFORE :id/:studentId param routes
+router.get('/students/bulk-import-template', downloadBulkProgressTemplateAdmin);
+router.post('/students/bulk-import-progress', uploadExcel.single('file'), bulkImportStudentsAndProgressReportsAdmin);
 router.post('/students', createStudent);
 router.get('/students', getAllStudents);
 router.put('/students/:id/assign-faculty', assignFaculty);
