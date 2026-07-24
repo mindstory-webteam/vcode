@@ -138,8 +138,8 @@ function parseBulkProgressWorkbook(buffer) {
     return map.get(key);
   };
 
-  // Students/Overview sheet
-  const mainSheet = getSheet('Students') || getSheet('Overview') || [];
+  // Students/Overview sheet (Process both if they exist so data can be merged)
+  const mainSheet = [...(getSheet('Students') || []), ...(getSheet('Overview') || [])];
   mainSheet.forEach((r) => {
     const email = str(r['Email'] || r['email'] || r['Student Email']);
     const rollNumber = str(r['Roll Number'] || r['rollNumber'] || r['Roll No']);
@@ -256,7 +256,8 @@ function parseBulkProgressWorkbook(buffer) {
     const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     d.gradeCard.portfolioHighlights = d.gradeCard.portfolioHighlights || [];
-    d.gradeCard.portfolioHighlights.push({ title, role: str(r['Role']), tools: str(r['Tools']).split(',').map(t => t.trim()).filter(Boolean), result: str(r['Result']), link: str(r['Link']) });
+    const toolsStr = str(r['Tools (comma-separated)'] || r['Tools']);
+    d.gradeCard.portfolioHighlights.push({ title, role: str(r['Role']), tools: toolsStr.split(',').map(t => t.trim()).filter(Boolean), result: str(r['Result']), link: str(r['Link']) });
   });
 
   // Achievements sheet
@@ -282,7 +283,7 @@ function parseBulkProgressWorkbook(buffer) {
     const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     d.gradeCard.mentorEvaluation = d.gradeCard.mentorEvaluation || { ratings: [], recommendation: '' };
-    d.gradeCard.mentorEvaluation.ratings.push({ criteria, score: Number(r['Score']) || 1 });
+    d.gradeCard.mentorEvaluation.ratings.push({ criteria, score: Number(r['Score (1-5)'] || r['Score']) || 1 });
   });
 
   return Array.from(map.values());
