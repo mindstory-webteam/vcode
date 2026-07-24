@@ -1,7 +1,47 @@
 const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const StudentApplication = require('../models/StudentApplication');
+const ProgressReport = require('../models/ProgressReport');
 const { sendTokenResponse } = require('../utils/generateToken');
+
+// @desc    Google OAuth login & auto-registration
+// @route   POST /api/auth/google
+// @access  Public
+const googleAuth = asyncHandler(async (req, res) => {
+  const { email, name, googleId } = req.body;
+
+  if (!email || !googleId) {
+    return res.status(400).json({ success: false, message: 'Email and Google ID are required' });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  let user = await User.findOne({ email: normalizedEmail });
+
+  if (user) {
+    if (!user.isActive) {
+      return res.status(403).json({ success: false, message: 'Your account has been deactivated. Contact the SuperAdmin.' });
+    }
+    return sendTokenResponse(user, 200, res);
+  }
+
+  // If user does not exist, auto-register as an approved student
+  const studentName = name && name.trim() ? name.trim() : normalizedEmail.split('@')[0];
+
+  user = await User.create({
+    name: studentName,
+    email: normalizedEmail,
+    password: googleId,
+    role: 'student',
+    status: 'approved',
+  });
+
+  // Create initial empty progress report for the student
+  await ProgressReport.create({
+    student: user._id,
+  });
+
+  sendTokenResponse(user, 200, res);
+});
 
 // @desc    Student self-registration (creates a pending application, NOT a login-able account)
 // @route   POST /api/auth/register-student
@@ -142,6 +182,7 @@ const updatePassword = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  googleAuth,
   registerStudent,
   checkApplicationStatus,
   login,
@@ -149,3 +190,4 @@ module.exports = {
   logout,
   updatePassword,
 };
+
