@@ -61,6 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithGoogle = useCallback(async (email: string, name: string, googleId: string) => {
     const data = await api.post("/api/auth/google", { email, name, googleId });
+    if (data.pendingApproval) {
+      return data;
+    }
     if (data.token && typeof window !== "undefined") {
       localStorage.setItem("token", data.token);
     }

@@ -3,9 +3,10 @@
 import { useState, useEffect, type FormEvent, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Mail, ShieldCheck, RefreshCw } from "lucide-react";
-import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+import { Loader2, Mail, RefreshCw, AlertCircle } from "lucide-react";
+import { GoogleLogin, useGoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import { io } from "socket.io-client";
 import { useAuth } from "../contexts/AuthContext";
 import { api, ApiError } from "../lib/api";
 import VcaCat from "../components/VcaCat";
@@ -29,7 +30,9 @@ function AuthContent() {
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [resendTimer, setResendTimer] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+  const [originError, setOriginError] = useState(false);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState<{ email: string; status: string } | null>(null);
 
   // Helper to start/reset the 60s timer and persist to localStorage
   const startResendTimer = () => {
@@ -174,21 +177,63 @@ function AuthContent() {
     }
   }
 
-  // Google OAuth Login
+  // Process Google User Data
+  async function processGoogleAuth(googleEmail: string, googleName: string, googleSub: string) {
+    setError(null);
+    setOriginError(false);
+    try {
+      const res: any = await loginWithGoogle(googleEmail, googleName, googleSub);
+      if (res && res.pendingApproval) {
+        setSubmitted({ email: res.email || googleEmail, status: res.status || "pending" });
+      } else {
+        await handlePostLoginRedirect(res);
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Google OAuth Authentication failed.");
+    }
+  }
+
+  // Handle Standard Google Login Component Success
   async function handleGoogleSuccess(credentialResponse: CredentialResponse) {
     if (!credentialResponse.credential) return;
-    setError(null);
     try {
       const decoded = jwtDecode<GoogleJwtPayload>(credentialResponse.credential);
       if (decoded && decoded.email && decoded.sub) {
-        const user = await loginWithGoogle(decoded.email, decoded.name || "", decoded.sub);
-        await handlePostLoginRedirect(user);
+        await processGoogleAuth(decoded.email, decoded.name || "", decoded.sub);
       } else {
         setError("Could not retrieve Google profile details.");
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Google OAuth Authentication failed.");
     }
+  }
+
+  // Custom Popup Google OAuth Handler (useGoogleLogin)
+  const popupGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const profile = await res.json();
+        if (profile && profile.email && profile.sub) {
+          await processGoogleAuth(profile.email, profile.name || "", profile.sub);
+        } else {
+          setError("Failed to fetch Google profile details.");
+        }
+      } catch {
+        setError("Error fetching Google profile info.");
+      }
+    },
+    onError: (err) => {
+      console.error("Google Popup Auth Error:", err);
+      setOriginError(true);
+      setError("Google Login failed: The current URL origin (http://localhost:3000) is not listed in Authorized JavaScript Origins for your Google Client ID.");
+    },
+  });
+
+  if (submitted) {
+    return <PendingStatus email={submitted.email} initialStatus={submitted.status} />;
   }
 
   return (
@@ -219,7 +264,7 @@ function AuthContent() {
       <div className="flex flex-1 flex-col items-center justify-center bg-white px-8 py-16">
         <div className="w-full max-w-sm">
           <h1 className="text-3xl font-light leading-snug text-gray-700">
-          <span className="font-semibold text-gray-800">Student Portal</span>
+            <span className="font-semibold text-gray-800">Student Portal</span>
           </h1>
           <p className="mt-2 text-xs text-gray-500">
             Sign in using OTP or Google Login
@@ -228,6 +273,19 @@ function AuthContent() {
           {/* Messages */}
           {error && <p className="mt-4 rounded bg-red-50 px-3 py-2 text-sm text-red-500">{error}</p>}
           {infoMsg && <p className="mt-4 rounded bg-purple-50 px-3 py-2 text-sm text-[#853a8c]">{infoMsg}</p>}
+
+          {/* Google Origin Whitelist Instruction Banner */}
+          {originError && (
+            <div className="mt-4 rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              <div className="flex items-center gap-1.5 font-bold mb-1">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                Google Console Configuration Required:
+              </div>
+              <p className="leading-relaxed">
+                Add <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-semibold">http://localhost:3000</code> to <strong>Authorized JavaScript origins</strong> in your Google Cloud Console under Credentials &gt; OAuth 2.0 Client IDs.
+              </p>
+            </div>
+          )}
 
           {/* STEP 1: EMAIL INPUT */}
           {step === "email" && (
@@ -312,7 +370,6 @@ function AuthContent() {
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>
-                    <ShieldCheck className="h-4 w-4" />
                     <span>Verify & Login</span>
                   </>
                 )}
@@ -340,18 +397,162 @@ function AuthContent() {
 
           {/* ALTERNATIVE GOOGLE OAUTH LOGIN AT BOTTOM */}
           <div className="relative my-8 flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center">
+            <div className="absolute inset-0 flex items-center font-medium">
             </div>
             <span className="relative bg-white px-3 text-xs uppercase tracking-wider text-gray-400 font-medium">
               or continue with
             </span>
           </div>
 
-          <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center w-full">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
-              onError={() => setError("Google OAuth login failed.")}
+              onError={() => setError("Google OAuth login failed. Ensure http://localhost:3000 is added to Authorized JavaScript Origins in Google Cloud Console.")}
             />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PendingStatus({ email, initialStatus }: { email: string; initialStatus: string }) {
+  const [status, setStatus] = useState(initialStatus);
+  const [checking, setChecking] = useState(false);
+  const [reason, setReason] = useState<string | null>(null);
+
+  async function handleApprovedRedirect(data: any) {
+    if (data?.token && typeof window !== "undefined") {
+      localStorage.setItem("token", data.token);
+    }
+
+    let vcode = data?.vcode || data?.user?.studentInfo?.rollNumber || "unknown";
+    if (!vcode.startsWith("VC-")) vcode = `VC-${vcode}`;
+
+    try {
+      const res = await api.get("/api/student/progress-report");
+      const report = res.report;
+      const reportCode =
+        report?.gradeCard?.program?.code ||
+        report?.verification?.verificationCode ||
+        report?.student?.studentInfo?.rollNumber;
+      if (reportCode) {
+        vcode = reportCode.startsWith("VC-") ? reportCode : `VC-${reportCode}`;
+      }
+    } catch {
+      // fallback code
+    }
+
+    window.location.href = `/student-progress-card/${vcode}`;
+  }
+
+  async function checkStatus() {
+    setChecking(true);
+    try {
+      const res = await api.get(`/api/auth/application-status/${encodeURIComponent(email)}`);
+      setStatus(res.status);
+      setReason(res.rejectionReason || null);
+      if (res.isApproved || res.status === "approved") {
+        await handleApprovedRedirect(res);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  // Real-time Socket.io listener & automatic polling
+  useEffect(() => {
+    const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const socket = io(socketUrl, {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+    });
+
+    socket.emit("join_application_room", email);
+
+    socket.on("application_approved", async (data: any) => {
+      if (data && data.email && data.email.toLowerCase() === email.toLowerCase()) {
+        setStatus("approved");
+        await handleApprovedRedirect(data);
+      }
+    });
+
+    // Auto-polling fallback every 3 seconds
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get(`/api/auth/application-status/${encodeURIComponent(email)}`);
+        if (res.isApproved || res.status === "approved") {
+          setStatus("approved");
+          await handleApprovedRedirect(res);
+        }
+      } catch {
+        // ignore
+      }
+    }, 3000);
+
+    return () => {
+      socket.disconnect();
+      clearInterval(interval);
+    };
+  }, [email]);
+
+  return (
+    <div className="flex min-h-screen">
+      {/* ── LEFT PANEL — purple cat ── */}
+      <div
+        className="relative hidden w-[38%] flex-col items-center justify-center overflow-hidden lg:flex"
+        style={{ background: "linear-gradient(160deg, #6b2d72 0%, #853a8c 50%, #5a2460 100%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 65%)" }}
+        />
+        <div className="relative z-10 flex flex-col items-center gap-10 px-10">
+          <VcaCat />
+          <p className="text-center text-sm font-medium leading-relaxed text-white/65">
+            Your academic journey,<br />all in one place.
+          </p>
+        </div>
+        <div className="absolute bottom-6 z-10 flex gap-5 text-[11px] text-white">
+          <span>About</span>
+          <span>Privacy</span>
+          <span>Terms of Use</span>
+        </div>
+      </div>
+
+      {/* ── RIGHT PANEL — status ── */}
+      <div className="flex flex-1 flex-col items-center justify-center bg-white px-8 py-16">
+        <div className="w-full max-w-md text-center">
+          <h1 className="text-3xl font-light leading-snug text-gray-700">
+            Application <span className="font-semibold text-gray-800">submitted</span>
+          </h1>
+          <p className="mt-6 text-sm text-gray-500 leading-relaxed">
+            Thanks! Your first-time sign-in for <span className="font-medium text-gray-700">{email}</span> is currently{" "}
+            <span className="font-bold uppercase tracking-wider" style={{ color: "#853a8c" }}>{status}</span>. A SuperAdmin will review it in the Admin Panel shortly.
+          </p>
+          {reason && <p className="mt-2 text-sm text-red-500">Reason: {reason}</p>}
+
+          <div className="mt-8 flex justify-center gap-4">
+            <button
+              onClick={checkStatus}
+              disabled={checking}
+              className="flex min-w-[140px] items-center justify-center rounded border border-gray-300 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-gray-600 transition-colors hover:border-[#853a8c] hover:text-[#853a8c] disabled:opacity-50"
+            >
+              {checking ? (
+                <Loader2 className="h-4 w-4 animate-spin text-current" />
+              ) : (
+                "Check status"
+              )}
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-white transition-opacity"
+              style={{ background: "#853a8c" }}
+            >
+              Back to login
+            </button>
           </div>
         </div>
       </div>

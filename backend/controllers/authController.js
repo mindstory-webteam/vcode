@@ -2,9 +2,9 @@ const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const StudentApplication = require('../models/StudentApplication');
 const ProgressReport = require('../models/ProgressReport');
-const { sendTokenResponse } = require('../utils/generateToken');
+const { generateToken, sendTokenResponse } = require('../utils/generateToken');
 
-// @desc    Google OAuth login & auto-registration
+// @desc    Google OAuth login & first-time approval request
 // @route   POST /api/auth/google
 // @access  Public
 const googleAuth = asyncHandler(async (req, res) => {
@@ -24,23 +24,38 @@ const googleAuth = asyncHandler(async (req, res) => {
     return sendTokenResponse(user, 200, res);
   }
 
-  // If user does not exist, auto-register as an approved student
-  const studentName = name && name.trim() ? name.trim() : normalizedEmail.split('@')[0];
+  // User not created yet -> Check for pending/rejected/approved StudentApplication
+  let application = await StudentApplication.findOne({ email: normalizedEmail });
 
-  user = await User.create({
-    name: studentName,
-    email: normalizedEmail,
-    password: googleId,
-    role: 'student',
-    status: 'approved',
-  });
+  if (!application) {
+    // First time user logging in -> Create a pending application for SuperAdmin approval
+    const studentName = name && name.trim() ? name.trim() : normalizedEmail.split('@')[0];
+    application = await StudentApplication.create({
+      name: studentName,
+      email: normalizedEmail,
+      password: googleId,
+      status: 'pending',
+    });
+  }
 
-  // Create initial empty progress report for the student
-  await ProgressReport.create({
-    student: user._id,
-  });
+  if (application.status === 'pending') {
+    return res.status(200).json({
+      success: true,
+      pendingApproval: true,
+      status: 'pending',
+      email: normalizedEmail,
+      message: 'Registration submitted. Please wait for SuperAdmin approval.',
+    });
+  }
 
-  sendTokenResponse(user, 200, res);
+  if (application.status === 'rejected') {
+    return res.status(401).json({
+      success: false,
+      status: 'rejected',
+      message: 'Your registration was rejected by SuperAdmin',
+      reason: application.rejectionReason,
+    });
+  }
 });
 
 // @desc    Student self-registration (creates a pending application, NOT a login-able account)
@@ -96,7 +111,22 @@ const registerStudent = asyncHandler(async (req, res) => {
 // @route   GET /api/auth/application-status/:email
 // @access  Public
 const checkApplicationStatus = asyncHandler(async (req, res) => {
-  const application = await StudentApplication.findOne({ email: req.params.email.toLowerCase() });
+  const email = req.params.email.toLowerCase().trim();
+  const user = await User.findOne({ email });
+
+  if (user && user.status === 'approved') {
+    const token = generateToken(user._id, user.role);
+    return res.json({
+      success: true,
+      status: 'approved',
+      isApproved: true,
+      token,
+      user,
+      vcode: user.studentInfo?.rollNumber || 'unknown',
+    });
+  }
+
+  const application = await StudentApplication.findOne({ email });
   if (!application) {
     return res.status(404).json({ success: false, message: 'No application found for this email' });
   }
