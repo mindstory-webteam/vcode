@@ -85,6 +85,10 @@ export const uploadStudentProfilePhotoAdmin = (studentId, file) => {
   });
 };
 
+// SuperAdmin — edit student profile details (name, email, roll no, dept, semester)
+export const updateStudentProfileAdmin = (studentId, data) =>
+  api.put(`/superadmin/students/${studentId}/profile`, data);
+
 // ---- Faculty ----
 export const getMyStudents = () => api.get('/faculty/students');
 export const getStudentProgressReport = (studentId) =>
@@ -108,5 +112,9 @@ export const uploadStudentProfilePhoto = (studentId, file) => {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };
+
+// Faculty — edit student profile details (name, email, roll no, dept, semester)
+export const updateStudentProfile = (studentId, data) =>
+  api.put(`/faculty/students/${studentId}/profile`, data);
 
 export default api;

@@ -9,6 +9,8 @@ import {
   deleteProgressEntry,
   updateOverallRemarks,
   updateGradeCard,
+  updateStudentProfile,
+  uploadStudentProfilePhoto,
   fileUrl,
 } from '../../api.js';
 
@@ -16,6 +18,14 @@ const CATEGORIES = ['academic', 'attendance', 'behavior', 'project', 'exam', 'ot
 const PLACEMENT_STATUSES = ['not_ready', 'in_training', 'job_ready', 'placed'];
 
 const emptyEntry = { title: '', category: 'academic', description: '', marks: '', grade: '', remarks: '' };
+
+const emptyProfileForm = {
+  name: '',
+  email: '',
+  rollNumber: '',
+  department: '',
+  semester: '',
+};
 
 const emptyGradeCard = {
   program: { name: '', code: '', durationLabel: '', batch: '', summary: '' },
@@ -253,6 +263,14 @@ export default function StudentReport() {
   const [gradeCardError, setGradeCardError] = useState('');
   const [gradeCardBusy, setGradeCardBusy] = useState(false);
 
+  // ---- Edit profile (details + photo) ----
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState(emptyProfileForm);
+  const [profileError, setProfileError] = useState('');
+  const [profileBusy, setProfileBusy] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+
   const load = () => {
     setLoading(true);
     getStudentProgressReport(studentId)
@@ -352,6 +370,59 @@ export default function StudentReport() {
       setGradeCardError(err.response?.data?.message || 'Could not save the grade card');
     } finally {
       setGradeCardBusy(false);
+    }
+  };
+
+  // ---- Edit profile handlers ----
+  const openEditProfile = () => {
+    setProfileForm({
+      name: report?.student?.name || '',
+      email: report?.student?.email || '',
+      rollNumber: report?.student?.studentInfo?.rollNumber || '',
+      department: report?.student?.studentInfo?.department || '',
+      semester: report?.student?.studentInfo?.semester || '',
+    });
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setProfileError('');
+    setShowProfileModal(true);
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setPhotoFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => setPhotoPreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setPhotoPreview(null);
+    }
+  };
+
+  const submitProfile = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileBusy(true);
+    try {
+      await updateStudentProfile(studentId, {
+        name: profileForm.name,
+        email: profileForm.email,
+        studentInfo: {
+          rollNumber: profileForm.rollNumber,
+          department: profileForm.department,
+          semester: profileForm.semester,
+        },
+      });
+      if (photoFile) {
+        await uploadStudentProfilePhoto(studentId, photoFile);
+      }
+      setShowProfileModal(false);
+      load();
+    } catch (err) {
+      setProfileError(err.response?.data?.message || 'Could not update this profile');
+    } finally {
+      setProfileBusy(false);
     }
   };
 
@@ -750,7 +821,16 @@ export default function StudentReport() {
           <div className="eyebrow">
             <Link to="/faculty/students" style={{ color: 'inherit' }}>My Students</Link> / Progress Report
           </div>
-          <h1>{report?.student?.name || 'Student report'}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {report?.student?.profileImage ? (
+              <img
+                src={fileUrl(report.student.profileImage)}
+                alt={report.student.name}
+                style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)' }}
+              />
+            ) : null}
+            <h1 style={{ margin: 0 }}>{report?.student?.name || 'Student report'}</h1>
+          </div>
           <p className="sub">
             {report?.student?.email}
             {report?.student?.studentInfo?.rollNumber ? ` · Roll no. ${report.student.studentInfo.rollNumber}` : ''}
@@ -758,6 +838,9 @@ export default function StudentReport() {
         </div>
         {report && (
           <div className="btn-row">
+            <button className="btn btn-ghost" onClick={openEditProfile}>
+              Edit profile
+            </button>
             <button className="btn btn-ghost" onClick={openGradeCard}>
               {gc?.overallGrade ? 'Edit grade card' : '+ Create grade card'}
             </button>
@@ -935,6 +1018,59 @@ export default function StudentReport() {
                 {busy ? 'Saving…' : editingEntry ? 'Save changes' : 'Add entry'}
               </button>
               <button className="btn btn-ghost" type="button" onClick={() => setShowEntryModal(false)} disabled={busy}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {showProfileModal && (
+        <Modal title="Edit student profile" onClose={() => setShowProfileModal(false)}>
+          {profileError && <div className="form-error">{profileError}</div>}
+          <form onSubmit={submitProfile}>
+            <div className="field" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              {photoPreview || report?.student?.profileImage ? (
+                <img
+                  src={photoPreview || fileUrl(report.student.profileImage)}
+                  alt="Profile preview"
+                  style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)' }}
+                />
+              ) : (
+                <div className="avatar-initial">{profileForm.name?.[0]?.toUpperCase() || '?'}</div>
+              )}
+              <div style={{ flex: 1 }}>
+                <label>Profile photo</label>
+                <input type="file" accept="image/*" onChange={handlePhotoChange} />
+              </div>
+            </div>
+            <div className="field">
+              <label>Full name</label>
+              <input required value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>Email</label>
+              <input required type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} />
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Roll number</label>
+                <input value={profileForm.rollNumber} onChange={(e) => setProfileForm({ ...profileForm, rollNumber: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Department</label>
+                <input value={profileForm.department} onChange={(e) => setProfileForm({ ...profileForm, department: e.target.value })} />
+              </div>
+            </div>
+            <div className="field">
+              <label>Semester</label>
+              <input value={profileForm.semester} onChange={(e) => setProfileForm({ ...profileForm, semester: e.target.value })} />
+            </div>
+            <div className="btn-row">
+              <button className="btn btn-gold" type="submit" disabled={profileBusy}>
+                {profileBusy ? 'Saving…' : 'Save changes'}
+              </button>
+              <button className="btn btn-ghost" type="button" onClick={() => setShowProfileModal(false)} disabled={profileBusy}>
                 Cancel
               </button>
             </div>

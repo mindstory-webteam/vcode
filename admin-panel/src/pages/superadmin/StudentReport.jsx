@@ -9,6 +9,7 @@ import {
   deleteProgressEntryAdmin,
   updateOverallRemarksAdmin,
   updateGradeCardAdmin,
+  updateStudentProfileAdmin,
   uploadStudentProfilePhotoAdmin,
   fileUrl,
 } from '../../api.js';
@@ -17,6 +18,16 @@ const CATEGORIES = ['academic', 'attendance', 'behavior', 'project', 'exam', 'ot
 const PLACEMENT_STATUSES = ['not_ready', 'in_training', 'job_ready', 'placed'];
 
 const emptyEntry = { title: '', category: 'academic', description: '', marks: '', grade: '', remarks: '' };
+
+const emptyProfileForm = {
+  name: '',
+  email: '',
+  phone: '',
+  rollNumber: '',
+  department: '',
+  course: '',
+  semester: '',
+};
 
 const emptyGradeCard = {
   program: { name: '', code: '', durationLabel: '', batch: '', summary: '' },
@@ -141,6 +152,12 @@ export default function SuperAdminStudentReport() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
 
+  // ---- Edit student details ----
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState(emptyProfileForm);
+  const [profileError, setProfileError] = useState('');
+  const [profileBusy, setProfileBusy] = useState(false);
+
   const load = () => {
     setLoading(true);
     getStudentProgressReportAdmin(studentId)
@@ -259,6 +276,46 @@ export default function SuperAdminStudentReport() {
     }
   };
 
+  // ---- Edit student details handlers ----
+  const openEditProfile = () => {
+    setProfileForm({
+      name: report?.student?.name || '',
+      email: report?.student?.email || '',
+      phone: report?.student?.phone || '',
+      rollNumber: report?.student?.studentInfo?.rollNumber || '',
+      department: report?.student?.studentInfo?.department || '',
+      course: report?.student?.studentInfo?.course || '',
+      semester: report?.student?.studentInfo?.semester || '',
+    });
+    setProfileError('');
+    setShowProfileModal(true);
+  };
+
+  const submitProfile = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileBusy(true);
+    try {
+      await updateStudentProfileAdmin(studentId, {
+        name: profileForm.name,
+        email: profileForm.email,
+        phone: profileForm.phone,
+        studentInfo: {
+          rollNumber: profileForm.rollNumber,
+          department: profileForm.department,
+          course: profileForm.course,
+          semester: profileForm.semester,
+        },
+      });
+      setShowProfileModal(false);
+      load();
+    } catch (err) {
+      setProfileError(err.response?.data?.message || 'Could not update this student\u2019s details');
+    } finally {
+      setProfileBusy(false);
+    }
+  };
+
   const gc = report?.gradeCard;
   const student = report?.student;
 
@@ -292,6 +349,9 @@ export default function SuperAdminStudentReport() {
         </div>
         {report && (
           <div className="btn-row">
+            <button className="btn btn-ghost" onClick={openEditProfile}>
+              Edit details
+            </button>
             <button className="btn btn-ghost" onClick={openGradeCard}>
               {gc?.overallGrade ? 'Edit grade card' : '+ Create grade card'}
             </button>
@@ -489,6 +549,56 @@ export default function SuperAdminStudentReport() {
                 {busy ? 'Saving…' : editingEntry ? 'Save changes' : 'Add entry'}
               </button>
               <button className="btn btn-ghost" type="button" onClick={() => setShowEntryModal(false)} disabled={busy}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {showProfileModal && (
+        <Modal title="Edit student details" onClose={() => setShowProfileModal(false)}>
+          {profileError && <div className="form-error">{profileError}</div>}
+          <form onSubmit={submitProfile}>
+            <div className="field">
+              <label>Full name</label>
+              <input required value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} />
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Email</label>
+                <input required type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Phone</label>
+                <input value={profileForm.phone} onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="e.g. 08590123072" />
+              </div>
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Roll number</label>
+                <input value={profileForm.rollNumber} onChange={(e) => setProfileForm({ ...profileForm, rollNumber: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Department</label>
+                <input value={profileForm.department} onChange={(e) => setProfileForm({ ...profileForm, department: e.target.value })} placeholder="e.g. CC" />
+              </div>
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Course</label>
+                <input value={profileForm.course} onChange={(e) => setProfileForm({ ...profileForm, course: e.target.value })} placeholder="e.g. BCA" />
+              </div>
+              <div className="field">
+                <label>Semester</label>
+                <input value={profileForm.semester} onChange={(e) => setProfileForm({ ...profileForm, semester: e.target.value })} />
+              </div>
+            </div>
+            <div className="btn-row">
+              <button className="btn btn-gold" type="submit" disabled={profileBusy}>
+                {profileBusy ? 'Saving…' : 'Save changes'}
+              </button>
+              <button className="btn btn-ghost" type="button" onClick={() => setShowProfileModal(false)} disabled={profileBusy}>
                 Cancel
               </button>
             </div>
