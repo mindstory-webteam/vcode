@@ -40,6 +40,30 @@ const documentSchema = new mongoose.Schema(
 );
 
 // ---------------------------------------------------------------------------
+// ATTENDANCE — one record per calendar date, marked by Faculty (assigned
+// students only) or SuperAdmin (any student). Upserted by date in the
+// controller, so there should only ever be one entry per day.
+// ---------------------------------------------------------------------------
+const attendanceSchema = new mongoose.Schema(
+  {
+    date: { type: Date, required: true },
+    status: {
+      type: String,
+      enum: ['present', 'absent', 'half_day', 'leave'],
+      required: true,
+      default: 'present',
+    },
+    remarks: { type: String, trim: true },
+    markedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+  },
+  { timestamps: true }
+);
+
+// ---------------------------------------------------------------------------
 // GRADE CARD sub-schemas (mirrors the "Verified Grade Card / Industry
 // Readiness Report" format — filled in by Faculty or SuperAdmin only)
 // ---------------------------------------------------------------------------
@@ -207,6 +231,9 @@ const progressReportSchema = new mongoose.Schema(
 
     // New: full grade card, editable only by Faculty (assigned) / SuperAdmin (any)
     gradeCard: { type: gradeCardSchema, default: () => ({}) },
+
+    // New: attendance tracker, editable only by Faculty (assigned) / SuperAdmin (any)
+    attendance: [attendanceSchema],
   },
   { timestamps: true }
 );

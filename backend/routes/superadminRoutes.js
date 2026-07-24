@@ -21,6 +21,8 @@ const {
   updateOverallRemarksAdmin,
   updateGradeCardAdmin,
   uploadStudentProfilePhotoAdmin,
+  markAttendanceAdmin,
+  deleteAttendanceAdmin,
 } = require('../controllers/superadminController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { uploadProfileImage } = require('../middleware/uploadMiddleware');
@@ -53,6 +55,8 @@ router.put('/students/:studentId/progress-report/entries/:entryId', updateProgre
 router.delete('/students/:studentId/progress-report/entries/:entryId', deleteProgressEntryAdmin);
 router.put('/students/:studentId/progress-report/remarks', updateOverallRemarksAdmin);
 router.put('/students/:studentId/progress-report/grade-card', updateGradeCardAdmin);
+router.put('/students/:studentId/progress-report/attendance', markAttendanceAdmin);
+router.delete('/students/:studentId/progress-report/attendance/:attendanceId', deleteAttendanceAdmin);
 router.put('/students/:studentId/profile-photo', uploadProfileImage.single('photo'), uploadStudentProfilePhotoAdmin);
 
 // General user management

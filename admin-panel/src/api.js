@@ -81,6 +81,12 @@ export const updateOverallRemarksAdmin = (studentId, overallRemarks) =>
 export const updateGradeCardAdmin = (studentId, gradeCard) =>
   api.put(`/superadmin/students/${studentId}/progress-report/grade-card`, gradeCard);
 
+// SuperAdmin — attendance (any student, no assignment restriction)
+export const markAttendanceAdmin = (studentId, data) =>
+  api.put(`/superadmin/students/${studentId}/progress-report/attendance`, data);
+export const deleteAttendanceAdmin = (studentId, attendanceId) =>
+  api.delete(`/superadmin/students/${studentId}/progress-report/attendance/${attendanceId}`);
+
 // SuperAdmin — profile photo (any student, no assignment restriction)
 export const uploadStudentProfilePhotoAdmin = (studentId, file) => {
   const formData = new FormData();
@@ -108,6 +114,12 @@ export const updateOverallRemarks = (studentId, overallRemarks) =>
   api.put(`/faculty/students/${studentId}/progress-report/remarks`, { overallRemarks });
 export const updateGradeCard = (studentId, gradeCard) =>
   api.put(`/faculty/students/${studentId}/progress-report/grade-card`, gradeCard);
+
+// Faculty — attendance (assigned students only)
+export const markAttendance = (studentId, data) =>
+  api.put(`/faculty/students/${studentId}/progress-report/attendance`, data);
+export const deleteAttendance = (studentId, attendanceId) =>
+  api.delete(`/faculty/students/${studentId}/progress-report/attendance/${attendanceId}`);
 
 // Faculty — profile photo (assigned students only)
 export const uploadStudentProfilePhoto = (studentId, file) => {

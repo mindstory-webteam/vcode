@@ -1,4 +1,5 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import vcaLogo from '../../public/Logo-VCA (1).png';
 
@@ -35,21 +36,65 @@ const IconFaculty = () => (
   </svg>
 );
 
+const IconChevron = () => (
+  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
+    <path d="M9 6l6 6-6 6" />
+  </svg>
+);
+
+/* ---------- nav config ----------
+   Items can be either a plain link ({ to, label, Icon }) or a dropdown
+   group ({ label, Icon, children: [{ to, label }, ...] }). */
+
 const SUPERADMIN_NAV = [
   { num: '01', to: '/superadmin/dashboard', label: 'Dashboard', Icon: IconDashboard },
   { num: '02', to: '/superadmin/applications', label: 'Applications', Icon: IconApplications },
-  { num: '03', to: '/superadmin/students', label: 'Students', Icon: IconStudents },
+  {
+    num: '03',
+    label: 'Students',
+    Icon: IconStudents,
+    children: [
+      { to: '/superadmin/students', label: 'All Students' },
+      { to: '/superadmin/attendance', label: 'Attendance' },
+    ],
+  },
   { num: '04', to: '/superadmin/faculty', label: 'Faculty', Icon: IconFaculty },
 ];
 
 const FACULTY_NAV = [
-  { num: '01', to: '/faculty/students', label: 'My Students', Icon: IconStudents },
+  {
+    num: '01',
+    label: 'Students',
+    Icon: IconStudents,
+    children: [
+      { to: '/faculty/students', label: 'My Students' },
+      { to: '/faculty/attendance', label: 'Attendance' },
+    ],
+  },
 ];
 
 export default function Layout({ children }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const nav = user?.role === 'superadmin' ? SUPERADMIN_NAV : FACULTY_NAV;
+
+  // Track which dropdown groups are open. A group auto-opens if the current
+  // route matches one of its children, so refreshing on a sub-page doesn't
+  // hide the active link.
+  const [openGroups, setOpenGroups] = useState(() => {
+    const initial = {};
+    nav.forEach((item) => {
+      if (item.children) {
+        initial[item.label] = item.children.some((c) => location.pathname.startsWith(c.to));
+      }
+    });
+    return initial;
+  });
+
+  const toggleGroup = (label) => {
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -67,20 +112,77 @@ export default function Layout({ children }) {
         </div>
 
         <ul className="nav-list">
-          {nav.map((item) => (
-            <li key={item.to}>
-              <NavLink
-                to={item.to}
-                className={({ isActive }) => `nav-tab${isActive ? ' active' : ''}`}
-              >
-                {/* <span className="num">{item.num}</span> */}
-                <span className="nav-icon">
-                  <item.Icon />
-                </span>
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
+          {nav.map((item) => {
+            if (item.children) {
+              const isOpen = !!openGroups[item.label];
+              const isGroupActive = item.children.some((c) => location.pathname.startsWith(c.to));
+              return (
+                <li key={item.label}>
+                  <button
+                    type="button"
+                    className={`nav-tab nav-group-toggle${isGroupActive ? ' active' : ''}`}
+                    onClick={() => toggleGroup(item.label)}
+                    style={{
+                      width: '100%',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      font: 'inherit',
+                      color: 'inherit',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span className="nav-icon">
+                      <item.Icon />
+                    </span>
+                    <span style={{ flex: 1 }}>{item.label}</span>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        transition: 'transform 0.15s ease',
+                        transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                      }}
+                    >
+                      <IconChevron />
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <ul className="nav-submenu" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                      {item.children.map((child) => (
+                        <li key={child.to}>
+                          <NavLink
+                            to={child.to}
+                            className={({ isActive }) => `nav-tab nav-sublink${isActive ? ' active' : ''}`}
+                            style={{ paddingLeft: 44 }}
+                          >
+                            {child.label}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            }
+
+            return (
+              <li key={item.to}>
+                <NavLink
+                  to={item.to}
+                  className={({ isActive }) => `nav-tab${isActive ? ' active' : ''}`}
+                >
+                  {/* <span className="num">{item.num}</span> */}
+                  <span className="nav-icon">
+                    <item.Icon />
+                  </span>
+                  {item.label}
+                </NavLink>
+              </li>
+            );
+          })}
         </ul>
 
         <div className="sidebar-footer">

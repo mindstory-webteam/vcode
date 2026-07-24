@@ -410,7 +410,8 @@ const getStudentProgressReportAdmin = asyncHandler(async (req, res) => {
     .populate('faculty', 'name email facultyInfo')
     .populate('entries.updatedBy', 'name role')
     .populate('documents.uploadedBy', 'name role')
-    .populate('gradeCard.lastUpdatedBy', 'name role');
+    .populate('gradeCard.lastUpdatedBy', 'name role')
+    .populate('attendance.markedBy', 'name role');
 
   if (!report) {
     return res.status(404).json({ success: false, message: 'Progress report not found' });
@@ -591,6 +592,73 @@ const updateGradeCardAdmin = asyncHandler(async (req, res) => {
 
 
 // ---------------------------------------------------------------------------
+// ATTENDANCE — SuperAdmin can mark/update attendance for ANY student, no
+// assignment restriction. One record per calendar date; marking the same
+// date again updates the existing record instead of creating a duplicate.
+// ---------------------------------------------------------------------------
+
+// @desc    Mark or update attendance for a specific date (upsert by date)
+// @route   PUT /api/superadmin/students/:studentId/progress-report/attendance
+// @access  Private/SuperAdmin
+// body: { date, status, remarks }
+const markAttendanceAdmin = asyncHandler(async (req, res) => {
+  const student = await findStudentOr404(req.params.studentId, res);
+  if (!student) return;
+
+  const { date, status, remarks } = req.body;
+  if (!date || !status) {
+    return res.status(400).json({ success: false, message: 'date and status are required' });
+  }
+
+  let report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    report = await ProgressReport.create({
+      student: student._id,
+      faculty: student.studentInfo?.assignedFaculty || null,
+    });
+  }
+
+  const day = new Date(date);
+  day.setHours(0, 0, 0, 0);
+
+  const existing = report.attendance.find((a) => {
+    const d = new Date(a.date);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() === day.getTime();
+  });
+
+  if (existing) {
+    existing.status = status;
+    existing.remarks = remarks;
+    existing.markedBy = req.user._id;
+  } else {
+    report.attendance.push({ date: day, status, remarks, markedBy: req.user._id });
+  }
+
+  await report.save();
+  res.json({ success: true, message: 'Attendance saved', report });
+});
+
+// @desc    Delete an attendance record for any student
+// @route   DELETE /api/superadmin/students/:studentId/progress-report/attendance/:attendanceId
+// @access  Private/SuperAdmin
+const deleteAttendanceAdmin = asyncHandler(async (req, res) => {
+  const student = await findStudentOr404(req.params.studentId, res);
+  if (!student) return;
+
+  const report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found' });
+  }
+
+  report.attendance.pull({ _id: req.params.attendanceId });
+  await report.save();
+
+  res.json({ success: true, message: 'Attendance record removed', report });
+});
+
+
+// ---------------------------------------------------------------------------
 // PROFILE PHOTO — SuperAdmin can set/replace the profile photo for ANY
 // student, no assignment restriction.
 // ---------------------------------------------------------------------------
@@ -649,4 +717,6 @@ module.exports = {
   updateOverallRemarksAdmin,
   updateGradeCardAdmin,
   uploadStudentProfilePhotoAdmin,
+  markAttendanceAdmin,
+  deleteAttendanceAdmin,
 };

@@ -9,6 +9,8 @@ const {
   updateOverallRemarks,
   updateGradeCard,
   uploadStudentProfilePhoto,
+  markAttendance,
+  deleteAttendance,
 } = require('../controllers/facultyController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { uploadProfileImage } = require('../middleware/uploadMiddleware');
@@ -23,6 +25,8 @@ router.put('/students/:studentId/progress-report/entries/:entryId', updateProgre
 router.delete('/students/:studentId/progress-report/entries/:entryId', deleteProgressEntry);
 router.put('/students/:studentId/progress-report/remarks', updateOverallRemarks);
 router.put('/students/:studentId/progress-report/grade-card', updateGradeCard);
+router.put('/students/:studentId/progress-report/attendance', markAttendance);
+router.delete('/students/:studentId/progress-report/attendance/:attendanceId', deleteAttendance);
 router.put('/students/:studentId/profile-photo', uploadProfileImage.single('photo'), uploadStudentProfilePhoto);
 
 module.exports = router;

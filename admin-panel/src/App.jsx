@@ -9,6 +9,10 @@ import Faculty from './pages/superadmin/Faculty.jsx';
 import SuperAdminStudentReport from './pages/superadmin/StudentReport.jsx';
 import MyStudents from './pages/faculty/MyStudents.jsx';
 import StudentReport from './pages/faculty/StudentReport.jsx';
+import FacultyAttendance from './pages/faculty/Attendance.jsx';
+import SuperAdminAttendance from './pages/superadmin/Attendance.jsx';
+import FacultyAttendanceList from './pages/faculty/AttendanceList.jsx';
+import SuperAdminAttendanceList from './pages/superadmin/AttendanceList.jsx';
 
 function ProtectedRoute({ roles, children }) {
   const { user, loading } = useAuth();
@@ -54,6 +58,11 @@ export default function App() {
         element={<ProtectedRoute roles={['superadmin']}><Faculty /></ProtectedRoute>}
       />
 
+<Route path="/faculty/students/:studentId/attendance" element={<FacultyAttendance />} />
+<Route path="/superadmin/students/:studentId/attendance" element={<SuperAdminAttendance />} />
+
+<Route path="/faculty/attendance" element={<FacultyAttendanceList />} />
+<Route path="/superadmin/attendance" element={<SuperAdminAttendanceList />} />
       <Route
         path="/faculty/students"
         element={<ProtectedRoute roles={['faculty']}><MyStudents /></ProtectedRoute>}

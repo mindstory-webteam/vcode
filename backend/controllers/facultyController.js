@@ -37,7 +37,8 @@ const getStudentProgressReport = asyncHandler(async (req, res) => {
   const report = await ProgressReport.findOne({ student: student._id })
     .populate('student', 'name email studentInfo')
     .populate('entries.updatedBy', 'name role')
-    .populate('gradeCard.lastUpdatedBy', 'name role');
+    .populate('gradeCard.lastUpdatedBy', 'name role')
+    .populate('attendance.markedBy', 'name role');
 
   if (!report) {
     return res.status(404).json({ success: false, message: 'Progress report not found' });
@@ -221,6 +222,73 @@ const updateGradeCard = asyncHandler(async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// ATTENDANCE — Faculty can mark/update attendance ONLY for students
+// assigned to them. One record per calendar date; marking the same date
+// again updates the existing record instead of creating a duplicate.
+// ---------------------------------------------------------------------------
+
+// @desc    Mark or update attendance for a specific date (upsert by date)
+// @route   PUT /api/faculty/students/:studentId/progress-report/attendance
+// @access  Private/Faculty
+// body: { date, status, remarks }
+const markAttendance = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  const { date, status, remarks } = req.body;
+  if (!date || !status) {
+    return res.status(400).json({ success: false, message: 'date and status are required' });
+  }
+
+  let report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    report = await ProgressReport.create({ student: student._id, faculty: req.user._id });
+  }
+
+  const day = new Date(date);
+  day.setHours(0, 0, 0, 0);
+
+  const existing = report.attendance.find((a) => {
+    const d = new Date(a.date);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() === day.getTime();
+  });
+
+  if (existing) {
+    existing.status = status;
+    existing.remarks = remarks;
+    existing.markedBy = req.user._id;
+  } else {
+    report.attendance.push({ date: day, status, remarks, markedBy: req.user._id });
+  }
+
+  await report.save();
+  res.json({ success: true, message: 'Attendance saved', report });
+});
+
+// @desc    Delete an attendance record
+// @route   DELETE /api/faculty/students/:studentId/progress-report/attendance/:attendanceId
+// @access  Private/Faculty
+const deleteAttendance = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  const report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found' });
+  }
+
+  report.attendance.pull({ _id: req.params.attendanceId });
+  await report.save();
+
+  res.json({ success: true, message: 'Attendance record removed', report });
+});
+
+// ---------------------------------------------------------------------------
 // PROFILE PHOTO — Faculty can set/replace the profile photo ONLY for
 // students assigned to them.
 // ---------------------------------------------------------------------------
@@ -268,4 +336,6 @@ module.exports = {
   updateOverallRemarks,
   updateGradeCard,
   uploadStudentProfilePhoto,
+  markAttendance,
+  deleteAttendance,
 };
