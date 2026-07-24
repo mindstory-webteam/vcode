@@ -126,19 +126,24 @@ function parseBulkProgressWorkbook(buffer) {
   const map = new Map();
 
   const getOrInit = (email, rollNumber, name) => {
-    const key = (email || rollNumber || '').toString().trim().toLowerCase();
+    let safeEmail = email;
+    if (!safeEmail && !rollNumber && name) {
+      safeEmail = `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}@student.local`;
+    }
+    const key = (safeEmail || rollNumber || name || '').toString().trim().toLowerCase();
     if (!key) return null;
     if (!map.has(key)) {
-      map.set(key, { account: { name: name || '', email: email || '', rollNumber: rollNumber || '' }, overallRemarks: undefined, entries: undefined, attendance: undefined, gradeCard: {} });
+      map.set(key, { account: { name: name || '', email: safeEmail || '', rollNumber: rollNumber || '' }, overallRemarks: undefined, entries: undefined, attendance: undefined, gradeCard: {} });
     }
     return map.get(key);
   };
 
-  // Students sheet
-  getSheet('Students').forEach((r) => {
+  // Students/Overview sheet
+  const mainSheet = getSheet('Students') || getSheet('Overview') || [];
+  mainSheet.forEach((r) => {
     const email = str(r['Email'] || r['email'] || r['Student Email']);
     const rollNumber = str(r['Roll Number'] || r['rollNumber'] || r['Roll No']);
-    const name = str(r['Full Name'] || r['name'] || r['Name']);
+    const name = str(r['Student Name'] || r['Full Name'] || r['name'] || r['Name']);
     const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     if (name) d.account.name = name;
@@ -173,9 +178,10 @@ function parseBulkProgressWorkbook(buffer) {
   getSheet('Entries').forEach((r) => {
     const email = str(r['Student Email'] || r['Email']);
     const rollNumber = str(r['Roll Number'] || r['rollNumber']);
+    const name = str(r['Student Name'] || r['Name']);
     const title = str(r['Title'] || r['title']);
     if (!title) return;
-    const d = getOrInit(email, rollNumber);
+    const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     d.entries = d.entries || [];
     let category = str(r['Category']).toLowerCase();
@@ -187,13 +193,14 @@ function parseBulkProgressWorkbook(buffer) {
   getSheet('Attendance').forEach((r) => {
     const email = str(r['Student Email'] || r['Email']);
     const rollNumber = str(r['Roll Number'] || r['rollNumber']);
+    const name = str(r['Student Name'] || r['Name']);
     const rawDate = r['Date'] || r['date'];
     const rawStatus = str(r['Status'] || r['status']).toLowerCase().replace(/\s+/g, '_');
     if (!rawDate || !VALID_ATTENDANCE_STATUSES.includes(rawStatus)) return;
     const day = rawDate instanceof Date ? new Date(rawDate) : new Date(rawDate);
     if (isNaN(day.getTime())) return;
     day.setHours(0, 0, 0, 0);
-    const d = getOrInit(email, rollNumber);
+    const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     d.attendance = d.attendance || [];
     d.attendance.push({ date: day, status: rawStatus, remarks: str(r['Remarks']) });
@@ -203,21 +210,37 @@ function parseBulkProgressWorkbook(buffer) {
   getSheet('Skill Scores').forEach((r) => {
     const email = str(r['Student Email'] || r['Email']);
     const rollNumber = str(r['Roll Number'] || r['rollNumber']);
+    const name = str(r['Student Name'] || r['Name']);
     const skillName = str(r['Skill Name']);
     if (!skillName) return;
-    const d = getOrInit(email, rollNumber);
+    const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     d.gradeCard.skillScores = d.gradeCard.skillScores || [];
     d.gradeCard.skillScores.push({ skillName, score: num(r['Score']), grade: str(r['Grade']) || null });
+  });
+
+  // Experience Stats sheet (Optional but nice to have in case)
+  getSheet('Experience Stats').forEach((r) => {
+    const email = str(r['Student Email'] || r['Email']);
+    const rollNumber = str(r['Roll Number'] || r['rollNumber']);
+    const name = str(r['Student Name'] || r['Name']);
+    const label = str(r['Label']);
+    if (!label) return;
+    const d = getOrInit(email, rollNumber, name);
+    if (!d) return;
+    if (!d.gradeCard.experience) d.gradeCard.experience = { stats: [] };
+    if (!d.gradeCard.experience.stats) d.gradeCard.experience.stats = [];
+    d.gradeCard.experience.stats.push({ label, value: str(r['Value']) });
   });
 
   // Verified Skills sheet
   getSheet('Verified Skills').forEach((r) => {
     const email = str(r['Student Email'] || r['Email']);
     const rollNumber = str(r['Roll Number'] || r['rollNumber']);
+    const name = str(r['Student Name'] || r['Name']);
     const skillName = str(r['Skill Name']);
     if (!skillName) return;
-    const d = getOrInit(email, rollNumber);
+    const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     d.gradeCard.verifiedSkills = d.gradeCard.verifiedSkills || [];
     d.gradeCard.verifiedSkills.push({ skillName, score: num(r['Score']) });
@@ -227,9 +250,10 @@ function parseBulkProgressWorkbook(buffer) {
   getSheet('Portfolio Highlights').forEach((r) => {
     const email = str(r['Student Email'] || r['Email']);
     const rollNumber = str(r['Roll Number'] || r['rollNumber']);
+    const name = str(r['Student Name'] || r['Name']);
     const title = str(r['Title']);
     if (!title) return;
-    const d = getOrInit(email, rollNumber);
+    const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     d.gradeCard.portfolioHighlights = d.gradeCard.portfolioHighlights || [];
     d.gradeCard.portfolioHighlights.push({ title, role: str(r['Role']), tools: str(r['Tools']).split(',').map(t => t.trim()).filter(Boolean), result: str(r['Result']), link: str(r['Link']) });
@@ -239,9 +263,10 @@ function parseBulkProgressWorkbook(buffer) {
   getSheet('Achievements').forEach((r) => {
     const email = str(r['Student Email'] || r['Email']);
     const rollNumber = str(r['Roll Number'] || r['rollNumber']);
+    const name = str(r['Student Name'] || r['Name']);
     const achievement = str(r['Achievement']);
     if (!achievement) return;
-    const d = getOrInit(email, rollNumber);
+    const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     d.gradeCard.achievements = d.gradeCard.achievements || [];
     d.gradeCard.achievements.push(achievement);
@@ -251,9 +276,10 @@ function parseBulkProgressWorkbook(buffer) {
   getSheet('Mentor Ratings').forEach((r) => {
     const email = str(r['Student Email'] || r['Email']);
     const rollNumber = str(r['Roll Number'] || r['rollNumber']);
+    const name = str(r['Student Name'] || r['Name']);
     const criteria = str(r['Criteria']);
     if (!criteria) return;
-    const d = getOrInit(email, rollNumber);
+    const d = getOrInit(email, rollNumber, name);
     if (!d) return;
     d.gradeCard.mentorEvaluation = d.gradeCard.mentorEvaluation || { ratings: [], recommendation: '' };
     d.gradeCard.mentorEvaluation.ratings.push({ criteria, score: Number(r['Score']) || 1 });
@@ -263,3 +289,4 @@ function parseBulkProgressWorkbook(buffer) {
 }
 
 module.exports = { buildBulkProgressTemplate, parseBulkProgressWorkbook };
+
