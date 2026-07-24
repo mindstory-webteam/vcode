@@ -7,7 +7,7 @@ const User = require('../models/User');
 // @access  Public
 const verifyStudentProgress = asyncHandler(async (req, res) => {
   const { slug } = req.params;
-  
+
   // The slug might be "VC-0001", "VC-03SU22CC098", or just "0001" or "03SU22CC098"
   // Let's strip "VC-" if it's there to easily search.
   const rawId = slug.startsWith('VC-') ? slug.slice(3) : slug;
@@ -39,7 +39,7 @@ const verifyStudentProgress = asyncHandler(async (req, res) => {
   if (!report) {
     return res.status(404).json({ success: false, message: 'No student progress card found for this ID' });
   }
-  
+
   res.json({ success: true, user: report.student, report });
 });
 

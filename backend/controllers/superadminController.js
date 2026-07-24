@@ -767,9 +767,8 @@ const bulkUploadAttendanceAdmin = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: `Bulk upload complete — ${results.added} added, ${results.updated} updated${
-      results.failed.length ? `, ${results.failed.length} failed` : ''
-    }`,
+    message: `Bulk upload complete — ${results.added} added, ${results.updated} updated${results.failed.length ? `, ${results.failed.length} failed` : ''
+      }`,
     ...results,
     report,
   });
