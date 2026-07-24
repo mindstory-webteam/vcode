@@ -40,8 +40,8 @@ export const fileUrl = (p) => {
   return `${baseURL.replace('/api', '')}${p}`; // legacy local path
 };
 
-// Triggers a browser download for a Blob response (used by the attendance
-// Excel export calls below, since a plain <a href> wouldn't carry the JWT).
+// Triggers a browser download for a Blob response (used by every Excel
+// export call below, since a plain <a href> wouldn't carry the JWT).
 const downloadBlob = (blob, filename) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -89,10 +89,60 @@ export const updateProgressEntryAdmin = (studentId, entryId, entry) =>
   api.put(`/superadmin/students/${studentId}/progress-report/entries/${entryId}`, entry);
 export const deleteProgressEntryAdmin = (studentId, entryId) =>
   api.delete(`/superadmin/students/${studentId}/progress-report/entries/${entryId}`);
+
+// SuperAdmin — progress entries bulk import/export (any student)
+export const bulkUploadEntriesAdmin = (studentId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/superadmin/students/${studentId}/progress-report/entries/bulk-upload`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+export const exportEntriesAdmin = async (studentId, studentName = 'student') => {
+  const res = await api.get(`/superadmin/students/${studentId}/progress-report/entries/export`, {
+    responseType: 'blob',
+  });
+  const safeName = studentName.replace(/[^a-z0-9]+/gi, '_');
+  downloadBlob(res.data, `${safeName}_entries.xlsx`);
+};
+
 export const updateOverallRemarksAdmin = (studentId, overallRemarks) =>
   api.put(`/superadmin/students/${studentId}/progress-report/remarks`, { overallRemarks });
 export const updateGradeCardAdmin = (studentId, gradeCard) =>
   api.put(`/superadmin/students/${studentId}/progress-report/grade-card`, gradeCard);
+
+// SuperAdmin — grade card Excel export/import (any student)
+export const exportGradeCardAdmin = async (studentId, studentName = 'student') => {
+  const res = await api.get(`/superadmin/students/${studentId}/progress-report/grade-card/export`, {
+    responseType: 'blob',
+  });
+  const safeName = studentName.replace(/[^a-z0-9]+/gi, '_');
+  downloadBlob(res.data, `${safeName}_grade_card.xlsx`);
+};
+export const importGradeCardAdmin = (studentId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/superadmin/students/${studentId}/progress-report/grade-card/import`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+// SuperAdmin — FULL progress report (remarks + entries + attendance + grade
+// card) as ONE multi-sheet Excel file (any student, no assignment restriction)
+export const exportFullProgressReportAdmin = async (studentId, studentName = 'student') => {
+  const res = await api.get(`/superadmin/students/${studentId}/progress-report/export`, {
+    responseType: 'blob',
+  });
+  const safeName = studentName.replace(/[^a-z0-9]+/gi, '_');
+  downloadBlob(res.data, `${safeName}_progress_report.xlsx`);
+};
+export const importFullProgressReportAdmin = (studentId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/superadmin/students/${studentId}/progress-report/import`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
 
 // SuperAdmin — attendance (any student, no assignment restriction)
 export const markAttendanceAdmin = (studentId, data) =>
@@ -142,10 +192,60 @@ export const updateProgressEntry = (studentId, entryId, entry) =>
   api.put(`/faculty/students/${studentId}/progress-report/entries/${entryId}`, entry);
 export const deleteProgressEntry = (studentId, entryId) =>
   api.delete(`/faculty/students/${studentId}/progress-report/entries/${entryId}`);
+
+// Faculty — progress entries bulk import/export (assigned students only)
+export const bulkUploadEntries = (studentId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/faculty/students/${studentId}/progress-report/entries/bulk-upload`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+export const exportEntries = async (studentId, studentName = 'student') => {
+  const res = await api.get(`/faculty/students/${studentId}/progress-report/entries/export`, {
+    responseType: 'blob',
+  });
+  const safeName = studentName.replace(/[^a-z0-9]+/gi, '_');
+  downloadBlob(res.data, `${safeName}_entries.xlsx`);
+};
+
 export const updateOverallRemarks = (studentId, overallRemarks) =>
   api.put(`/faculty/students/${studentId}/progress-report/remarks`, { overallRemarks });
 export const updateGradeCard = (studentId, gradeCard) =>
   api.put(`/faculty/students/${studentId}/progress-report/grade-card`, gradeCard);
+
+// Faculty — grade card Excel export/import (assigned students only)
+export const exportGradeCard = async (studentId, studentName = 'student') => {
+  const res = await api.get(`/faculty/students/${studentId}/progress-report/grade-card/export`, {
+    responseType: 'blob',
+  });
+  const safeName = studentName.replace(/[^a-z0-9]+/gi, '_');
+  downloadBlob(res.data, `${safeName}_grade_card.xlsx`);
+};
+export const importGradeCard = (studentId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/faculty/students/${studentId}/progress-report/grade-card/import`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+// Faculty — FULL progress report (remarks + entries + attendance + grade
+// card) as ONE multi-sheet Excel file (assigned students only)
+export const exportFullProgressReport = async (studentId, studentName = 'student') => {
+  const res = await api.get(`/faculty/students/${studentId}/progress-report/export`, {
+    responseType: 'blob',
+  });
+  const safeName = studentName.replace(/[^a-z0-9]+/gi, '_');
+  downloadBlob(res.data, `${safeName}_progress_report.xlsx`);
+};
+export const importFullProgressReport = (studentId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/faculty/students/${studentId}/progress-report/import`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
 
 // Faculty — attendance (assigned students only)
 export const markAttendance = (studentId, data) =>
