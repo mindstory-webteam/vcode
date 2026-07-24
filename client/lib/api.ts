@@ -4,7 +4,8 @@
 // sendTokenResponse sets an httpOnly "token" cookie on login.
 // ─────────────────────────────────────────────────────────────
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+export const API_URL = rawApiUrl.replace(/\/+$/, "").replace(/\/api$/, "");
 
 export class ApiError extends Error {
   status: number;
