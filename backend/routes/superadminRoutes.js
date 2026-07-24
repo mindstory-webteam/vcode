@@ -54,7 +54,7 @@ router.put('/applications/:id/approve', approveApplication);
 router.put('/applications/:id/reject', rejectApplication);
 
 // Student management & bulk import
-// IMPORTANT: static paths must come BEFORE :id/:studentId param routes
+// NOTE: Static sub-paths MUST come before :id/:studentId parameterised routes
 router.get('/students/bulk-import-template', downloadBulkProgressTemplateAdmin);
 router.post('/students/bulk-import-progress', uploadExcel.single('file'), bulkImportStudentsAndProgressReportsAdmin);
 router.post('/students', createStudent);
