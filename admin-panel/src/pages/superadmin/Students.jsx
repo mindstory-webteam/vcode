@@ -11,6 +11,8 @@ import {
   toggleUserActive,
   deleteUser,
   fileUrl,
+  bulkImportStudentsAndProgressReports,
+  downloadBulkImportTemplate,
 } from '../../api.js';
 
 const emptyForm = {
@@ -32,6 +34,13 @@ export default function Students() {
 
   const [assignTarget, setAssignTarget] = useState(null);
   const [assignChoice, setAssignChoice] = useState('');
+
+  // Bulk import state
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkFile, setBulkFile] = useState(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkMsg, setBulkMsg] = useState('');
+  const [bulkError, setBulkError] = useState('');
 
   const load = () => {
     setLoading(true);
@@ -100,6 +109,24 @@ export default function Students() {
     }
   };
 
+  const handleBulkSubmit = async (e) => {
+    e.preventDefault();
+    if (!bulkFile) return;
+    setBulkError('');
+    setBulkMsg('');
+    setBulkBusy(true);
+    try {
+      const res = await bulkImportStudentsAndProgressReports(bulkFile);
+      setBulkMsg(res.data.message || 'Bulk import successful');
+      setBulkFile(null);
+      load();
+    } catch (err) {
+      setBulkError(err.response?.data?.message || 'Bulk import failed. Please check the Excel format.');
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="page-header">
@@ -108,9 +135,14 @@ export default function Students() {
           <h1>Students</h1>
           <p className="sub">Everyone with an active account, who they're assigned to, and their standing.</p>
         </div>
-        <button className="btn btn-gold" onClick={() => setShowCreate(true)}>
-          + Add student directly
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-ghost" onClick={() => setShowBulkModal(true)}>
+            Bulk Import Excel
+          </button>
+          <button className="btn btn-gold" onClick={() => setShowCreate(true)}>
+            + Add student directly
+          </button>
+        </div>
       </div>
 
       {error && <div className="form-error">{error}</div>}
@@ -185,6 +217,53 @@ export default function Students() {
           </table>
         )}
       </div>
+
+      {/* BULK IMPORT EXCEL MODAL */}
+      {showBulkModal && (
+        <Modal title="Bulk Import Students & Progress Reports" onClose={() => { setShowBulkModal(false); setBulkMsg(''); setBulkError(''); setBulkFile(null); }}>
+          <div style={{ marginBottom: 16, fontSize: 13, color: '#666', lineHeight: 1.6 }}>
+            Upload an Excel file (<code>.xlsx</code>) containing student account details and full progress reports (remarks, entries, attendance, and grade card).
+          </div>
+
+          {bulkError && <div className="form-error" style={{ marginBottom: 12 }}>{bulkError}</div>}
+          {bulkMsg && (
+            <div style={{ marginBottom: 12, padding: '10px 14px', background: '#e6f4ea', color: '#137333', borderRadius: 4, fontSize: 13 }}>
+              {bulkMsg}
+            </div>
+          )}
+
+          <form onSubmit={handleBulkSubmit}>
+            <div className="field">
+              <label>Select Excel file (.xlsx / .xls)</label>
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                required
+                onChange={(e) => setBulkFile(e.target.files[0])}
+              />
+            </div>
+
+            <div style={{ margin: '14px 0' }}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={downloadBulkImportTemplate}
+              >
+                Download Sample Template
+              </button>
+            </div>
+
+            <div className="btn-row">
+              <button className="btn btn-gold" type="submit" disabled={bulkBusy || !bulkFile}>
+                {bulkBusy ? 'Importing…' : 'Upload & Import'}
+              </button>
+              <button className="btn btn-ghost" type="button" onClick={() => { setShowBulkModal(false); setBulkMsg(''); setBulkError(''); setBulkFile(null); }} disabled={bulkBusy}>
+                Close
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       {showCreate && (
         <Modal title="Add a student directly" onClose={() => setShowCreate(false)}>
