@@ -2,6 +2,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const ProgressReport = require('../models/ProgressReport');
 const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
+const XLSX = require('xlsx');
 
 // @desc    Get all students assigned to the logged-in faculty
 // @route   GET /api/faculty/students
@@ -227,6 +228,8 @@ const updateGradeCard = asyncHandler(async (req, res) => {
 // again updates the existing record instead of creating a duplicate.
 // ---------------------------------------------------------------------------
 
+const VALID_ATTENDANCE_STATUSES = ['present', 'absent', 'half_day', 'leave'];
+
 // @desc    Mark or update attendance for a specific date (upsert by date)
 // @route   PUT /api/faculty/students/:studentId/progress-report/attendance
 // @access  Private/Faculty
@@ -288,6 +291,138 @@ const deleteAttendance = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Attendance record removed', report });
 });
 
+// @desc    Bulk upload attendance from an Excel file (.xlsx/.xls) for an
+//          assigned student. Expected columns (case-insensitive header row):
+//          Date | Status | Remarks
+//          Date accepts real Excel date cells or common date strings.
+//          Status must be one of: present, absent, half_day (or "half day"), leave.
+//          One record per date — matching an existing date updates it instead
+//          of creating a duplicate, same as the single markAttendance route.
+// @route   POST /api/faculty/students/:studentId/progress-report/attendance/bulk-upload
+// @access  Private/Faculty
+// form-data: file (single .xlsx/.xls)
+const bulkUploadAttendance = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please attach an Excel file (.xlsx or .xls)' });
+  }
+
+  let rows;
+  try {
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
+    const sheetName = workbook.SheetNames[0];
+    rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+  } catch (err) {
+    return res.status(400).json({ success: false, message: 'Could not read this Excel file' });
+  }
+
+  if (!rows.length) {
+    return res.status(400).json({ success: false, message: 'The Excel file has no data rows' });
+  }
+
+  let report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    report = await ProgressReport.create({ student: student._id, faculty: req.user._id });
+  }
+
+  const results = { added: 0, updated: 0, failed: [] };
+
+  rows.forEach((row, idx) => {
+    const rowNum = idx + 2; // +2 accounts for 1-based rows and the header row
+    const rawDate = row.Date ?? row.date;
+    const rawStatusInput = row.Status ?? row.status ?? '';
+    const rawStatus = rawStatusInput.toString().trim().toLowerCase().replace(/\s+/g, '_');
+    const remarks = (row.Remarks ?? row.remarks ?? '').toString().trim();
+
+    if (!rawDate) {
+      results.failed.push({ row: rowNum, reason: 'Missing date' });
+      return;
+    }
+
+    const day = rawDate instanceof Date ? new Date(rawDate) : new Date(rawDate);
+    if (isNaN(day.getTime())) {
+      results.failed.push({ row: rowNum, reason: 'Invalid date' });
+      return;
+    }
+    day.setHours(0, 0, 0, 0);
+
+    if (!VALID_ATTENDANCE_STATUSES.includes(rawStatus)) {
+      results.failed.push({
+        row: rowNum,
+        reason: `Invalid status "${rawStatusInput}" (use present, absent, half_day, or leave)`,
+      });
+      return;
+    }
+
+    const existing = report.attendance.find((a) => {
+      const d = new Date(a.date);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === day.getTime();
+    });
+
+    if (existing) {
+      existing.status = rawStatus;
+      existing.remarks = remarks;
+      existing.markedBy = req.user._id;
+      results.updated += 1;
+    } else {
+      report.attendance.push({ date: day, status: rawStatus, remarks, markedBy: req.user._id });
+      results.added += 1;
+    }
+  });
+
+  await report.save();
+
+  res.json({
+    success: true,
+    message: `Bulk upload complete — ${results.added} added, ${results.updated} updated${
+      results.failed.length ? `, ${results.failed.length} failed` : ''
+    }`,
+    ...results,
+    report,
+  });
+});
+
+// @desc    Export an assigned student's attendance records as an .xlsx file
+// @route   GET /api/faculty/students/:studentId/progress-report/attendance/export
+// @access  Private/Faculty
+const exportAttendance = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  const report = await ProgressReport.findOne({ student: student._id }).populate('attendance.markedBy', 'name');
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found' });
+  }
+
+  const records = [...report.attendance].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const rows = records.map((r) => ({
+    Date: new Date(r.date).toLocaleDateString('en-GB'),
+    Status: r.status,
+    Remarks: r.remarks || '',
+    'Marked By': r.markedBy?.name || '',
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 32 }, { wch: 20 }];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
+
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  const safeName = (student.name || 'student').replace(/[^a-z0-9]+/gi, '_');
+
+  res.setHeader('Content-Disposition', `attachment; filename="${safeName}_attendance.xlsx"`);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buffer);
+});
+
 // ---------------------------------------------------------------------------
 // PROFILE PHOTO — Faculty can set/replace the profile photo ONLY for
 // students assigned to them.
@@ -338,4 +473,6 @@ module.exports = {
   uploadStudentProfilePhoto,
   markAttendance,
   deleteAttendance,
+  bulkUploadAttendance,
+  exportAttendance,
 };

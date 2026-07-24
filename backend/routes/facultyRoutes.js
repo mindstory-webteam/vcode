@@ -11,9 +11,11 @@ const {
   uploadStudentProfilePhoto,
   markAttendance,
   deleteAttendance,
+  bulkUploadAttendance,
+  exportAttendance,
 } = require('../controllers/facultyController');
 const { protect, authorize } = require('../middleware/authMiddleware');
-const { uploadProfileImage } = require('../middleware/uploadMiddleware');
+const { uploadProfileImage, uploadExcel } = require('../middleware/uploadMiddleware');
 
 // Every route here requires a logged-in faculty member
 router.use(protect, authorize('faculty'));
@@ -27,6 +29,12 @@ router.put('/students/:studentId/progress-report/remarks', updateOverallRemarks)
 router.put('/students/:studentId/progress-report/grade-card', updateGradeCard);
 router.put('/students/:studentId/progress-report/attendance', markAttendance);
 router.delete('/students/:studentId/progress-report/attendance/:attendanceId', deleteAttendance);
+router.post(
+  '/students/:studentId/progress-report/attendance/bulk-upload',
+  uploadExcel.single('file'),
+  bulkUploadAttendance
+);
+router.get('/students/:studentId/progress-report/attendance/export', exportAttendance);
 router.put('/students/:studentId/profile-photo', uploadProfileImage.single('photo'), uploadStudentProfilePhoto);
 
 module.exports = router;

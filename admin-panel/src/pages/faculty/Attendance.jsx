@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import {
   getStudentProgressReport,
   markAttendance,
   deleteAttendance,
+  bulkUploadAttendance,
+  exportAttendance,
 } from '../../api.js';
 
 const STATUSES = ['present', 'absent', 'half_day', 'leave'];
@@ -63,6 +65,16 @@ export default function FacultyAttendance() {
   const [editingId, setEditingId] = useState(null); // attendance record id, or null = new
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  // ---- Bulk upload (Excel) ----
+  const fileInputRef = useRef(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkError, setBulkError] = useState('');
+  const [bulkSummary, setBulkSummary] = useState(null);
+
+  // ---- Export (Excel) ----
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   const load = () => {
     setLoading(true);
@@ -132,6 +144,44 @@ export default function FacultyAttendance() {
     }
   };
 
+  // ---- Bulk upload handlers ----
+  const openBulkUpload = () => {
+    setBulkError('');
+    setBulkSummary(null);
+    fileInputRef.current?.click();
+  };
+
+  const handleBulkFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBulkError('');
+    setBulkSummary(null);
+    setBulkBusy(true);
+    try {
+      const { data } = await bulkUploadAttendance(studentId, file);
+      setBulkSummary({ added: data.added, updated: data.updated, failed: data.failed || [] });
+      load();
+    } catch (err) {
+      setBulkError(err.response?.data?.message || 'Could not process this Excel file');
+    } finally {
+      setBulkBusy(false);
+      e.target.value = '';
+    }
+  };
+
+  // ---- Export handler ----
+  const handleExport = async () => {
+    setExportError('');
+    setExportBusy(true);
+    try {
+      await exportAttendance(studentId, report?.student?.name || 'student');
+    } catch (err) {
+      setExportError(err.response?.data?.message || 'Could not export attendance');
+    } finally {
+      setExportBusy(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="page-header">
@@ -146,9 +196,44 @@ export default function FacultyAttendance() {
           <h1>{report?.student?.name || 'Attendance'}</h1>
           <p className="sub">Daily attendance record — one entry per date.</p>
         </div>
+        {report && (
+          <div className="btn-row">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              style={{ display: 'none' }}
+              onChange={handleBulkFileChange}
+            />
+            <button className="btn btn-ghost" type="button" onClick={openBulkUpload} disabled={bulkBusy}>
+              {bulkBusy ? 'Uploading…' : 'Bulk upload (Excel)'}
+            </button>
+            <button className="btn btn-ghost" type="button" onClick={handleExport} disabled={exportBusy}>
+              {exportBusy ? 'Exporting…' : 'Export to Excel'}
+            </button>
+          </div>
+        )}
       </div>
 
       {error && <div className="form-error">{error}</div>}
+      {exportError && <div className="form-error">{exportError}</div>}
+      {bulkError && <div className="form-error">{bulkError}</div>}
+      {bulkSummary && (
+        <div className="card card-pad" style={{ marginBottom: 24 }}>
+          <div className="section-title" style={{ marginTop: 0 }}>Bulk upload result</div>
+          <p style={{ margin: 0 }}>
+            {bulkSummary.added} added, {bulkSummary.updated} updated
+            {bulkSummary.failed.length ? `, ${bulkSummary.failed.length} failed` : ''}.
+          </p>
+          {bulkSummary.failed.length > 0 && (
+            <ul style={{ margin: '10px 0 0', paddingLeft: 18, fontSize: 13 }}>
+              {bulkSummary.failed.map((f, i) => (
+                <li key={i}>Row {f.row}: {f.reason}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       {loading && <div className="loading-line">Fetching attendance…</div>}
 
       {report && (

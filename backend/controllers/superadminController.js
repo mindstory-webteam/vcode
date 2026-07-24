@@ -4,6 +4,7 @@ const StudentApplication = require('../models/StudentApplication');
 const ProgressReport = require('../models/ProgressReport');
 const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
 const { generateToken } = require('../utils/generateToken');
+const XLSX = require('xlsx');
 
 // ---------------------------------------------------------------------------
 // FACULTY MANAGEMENT
@@ -615,6 +616,8 @@ const updateGradeCardAdmin = asyncHandler(async (req, res) => {
 // date again updates the existing record instead of creating a duplicate.
 // ---------------------------------------------------------------------------
 
+const VALID_ATTENDANCE_STATUSES = ['present', 'absent', 'half_day', 'leave'];
+
 // @desc    Mark or update attendance for a specific date (upsert by date)
 // @route   PUT /api/superadmin/students/:studentId/progress-report/attendance
 // @access  Private/SuperAdmin
@@ -673,6 +676,137 @@ const deleteAttendanceAdmin = asyncHandler(async (req, res) => {
   await report.save();
 
   res.json({ success: true, message: 'Attendance record removed', report });
+});
+
+// @desc    Bulk upload attendance from an Excel file (.xlsx/.xls) for any
+//          student, no assignment restriction. Expected columns
+//          (case-insensitive header row): Date | Status | Remarks
+//          Date accepts real Excel date cells or common date strings.
+//          Status must be one of: present, absent, half_day (or "half day"), leave.
+//          One record per date — matching an existing date updates it instead
+//          of creating a duplicate, same as the single markAttendanceAdmin route.
+// @route   POST /api/superadmin/students/:studentId/progress-report/attendance/bulk-upload
+// @access  Private/SuperAdmin
+// form-data: file (single .xlsx/.xls)
+const bulkUploadAttendanceAdmin = asyncHandler(async (req, res) => {
+  const student = await findStudentOr404(req.params.studentId, res);
+  if (!student) return;
+
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please attach an Excel file (.xlsx or .xls)' });
+  }
+
+  let rows;
+  try {
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
+    const sheetName = workbook.SheetNames[0];
+    rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+  } catch (err) {
+    return res.status(400).json({ success: false, message: 'Could not read this Excel file' });
+  }
+
+  if (!rows.length) {
+    return res.status(400).json({ success: false, message: 'The Excel file has no data rows' });
+  }
+
+  let report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    report = await ProgressReport.create({
+      student: student._id,
+      faculty: student.studentInfo?.assignedFaculty || null,
+    });
+  }
+
+  const results = { added: 0, updated: 0, failed: [] };
+
+  rows.forEach((row, idx) => {
+    const rowNum = idx + 2; // +2 accounts for 1-based rows and the header row
+    const rawDate = row.Date ?? row.date;
+    const rawStatusInput = row.Status ?? row.status ?? '';
+    const rawStatus = rawStatusInput.toString().trim().toLowerCase().replace(/\s+/g, '_');
+    const remarks = (row.Remarks ?? row.remarks ?? '').toString().trim();
+
+    if (!rawDate) {
+      results.failed.push({ row: rowNum, reason: 'Missing date' });
+      return;
+    }
+
+    const day = rawDate instanceof Date ? new Date(rawDate) : new Date(rawDate);
+    if (isNaN(day.getTime())) {
+      results.failed.push({ row: rowNum, reason: 'Invalid date' });
+      return;
+    }
+    day.setHours(0, 0, 0, 0);
+
+    if (!VALID_ATTENDANCE_STATUSES.includes(rawStatus)) {
+      results.failed.push({
+        row: rowNum,
+        reason: `Invalid status "${rawStatusInput}" (use present, absent, half_day, or leave)`,
+      });
+      return;
+    }
+
+    const existing = report.attendance.find((a) => {
+      const d = new Date(a.date);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === day.getTime();
+    });
+
+    if (existing) {
+      existing.status = rawStatus;
+      existing.remarks = remarks;
+      existing.markedBy = req.user._id;
+      results.updated += 1;
+    } else {
+      report.attendance.push({ date: day, status: rawStatus, remarks, markedBy: req.user._id });
+      results.added += 1;
+    }
+  });
+
+  await report.save();
+
+  res.json({
+    success: true,
+    message: `Bulk upload complete — ${results.added} added, ${results.updated} updated${
+      results.failed.length ? `, ${results.failed.length} failed` : ''
+    }`,
+    ...results,
+    report,
+  });
+});
+
+// @desc    Export any student's attendance records as an .xlsx file
+// @route   GET /api/superadmin/students/:studentId/progress-report/attendance/export
+// @access  Private/SuperAdmin
+const exportAttendanceAdmin = asyncHandler(async (req, res) => {
+  const student = await findStudentOr404(req.params.studentId, res);
+  if (!student) return;
+
+  const report = await ProgressReport.findOne({ student: student._id }).populate('attendance.markedBy', 'name');
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found' });
+  }
+
+  const records = [...report.attendance].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const rows = records.map((r) => ({
+    Date: new Date(r.date).toLocaleDateString('en-GB'),
+    Status: r.status,
+    Remarks: r.remarks || '',
+    'Marked By': r.markedBy?.name || '',
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 32 }, { wch: 20 }];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
+
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  const safeName = (student.name || 'student').replace(/[^a-z0-9]+/gi, '_');
+
+  res.setHeader('Content-Disposition', `attachment; filename="${safeName}_attendance.xlsx"`);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buffer);
 });
 
 
@@ -737,4 +871,6 @@ module.exports = {
   uploadStudentProfilePhotoAdmin,
   markAttendanceAdmin,
   deleteAttendanceAdmin,
+  bulkUploadAttendanceAdmin,
+  exportAttendanceAdmin,
 };

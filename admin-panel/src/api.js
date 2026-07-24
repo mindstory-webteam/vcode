@@ -40,6 +40,19 @@ export const fileUrl = (p) => {
   return `${baseURL.replace('/api', '')}${p}`; // legacy local path
 };
 
+// Triggers a browser download for a Blob response (used by the attendance
+// Excel export calls below, since a plain <a href> wouldn't carry the JWT).
+const downloadBlob = (blob, filename) => {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 // ---- Auth ----
 export const login = (email, password) => api.post('/auth/login', { email, password });
 export const getMe = () => api.get('/auth/me');
@@ -87,6 +100,25 @@ export const markAttendanceAdmin = (studentId, data) =>
 export const deleteAttendanceAdmin = (studentId, attendanceId) =>
   api.delete(`/superadmin/students/${studentId}/progress-report/attendance/${attendanceId}`);
 
+// SuperAdmin — bulk upload attendance from an Excel file (.xlsx/.xls).
+// Expected columns: Date | Status | Remarks
+export const bulkUploadAttendanceAdmin = (studentId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/superadmin/students/${studentId}/progress-report/attendance/bulk-upload`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+// SuperAdmin — export attendance as an .xlsx file and trigger a download
+export const exportAttendanceAdmin = async (studentId, studentName = 'student') => {
+  const res = await api.get(`/superadmin/students/${studentId}/progress-report/attendance/export`, {
+    responseType: 'blob',
+  });
+  const safeName = studentName.replace(/[^a-z0-9]+/gi, '_');
+  downloadBlob(res.data, `${safeName}_attendance.xlsx`);
+};
+
 // SuperAdmin — profile photo (any student, no assignment restriction)
 export const uploadStudentProfilePhotoAdmin = (studentId, file) => {
   const formData = new FormData();
@@ -120,6 +152,25 @@ export const markAttendance = (studentId, data) =>
   api.put(`/faculty/students/${studentId}/progress-report/attendance`, data);
 export const deleteAttendance = (studentId, attendanceId) =>
   api.delete(`/faculty/students/${studentId}/progress-report/attendance/${attendanceId}`);
+
+// Faculty — bulk upload attendance from an Excel file (.xlsx/.xls).
+// Expected columns: Date | Status | Remarks
+export const bulkUploadAttendance = (studentId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post(`/faculty/students/${studentId}/progress-report/attendance/bulk-upload`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+// Faculty — export attendance as an .xlsx file and trigger a download
+export const exportAttendance = async (studentId, studentName = 'student') => {
+  const res = await api.get(`/faculty/students/${studentId}/progress-report/attendance/export`, {
+    responseType: 'blob',
+  });
+  const safeName = studentName.replace(/[^a-z0-9]+/gi, '_');
+  downloadBlob(res.data, `${safeName}_attendance.xlsx`);
+};
 
 // Faculty — profile photo (assigned students only)
 export const uploadStudentProfilePhoto = (studentId, file) => {

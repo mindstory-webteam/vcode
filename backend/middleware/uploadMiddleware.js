@@ -69,6 +69,19 @@ const imageFileFilter = (req, file, cb) => {
   }
 };
 
+// ---------- file filter: Excel workbooks (.xlsx / .xls) ----------
+const excelFileFilter = (req, file, cb) => {
+  const allowed = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    'application/vnd.ms-excel', // .xls
+  ];
+  if (allowed.includes(file.mimetype) || /\.(xlsx|xls)$/i.test(file.originalname)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only .xlsx or .xls files are allowed'), false);
+  }
+};
+
 const maxSizeBytes = (parseInt(process.env.MAX_FILE_SIZE_MB, 10) || 10) * 1024 * 1024;
 
 // ---------- exported uploaders ----------
@@ -84,10 +97,19 @@ const uploadProfileImage = multer({
   limits: { fileSize: maxSizeBytes },
 });
 
+// Excel files (e.g. bulk attendance upload) don't go to Cloudinary — they're
+// parsed in-memory by the controller (via the `xlsx` package) and never
+// persisted as a file, so this uses memoryStorage instead of CloudinaryStorage.
+const uploadExcel = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: excelFileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB is plenty for a spreadsheet
+});
+
 // ---------- delete helper (use when replacing/removing files) ----------
 // publicId is req.file.filename; pass resourceType 'raw' for PDFs/DOCX
 const deleteFromCloudinary = async (publicId, resourceType = 'image') => {
   return cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 };
 
-module.exports = { uploadDocument, uploadProfileImage, deleteFromCloudinary };
+module.exports = { uploadDocument, uploadProfileImage, uploadExcel, deleteFromCloudinary };
