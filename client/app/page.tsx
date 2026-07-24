@@ -193,7 +193,7 @@ function AuthContent() {
     }
   }
 
-  // Handle Standard Google Login Component Success
+  // Handle Standard Google Login Success
   async function handleGoogleSuccess(credentialResponse: CredentialResponse) {
     if (!credentialResponse.credential) return;
     try {
