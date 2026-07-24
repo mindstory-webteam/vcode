@@ -3,6 +3,25 @@ const User = require('../models/User');
 const ProgressReport = require('../models/ProgressReport');
 const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
 const XLSX = require('xlsx');
+const { buildGradeCardWorkbook, parseGradeCardWorkbook } = require('../utils/gradeCardExcel');
+const { buildProgressReportWorkbook, parseProgressReportWorkbook } = require('../utils/progressReportExcel');
+
+const GRADE_CARD_FIELDS = [
+  'program',
+  'overallGrade',
+  'industryReadiness',
+  'placementStatus',
+  'skillScores',
+  'readinessBreakdown',
+  'experience',
+  'verifiedSkills',
+  'portfolioHighlights',
+  'achievements',
+  'mentorEvaluation',
+  'mentorRemarks',
+  'interviewReadiness',
+  'verification',
+];
 
 // @desc    Get all students assigned to the logged-in faculty
 // @route   GET /api/faculty/students
@@ -158,6 +177,135 @@ const updateOverallRemarks = asyncHandler(async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// PROGRESS ENTRIES — Excel export and bulk import (Faculty, assigned
+// students only). Bulk import always appends new entries (entries don't
+// have a natural per-row unique key like attendance's date, so there's no
+// upsert-by-date equivalent here).
+// ---------------------------------------------------------------------------
+
+const VALID_ENTRY_CATEGORIES = ['academic', 'attendance', 'behavior', 'project', 'exam', 'other'];
+
+// @desc    Export an assigned student's progress entries as an .xlsx file
+// @route   GET /api/faculty/students/:studentId/progress-report/entries/export
+// @access  Private/Faculty
+const exportEntries = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  const report = await ProgressReport.findOne({ student: student._id }).populate('entries.updatedBy', 'name');
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found' });
+  }
+
+  const rows = report.entries.map((e) => ({
+    Title: e.title,
+    Category: e.category,
+    Description: e.description || '',
+    Marks: e.marks ?? '',
+    Grade: e.grade || '',
+    Remarks: e.remarks || '',
+    'Updated By': e.updatedBy?.name || '',
+    'Updated At': e.updatedAt ? new Date(e.updatedAt).toLocaleDateString('en-GB') : '',
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet['!cols'] = [
+    { wch: 28 }, { wch: 14 }, { wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 34 }, { wch: 18 }, { wch: 14 },
+  ];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Entries');
+
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  const safeName = (student.name || 'student').replace(/[^a-z0-9]+/gi, '_');
+
+  res.setHeader('Content-Disposition', `attachment; filename="${safeName}_entries.xlsx"`);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buffer);
+});
+
+// @desc    Bulk-add progress entries from an Excel file (.xlsx/.xls) for an
+//          assigned student. Expected columns (case-insensitive header row):
+//          Title | Category | Description | Marks | Grade | Remarks
+//          Category must be one of: academic, attendance, behavior, project,
+//          exam, other — anything else falls back to "other". Every valid
+//          row is appended as a new entry (no de-duplication).
+// @route   POST /api/faculty/students/:studentId/progress-report/entries/bulk-upload
+// @access  Private/Faculty
+// form-data: file (single .xlsx/.xls)
+const bulkUploadEntries = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please attach an Excel file (.xlsx or .xls)' });
+  }
+
+  let rows;
+  try {
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
+    const sheetName = workbook.SheetNames[0];
+    rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+  } catch (err) {
+    return res.status(400).json({ success: false, message: 'Could not read this Excel file' });
+  }
+
+  if (!rows.length) {
+    return res.status(400).json({ success: false, message: 'The Excel file has no data rows' });
+  }
+
+  let report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    report = await ProgressReport.create({ student: student._id, faculty: req.user._id });
+  }
+
+  const results = { added: 0, failed: [] };
+
+  rows.forEach((row, idx) => {
+    const rowNum = idx + 2;
+    const title = (row.Title ?? row.title ?? '').toString().trim();
+    if (!title) {
+      results.failed.push({ row: rowNum, reason: 'Missing title' });
+      return;
+    }
+
+    let category = (row.Category ?? row.category ?? 'other').toString().trim().toLowerCase();
+    if (!VALID_ENTRY_CATEGORIES.includes(category)) category = 'other';
+
+    const description = (row.Description ?? row.description ?? '').toString().trim();
+    const marksRaw = row.Marks ?? row.marks;
+    const marks = marksRaw === '' || marksRaw === undefined ? undefined : Number(marksRaw);
+    const grade = (row.Grade ?? row.grade ?? '').toString().trim() || undefined;
+    const remarks = (row.Remarks ?? row.remarks ?? '').toString().trim();
+
+    report.entries.push({
+      title,
+      category,
+      description,
+      marks,
+      grade,
+      remarks,
+      updatedBy: req.user._id,
+    });
+    results.added += 1;
+  });
+
+  await report.save();
+
+  res.json({
+    success: true,
+    message: `Bulk import complete — ${results.added} entries added${
+      results.failed.length ? `, ${results.failed.length} failed` : ''
+    }`,
+    ...results,
+    report,
+  });
+});
+
+// ---------------------------------------------------------------------------
 // GRADE CARD (new) — Faculty can update the grade card ONLY for students
 // assigned to them. Accepts any subset of gradeCard fields; only provided
 // keys are merged in, everything else on the report is left untouched.
@@ -183,28 +331,11 @@ const updateGradeCard = asyncHandler(async (req, res) => {
     report = await ProgressReport.create({ student: student._id, faculty: req.user._id });
   }
 
-  const allowedFields = [
-    'program',
-    'overallGrade',
-    'industryReadiness',
-    'placementStatus',
-    'skillScores',
-    'readinessBreakdown',
-    'experience',
-    'verifiedSkills',
-    'portfolioHighlights',
-    'achievements',
-    'mentorEvaluation',
-    'mentorRemarks',
-    'interviewReadiness',
-    'verification',
-  ];
-
   if (!report.gradeCard) {
     report.gradeCard = {};
   }
 
-  allowedFields.forEach((field) => {
+  GRADE_CARD_FIELDS.forEach((field) => {
     if (req.body[field] !== undefined) {
       report.gradeCard[field] = req.body[field];
     }
@@ -218,6 +349,195 @@ const updateGradeCard = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Grade card updated — visible immediately to the student',
+    report,
+  });
+});
+
+// @desc    Export an assigned student's grade card as a multi-sheet .xlsx file
+// @route   GET /api/faculty/students/:studentId/progress-report/grade-card/export
+// @access  Private/Faculty
+const exportGradeCard = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  const report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found' });
+  }
+
+  const workbook = buildGradeCardWorkbook(report.gradeCard);
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  const safeName = (student.name || 'student').replace(/[^a-z0-9]+/gi, '_');
+
+  res.setHeader('Content-Disposition', `attachment; filename="${safeName}_grade_card.xlsx"`);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buffer);
+});
+
+// @desc    Import / replace the grade card for an assigned student from an
+//          uploaded .xlsx file matching the export format (Overview +
+//          Skill Scores + Experience Stats + Verified Skills + Portfolio
+//          Highlights + Achievements + Mentor Ratings sheets). Only sheets
+//          present in the file are applied — remove a sheet before
+//          re-uploading to leave that part of the grade card untouched.
+// @route   POST /api/faculty/students/:studentId/progress-report/grade-card/import
+// @access  Private/Faculty
+// form-data: file (single .xlsx/.xls)
+const importGradeCard = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please attach an Excel file (.xlsx or .xls)' });
+  }
+
+  let parsed;
+  try {
+    parsed = parseGradeCardWorkbook(req.file.buffer);
+  } catch (err) {
+    return res.status(400).json({ success: false, message: 'Could not read this Excel file' });
+  }
+
+  let report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    report = await ProgressReport.create({ student: student._id, faculty: req.user._id });
+  }
+  if (!report.gradeCard) {
+    report.gradeCard = {};
+  }
+
+  Object.keys(parsed).forEach((field) => {
+    report.gradeCard[field] = parsed[field];
+  });
+
+  report.gradeCard.lastUpdatedBy = req.user._id;
+  report.gradeCard.lastUpdatedAt = new Date();
+
+  await report.save();
+
+  res.json({
+    success: true,
+    message: 'Grade card imported from Excel — visible immediately to the student',
+    report,
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FULL PROGRESS REPORT — export/import everything (remarks + entries +
+// attendance + grade card) as ONE multi-sheet .xlsx file, for an assigned
+// student only.
+// ---------------------------------------------------------------------------
+
+// @desc    Export an assigned student's FULL progress report as one .xlsx
+// @route   GET /api/faculty/students/:studentId/progress-report/export
+// @access  Private/Faculty
+const exportFullProgressReport = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  const report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found' });
+  }
+
+  const workbook = buildProgressReportWorkbook(report);
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  const safeName = (student.name || 'student').replace(/[^a-z0-9]+/gi, '_');
+
+  res.setHeader('Content-Disposition', `attachment; filename="${safeName}_progress_report.xlsx"`);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buffer);
+});
+
+// @desc    Bulk import the FULL progress report from one Excel file, for an
+//          assigned student. Sheets: Overview | Entries | Attendance |
+//          Skill Scores | Experience Stats | Verified Skills |
+//          Portfolio Highlights | Achievements | Mentor Ratings.
+//          - Overview sets overallRemarks + gradeCard scalar fields.
+//          - Entries REPLACES the entries array (no dedup key exists).
+//          - Attendance upserts by date.
+//          - Grade-card array sheets replace their arrays.
+//          Only sheets present in the file are applied.
+// @route   POST /api/faculty/students/:studentId/progress-report/import
+// @access  Private/Faculty
+// form-data: file (single .xlsx/.xls)
+const importFullProgressReport = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please attach an Excel file (.xlsx or .xls)' });
+  }
+
+  let parsed;
+  try {
+    parsed = parseProgressReportWorkbook(req.file.buffer);
+  } catch (err) {
+    return res.status(400).json({ success: false, message: 'Could not read this Excel file' });
+  }
+
+  let report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    report = await ProgressReport.create({ student: student._id, faculty: req.user._id });
+  }
+
+  if (parsed.overallRemarks !== undefined) {
+    report.overallRemarks = parsed.overallRemarks;
+  }
+
+  if (parsed.entries) {
+    report.entries = parsed.entries.map((e) => ({ ...e, updatedBy: req.user._id }));
+  }
+
+  let attendanceSummary = null;
+  if (parsed.attendance) {
+    let added = 0;
+    let updated = 0;
+    parsed.attendance.forEach((a) => {
+      const existing = report.attendance.find((x) => {
+        const d = new Date(x.date);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime() === a.date.getTime();
+      });
+      if (existing) {
+        existing.status = a.status;
+        existing.remarks = a.remarks;
+        existing.markedBy = req.user._id;
+        updated += 1;
+      } else {
+        report.attendance.push({ ...a, markedBy: req.user._id });
+        added += 1;
+      }
+    });
+    attendanceSummary = { added, updated, failed: parsed.attendanceErrors || [] };
+  }
+
+  if (parsed.gradeCard) {
+    if (!report.gradeCard) report.gradeCard = {};
+    GRADE_CARD_FIELDS.forEach((field) => {
+      if (parsed.gradeCard[field] !== undefined) {
+        report.gradeCard[field] = parsed.gradeCard[field];
+      }
+    });
+    report.gradeCard.lastUpdatedBy = req.user._id;
+    report.gradeCard.lastUpdatedAt = new Date();
+  }
+
+  await report.save();
+
+  res.json({
+    success: true,
+    message: 'Full progress report imported from Excel — visible immediately to the student',
+    entriesImported: parsed.entries ? parsed.entries.length : undefined,
+    attendance: attendanceSummary,
     report,
   });
 });
@@ -475,4 +795,10 @@ module.exports = {
   deleteAttendance,
   bulkUploadAttendance,
   exportAttendance,
+  exportEntries,
+  bulkUploadEntries,
+  exportGradeCard,
+  importGradeCard,
+  exportFullProgressReport,
+  importFullProgressReport,
 };

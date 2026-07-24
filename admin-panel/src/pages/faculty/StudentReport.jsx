@@ -9,6 +9,12 @@ import {
   deleteProgressEntry,
   updateOverallRemarks,
   updateGradeCard,
+  bulkUploadEntries,
+  exportEntries,
+  importGradeCard,
+  exportGradeCard,
+  exportFullProgressReport,
+  importFullProgressReport,
   fileUrl,
 } from '../../api.js';
 
@@ -253,6 +259,25 @@ export default function StudentReport() {
   const [gradeCardError, setGradeCardError] = useState('');
   const [gradeCardBusy, setGradeCardBusy] = useState(false);
 
+  // ---- Bulk upload entries (Excel) ----
+  const [entriesBulkBusy, setEntriesBulkBusy] = useState(false);
+  const [entriesBulkError, setEntriesBulkError] = useState('');
+  const [entriesBulkMessage, setEntriesBulkMessage] = useState('');
+  const [entriesExportBusy, setEntriesExportBusy] = useState(false);
+
+  // ---- Grade card Excel import/export ----
+  const [gradeCardImportBusy, setGradeCardImportBusy] = useState(false);
+  const [gradeCardImportError, setGradeCardImportError] = useState('');
+  const [gradeCardImportMessage, setGradeCardImportMessage] = useState('');
+  const [gradeCardExportBusy, setGradeCardExportBusy] = useState(false);
+
+  // ---- Full progress report Excel import/export (remarks + entries +
+  // attendance + grade card in ONE file) ----
+  const [fullReportImportBusy, setFullReportImportBusy] = useState(false);
+  const [fullReportImportError, setFullReportImportError] = useState('');
+  const [fullReportImportMessage, setFullReportImportMessage] = useState('');
+  const [fullReportExportBusy, setFullReportExportBusy] = useState(false);
+
   const load = () => {
     setLoading(true);
     getStudentProgressReport(studentId)
@@ -355,6 +380,99 @@ export default function StudentReport() {
     }
   };
 
+  // ---- Bulk upload / export entries handlers ----
+  const handleBulkUploadEntries = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEntriesBulkError('');
+    setEntriesBulkMessage('');
+    setEntriesBulkBusy(true);
+    try {
+      const { data } = await bulkUploadEntries(studentId, file);
+      setEntriesBulkMessage(data?.message || `Imported ${data?.count ?? data?.inserted ?? ''} entries successfully`);
+      load();
+    } catch (err) {
+      setEntriesBulkError(err.response?.data?.message || 'Could not bulk upload entries');
+    } finally {
+      setEntriesBulkBusy(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleExportEntries = async () => {
+    setError('');
+    setEntriesExportBusy(true);
+    try {
+      await exportEntries(studentId, report?.student?.name);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not export entries');
+    } finally {
+      setEntriesExportBusy(false);
+    }
+  };
+
+  // ---- Grade card Excel import / export handlers ----
+  const handleImportGradeCard = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setGradeCardImportError('');
+    setGradeCardImportMessage('');
+    setGradeCardImportBusy(true);
+    try {
+      const { data } = await importGradeCard(studentId, file);
+      setGradeCardImportMessage(data?.message || 'Grade card imported successfully');
+      load();
+    } catch (err) {
+      setGradeCardImportError(err.response?.data?.message || 'Could not import the grade card');
+    } finally {
+      setGradeCardImportBusy(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleExportGradeCard = async () => {
+    setError('');
+    setGradeCardExportBusy(true);
+    try {
+      await exportGradeCard(studentId, report?.student?.name);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not export the grade card');
+    } finally {
+      setGradeCardExportBusy(false);
+    }
+  };
+
+  // ---- Full progress report Excel import / export handlers ----
+  const handleImportFullProgressReport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFullReportImportError('');
+    setFullReportImportMessage('');
+    setFullReportImportBusy(true);
+    try {
+      const { data } = await importFullProgressReport(studentId, file);
+      setFullReportImportMessage(data?.message || 'Progress report imported successfully');
+      load();
+    } catch (err) {
+      setFullReportImportError(err.response?.data?.message || 'Could not import the progress report');
+    } finally {
+      setFullReportImportBusy(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleExportFullProgressReport = async () => {
+    setError('');
+    setFullReportExportBusy(true);
+    try {
+      await exportFullProgressReport(studentId, report?.student?.name);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not export the progress report');
+    } finally {
+      setFullReportExportBusy(false);
+    }
+  };
+
   const gc = report?.gradeCard;
 
   // -------------------------------------------------------------------------
@@ -379,6 +497,19 @@ export default function StudentReport() {
             <p className="sub">Program completion record, skills, experience, and mentor evaluation.</p>
           </div>
           <div className="btn-row">
+            <label className="btn btn-ghost" style={{ cursor: 'pointer' }}>
+              {gradeCardImportBusy ? 'Importing…' : 'Import from Excel'}
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleImportGradeCard}
+                style={{ display: 'none' }}
+                disabled={gradeCardImportBusy}
+              />
+            </label>
+            <button className="btn btn-ghost" type="button" onClick={handleExportGradeCard} disabled={gradeCardExportBusy}>
+              {gradeCardExportBusy ? 'Exporting…' : 'Export to Excel'}
+            </button>
             <button className="btn btn-ghost" type="button" onClick={() => setShowGradeCardModal(false)} disabled={gradeCardBusy}>
               Cancel
             </button>
@@ -389,6 +520,8 @@ export default function StudentReport() {
         </div>
 
         {gradeCardError && <div className="form-error">{gradeCardError}</div>}
+        {gradeCardImportError && <div className="form-error">{gradeCardImportError}</div>}
+        {gradeCardImportMessage && <div className="muted" style={{ fontSize: 12.5, marginBottom: 10 }}>{gradeCardImportMessage} ✓ (review the fields below before saving)</div>}
 
         <div style={statGridStyle}>
           <StatCard icon="🏅" value={gradeCardForm.overallGrade} label="Overall grade" />
@@ -773,6 +906,32 @@ export default function StudentReport() {
 
       {report && (
         <>
+          <div className="card card-pad" style={{ marginBottom: 24 }}>
+            <div className="section-title" style={{ marginTop: 0 }}>Full progress report (Excel)</div>
+            <p className="muted" style={{ margin: '0 0 12px', fontSize: 12.5 }}>
+              One file with everything — overall remarks, entries, attendance, and the grade card. Import a file to
+              apply any sheets it contains (entries are replaced entirely, attendance is upserted by date); remove a
+              sheet before re-uploading to leave that section untouched.
+            </p>
+            {fullReportImportError && <div className="form-error" style={{ fontSize: 12 }}>{fullReportImportError}</div>}
+            {fullReportImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>{fullReportImportMessage} ✓</div>}
+            <div className="btn-row">
+              <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
+                {fullReportImportBusy ? 'Importing…' : 'Import full report (Excel)'}
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleImportFullProgressReport}
+                  style={{ display: 'none' }}
+                  disabled={fullReportImportBusy}
+                />
+              </label>
+              <button className="btn btn-ghost btn-sm" onClick={handleExportFullProgressReport} disabled={fullReportExportBusy}>
+                {fullReportExportBusy ? 'Exporting…' : 'Export full report (Excel)'}
+              </button>
+            </div>
+          </div>
+
           {gc?.overallGrade && (
             <div className="card card-pad" style={{ marginBottom: 24 }}>
               <div className="section-title">Grade card</div>
@@ -814,6 +973,25 @@ export default function StudentReport() {
                   Last updated by {gc.lastUpdatedBy.name || 'staff'} {gc.lastUpdatedAt ? `on ${new Date(gc.lastUpdatedAt).toLocaleDateString()}` : ''}
                 </p>
               )}
+
+              <div className="section-title" style={{ fontSize: 12.5, marginTop: 16 }}>Grade card Excel</div>
+              {gradeCardImportError && <div className="form-error" style={{ fontSize: 12 }}>{gradeCardImportError}</div>}
+              {gradeCardImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>{gradeCardImportMessage} ✓</div>}
+              <div className="btn-row">
+                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
+                  {gradeCardImportBusy ? 'Importing…' : 'Import from Excel'}
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleImportGradeCard}
+                    style={{ display: 'none' }}
+                    disabled={gradeCardImportBusy}
+                  />
+                </label>
+                <button className="btn btn-ghost btn-sm" onClick={handleExportGradeCard} disabled={gradeCardExportBusy}>
+                  {gradeCardExportBusy ? 'Exporting…' : 'Export to Excel'}
+                </button>
+              </div>
             </div>
           )}
 
@@ -834,10 +1012,29 @@ export default function StudentReport() {
             </div>
           </div>
 
-          <div className="section-title">Entries ({report.entries.length})</div>
+          <div className="btn-row" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+            <div className="section-title" style={{ margin: 0 }}>Entries ({report.entries.length})</div>
+            <div className="btn-row" style={{ gap: 8 }}>
+              <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
+                {entriesBulkBusy ? 'Uploading…' : 'Bulk upload (Excel)'}
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleBulkUploadEntries}
+                  style={{ display: 'none' }}
+                  disabled={entriesBulkBusy}
+                />
+              </label>
+              <button className="btn btn-ghost btn-sm" onClick={handleExportEntries} disabled={entriesExportBusy}>
+                {entriesExportBusy ? 'Exporting…' : 'Export entries'}
+              </button>
+            </div>
+          </div>
+          {entriesBulkError && <div className="form-error" style={{ marginTop: 6 }}>{entriesBulkError}</div>}
+          {entriesBulkMessage && <div className="muted" style={{ fontSize: 12, margin: '6px 0' }}>{entriesBulkMessage} ✓</div>}
 
           {report.entries.length === 0 && (
-            <div className="card card-pad muted" style={{ fontStyle: 'italic' }}>
+            <div className="card card-pad muted" style={{ fontStyle: 'italic', marginTop: 10 }}>
               No entries yet — add the first one to start this student's record.
             </div>
           )}

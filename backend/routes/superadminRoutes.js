@@ -25,6 +25,12 @@ const {
   deleteAttendanceAdmin,
   bulkUploadAttendanceAdmin,
   exportAttendanceAdmin,
+  exportEntriesAdmin,
+  bulkUploadEntriesAdmin,
+  exportGradeCardAdmin,
+  importGradeCardAdmin,
+  exportFullProgressReportAdmin,
+  importFullProgressReportAdmin,
 } = require('../controllers/superadminController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { uploadProfileImage, uploadExcel } = require('../middleware/uploadMiddleware');
@@ -55,8 +61,29 @@ router.get('/students/:studentId/progress-report', getStudentProgressReportAdmin
 router.post('/students/:studentId/progress-report/entries', addProgressEntryAdmin);
 router.put('/students/:studentId/progress-report/entries/:entryId', updateProgressEntryAdmin);
 router.delete('/students/:studentId/progress-report/entries/:entryId', deleteProgressEntryAdmin);
+router.get('/students/:studentId/progress-report/entries/export', exportEntriesAdmin);
+router.post(
+  '/students/:studentId/progress-report/entries/bulk-upload',
+  uploadExcel.single('file'),
+  bulkUploadEntriesAdmin
+);
 router.put('/students/:studentId/progress-report/remarks', updateOverallRemarksAdmin);
 router.put('/students/:studentId/progress-report/grade-card', updateGradeCardAdmin);
+router.get('/students/:studentId/progress-report/grade-card/export', exportGradeCardAdmin);
+router.post(
+  '/students/:studentId/progress-report/grade-card/import',
+  uploadExcel.single('file'),
+  importGradeCardAdmin
+);
+
+// Full-report (remarks + entries + attendance + grade card) single-file export/import
+router.get('/students/:studentId/progress-report/export', exportFullProgressReportAdmin);
+router.post(
+  '/students/:studentId/progress-report/import',
+  uploadExcel.single('file'),
+  importFullProgressReportAdmin
+);
+
 router.put('/students/:studentId/progress-report/attendance', markAttendanceAdmin);
 router.delete('/students/:studentId/progress-report/attendance/:attendanceId', deleteAttendanceAdmin);
 router.post(
