@@ -80,7 +80,31 @@ app.use('/api/public', publicRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+
+const io = new Server(server, {
+  cors: {
+    origin: (origin, callback) => callback(null, true),
+    credentials: true,
+  },
+});
+
+io.on('connection', (socket) => {
+  console.log(`Socket connected: ${socket.id}`);
+  socket.on('join_application_room', (email) => {
+    if (email) {
+      const room = `application:${email.toLowerCase().trim()}`;
+      socket.join(room);
+      console.log(`Socket ${socket.id} joined room ${room}`);
+    }
+  });
+});
+
+app.set('io', io);
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });

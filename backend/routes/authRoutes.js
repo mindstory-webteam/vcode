@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  googleAuth,
   registerStudent,
   checkApplicationStatus,
   login,
@@ -12,6 +13,7 @@ const { protect } = require('../middleware/authMiddleware');
 const { uploadProfileImage } = require('../middleware/uploadMiddleware');
 
 // Public
+router.post('/google', googleAuth);
 router.post('/register-student', uploadProfileImage.single('profileImage'), registerStudent);
 router.get('/application-status/:email', checkApplicationStatus);
 router.post('/login', login);

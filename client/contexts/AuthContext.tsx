@@ -24,6 +24,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
+  loginWithGoogle: (email: string, name: string, googleId: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -58,6 +59,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data.user as AuthUser;
   }, []);
 
+  const loginWithGoogle = useCallback(async (email: string, name: string, googleId: string) => {
+    const data = await api.post("/api/auth/google", { email, name, googleId });
+    if (data.pendingApproval) {
+      return data;
+    }
+    if (data.token && typeof window !== "undefined") {
+      localStorage.setItem("token", data.token);
+    }
+    setUser(data.user);
+    return data.user as AuthUser;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await api.post("/api/auth/logout", {});
@@ -70,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refresh }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   );

@@ -4,6 +4,8 @@ import "./globals.css";
 import { AuthProvider } from "../contexts/AuthContext";
 import Navbar from "../components/Navbar";
 
+import GoogleAuthProviderWrapper from "../components/GoogleAuthProviderWrapper";
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -24,10 +26,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body>
-        <AuthProvider>
-          <Navbar />
-          {children}
-        </AuthProvider>
+        <GoogleAuthProviderWrapper>
+          <AuthProvider>
+            <Navbar />
+            {children}
+          </AuthProvider>
+        </GoogleAuthProviderWrapper>
       </body>
     </html>
   );

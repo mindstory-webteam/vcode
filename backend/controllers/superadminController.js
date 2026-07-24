@@ -3,6 +3,7 @@ const User = require('../models/User');
 const StudentApplication = require('../models/StudentApplication');
 const ProgressReport = require('../models/ProgressReport');
 const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
+const { generateToken } = require('../utils/generateToken');
 
 // ---------------------------------------------------------------------------
 // FACULTY MANAGEMENT
@@ -171,6 +172,23 @@ const approveApplication = asyncHandler(async (req, res) => {
   application.reviewedAt = new Date();
   application.createdUser = newUser._id;
   await application.save();
+
+  // Notify real-time clients via Socket.io
+  const token = generateToken(newUser._id, newUser.role);
+  const io = req.app.get('io');
+  if (io) {
+    const payload = {
+      email: application.email,
+      status: 'approved',
+      isApproved: true,
+      token,
+      user: newUser,
+      vcode: newUser.studentInfo?.rollNumber || 'unknown',
+    };
+    const room = `application:${application.email.toLowerCase().trim()}`;
+    io.to(room).emit('application_approved', payload);
+    io.emit('application_approved', payload);
+  }
 
   res.json({
     success: true,
