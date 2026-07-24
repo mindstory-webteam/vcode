@@ -80,6 +80,26 @@ export const assignFacultyToStudent = (studentId, facultyId) =>
 export const toggleUserActive = (id) => api.put(`/superadmin/users/${id}/toggle-active`);
 export const deleteUser = (id) => api.delete(`/superadmin/users/${id}`);
 
+// SuperAdmin — Bulk import students & progress reports
+export const bulkImportStudentsAndProgressReports = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/superadmin/students/bulk-import-progress', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const downloadBulkImportTemplate = async () => {
+  const res = await api.get('/superadmin/students/bulk-import-template', { responseType: 'blob' });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'bulk_students_progress_template.xlsx');
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
 // SuperAdmin — progress report management (any student, no assignment restriction)
 export const getStudentProgressReportAdmin = (studentId) =>
   api.get(`/superadmin/students/${studentId}/progress-report`);
