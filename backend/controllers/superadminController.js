@@ -401,6 +401,48 @@ const deleteUser = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'User deleted successfully' });
 });
 
+// @desc    Update a student's profile (name, phone, department, etc)
+// @route   PUT /api/superadmin/students/:studentId/profile
+// @access  Private/SuperAdmin
+const updateStudentProfileAdmin = asyncHandler(async (req, res) => {
+  const student = await User.findOne({ _id: req.params.studentId, role: 'student' });
+  if (!student) {
+    return res.status(404).json({ success: false, message: 'Student not found' });
+  }
+
+  const { name, email, phone, rollNumber, department, course, semester, assignedFaculty, studentInfo } = req.body;
+
+  if (name !== undefined) student.name = name;
+  if (email !== undefined) student.email = email.toLowerCase().trim();
+  if (phone !== undefined) student.phone = phone;
+
+  // Flatten logic so it handles both flat payload and nested studentInfo payload
+  const info = studentInfo || {};
+  const newRollNumber = rollNumber !== undefined ? rollNumber : info.rollNumber;
+  const newDept = department !== undefined ? department : info.department;
+  const newCourse = course !== undefined ? course : info.course;
+  const newSemester = semester !== undefined ? semester : info.semester;
+
+  if (newRollNumber !== undefined) student.studentInfo.rollNumber = newRollNumber;
+  if (newDept !== undefined) student.studentInfo.department = newDept;
+  if (newCourse !== undefined) student.studentInfo.course = newCourse;
+  if (newSemester !== undefined) student.studentInfo.semester = newSemester;
+  
+  if (assignedFaculty !== undefined) {
+    student.studentInfo.assignedFaculty = assignedFaculty || null;
+    
+    // Also update the progress report's faculty reference
+    await ProgressReport.updateOne(
+      { student: student._id },
+      { $set: { faculty: assignedFaculty || null } }
+    );
+  }
+
+  await student.save();
+
+  res.json({ success: true, message: 'Student profile updated', user: student });
+});
+
 // @desc    Dashboard stats
 // @route   GET /api/superadmin/dashboard
 // @access  Private/SuperAdmin
@@ -1314,4 +1356,5 @@ module.exports = {
   importFullProgressReportAdmin,
   downloadBulkProgressTemplateAdmin,
   bulkImportStudentsAndProgressReportsAdmin,
+  updateStudentProfileAdmin,
 };

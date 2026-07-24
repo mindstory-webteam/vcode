@@ -33,6 +33,7 @@ const {
   importFullProgressReportAdmin,
   downloadBulkProgressTemplateAdmin,
   bulkImportStudentsAndProgressReportsAdmin,
+  updateStudentProfileAdmin,
 } = require('../controllers/superadminController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { uploadProfileImage, uploadExcel } = require('../middleware/uploadMiddleware');
@@ -98,6 +99,7 @@ router.post(
 );
 router.get('/students/:studentId/progress-report/attendance/export', exportAttendanceAdmin);
 router.put('/students/:studentId/profile-photo', uploadProfileImage.single('photo'), uploadStudentProfilePhotoAdmin);
+router.put('/students/:studentId/profile', updateStudentProfileAdmin);
 
 // General user management
 router.put('/users/:id/toggle-active', toggleUserActive);
