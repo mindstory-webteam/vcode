@@ -210,6 +210,16 @@ function AuthContent() {
     }
   }
 
+  // Handle Redirect mode (receives credential from URL after Google redirect POST)
+  useEffect(() => {
+    const credentialUrl = params?.get("credential");
+    if (credentialUrl) {
+      // Clean up the URL
+      window.history.replaceState(null, "", "/");
+      handleGoogleSuccess({ credential: credentialUrl, clientId: "" });
+    }
+  }, [params]);
+
   // Custom Popup Google OAuth Handler (useGoogleLogin)
   const popupGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -408,6 +418,8 @@ function AuthContent() {
 
           <div className="flex flex-col items-center justify-center w-full">
             <GoogleLogin
+              ux_mode="redirect"
+              login_uri={typeof window !== 'undefined' ? `${window.location.origin}/api/auth/google` : 'http://localhost:3000/api/auth/google'}
               onSuccess={handleGoogleSuccess}
               onError={() => setError("Google OAuth login failed. Ensure http://localhost:3000 is added to Authorized JavaScript Origins in Google Cloud Console.")}
             />

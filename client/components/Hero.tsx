@@ -99,7 +99,7 @@ export default function Hero() {
               <p className="font-mono text-[10px] sm:text-[11px] md:text-xs font-bold tracking-[0.2em] text-gray-500 uppercase">
                 Student &middot; Batch {student.batch}
               </p>
-              <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl lg:text-[88px] text-gray-900 leading-tight md:leading-none tracking-tight mt-2 sm:mt-3 break-words">
+              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-gray-900 leading-tight tracking-tight mt-2 sm:mt-3 break-words">
                 {student.name}
               </h1>
             </div>
