@@ -58,11 +58,11 @@ export default function App() {
         element={<ProtectedRoute roles={['superadmin']}><Faculty /></ProtectedRoute>}
       />
 
-<Route path="/faculty/students/:studentId/attendance" element={<FacultyAttendance />} />
-<Route path="/superadmin/students/:studentId/attendance" element={<SuperAdminAttendance />} />
+      <Route path="/faculty/students/:studentId/attendance" element={<FacultyAttendance />} />
+      <Route path="/superadmin/students/:studentId/attendance" element={<SuperAdminAttendance />} />
 
-<Route path="/faculty/attendance" element={<FacultyAttendanceList />} />
-<Route path="/superadmin/attendance" element={<SuperAdminAttendanceList />} />
+      <Route path="/faculty/attendance" element={<FacultyAttendanceList />} />
+      <Route path="/superadmin/attendance" element={<SuperAdminAttendanceList />} />
       <Route
         path="/faculty/students"
         element={<ProtectedRoute roles={['faculty']}><MyStudents /></ProtectedRoute>}

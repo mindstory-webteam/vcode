@@ -24,7 +24,7 @@ connectDB();
 const app = express();
 
 // ---- Global middleware ----
-app.use(helmet({ crossOriginResourcePolicy: false })); 
+app.use(helmet({ crossOriginResourcePolicy: false }));
 const allowedOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map((u) => u.trim().replace(/\/$/, ''))
   : [];

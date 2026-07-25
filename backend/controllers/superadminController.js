@@ -441,10 +441,10 @@ const updateStudentProfileAdmin = asyncHandler(async (req, res) => {
   if (newDept !== undefined) student.studentInfo.department = newDept;
   if (newCourse !== undefined) student.studentInfo.course = newCourse;
   if (newSemester !== undefined) student.studentInfo.semester = newSemester;
-  
+
   if (assignedFaculty !== undefined) {
     student.studentInfo.assignedFaculty = assignedFaculty || null;
-    
+
     // Also update the progress report's faculty reference
     await ProgressReport.updateOne(
       { student: student._id },
@@ -1315,7 +1315,7 @@ const bulkImportStudentsAndProgressReportsAdmin = asyncHandler(async (req, res) 
       if (item.entries && item.entries.length > 0) { report.entries = item.entries.map(e => ({ ...e, updatedBy: req.user._id })); reportChanged = true; }
       if (item.attendance && item.attendance.length > 0) {
         for (const a of item.attendance) {
-          const existing = report.attendance.find(x => { const d = new Date(x.date); d.setHours(0,0,0,0); return d.getTime() === a.date.getTime(); });
+          const existing = report.attendance.find(x => { const d = new Date(x.date); d.setHours(0, 0, 0, 0); return d.getTime() === a.date.getTime(); });
           if (existing) { existing.status = a.status; existing.remarks = a.remarks; existing.markedBy = req.user._id; }
           else report.attendance.push({ ...a, markedBy: req.user._id });
         }

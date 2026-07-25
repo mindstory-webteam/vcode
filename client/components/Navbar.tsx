@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect, useRef } from "react";
 import { LogOut, CalendarDays, LayoutDashboard, Bell } from "lucide-react";
+import { io } from "socket.io-client";
+import { api } from "../lib/api";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -22,6 +24,44 @@ export default function Navbar() {
   };
 
   const [hidden, setHidden] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+
+  // Check for existing unread notifications on load
+  useEffect(() => {
+    if (user && user.role === 'student') {
+      api.get("/api/notifications/mine").then(res => {
+        const unread = res.notifications?.some((n: any) => !n.readBy.includes(user._id));
+        setHasUnread(!!unread);
+      }).catch(() => {});
+    }
+  }, [user]);
+
+  // Setup Socket.io
+  useEffect(() => {
+    if (!user || user.role !== 'student') return;
+
+    const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const socket = io(socketUrl, {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+    });
+
+    socket.emit("join_notification_rooms", {
+      userId: user._id,
+      department: user.studentInfo?.department
+    });
+
+    socket.on("new_notification", (notification) => {
+      setHasUnread(true);
+      setToastMsg(notification.title);
+      setTimeout(() => setToastMsg(""), 5000);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -71,8 +111,17 @@ export default function Navbar() {
         />
       </Link>
       
+      {toastMsg && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-xl text-sm font-medium animate-in fade-in slide-in-from-top-5 z-50 pointer-events-auto">
+          New Notification: {toastMsg}
+        </div>
+      )}
+
       {user && !isAuthPage && (
-        <div className="flex items-center pointer-events-auto" ref={dropdownRef}>
+        <div className="flex items-center gap-4 pointer-events-auto" ref={dropdownRef}>
+          
+
+
           {/* Profile Dropdown */}
           <div className="relative">
             <button 
@@ -103,7 +152,6 @@ export default function Navbar() {
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
                     >
-                      <LayoutDashboard size={16} className="text-gray-400" />
                       Progress Card
                     </Link>
                   )}
@@ -113,18 +161,7 @@ export default function Navbar() {
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
                   >
-                    <CalendarDays size={16} className="text-gray-400" />
                     Attendance
-                  </Link>
-                  
-                  {/* Notifications Link */}
-                  <Link
-                    href="/notifications"
-                    onClick={() => setDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
-                  >
-                    <Bell size={16} className="text-gray-400" />
-                    Notifications
                   </Link>
                 </div>
                 
