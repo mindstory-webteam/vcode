@@ -19,6 +19,32 @@ export default function Faculty() {
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
 
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [deletingBulk, setDeletingBulk] = useState(false);
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) setSelectedIds(faculty.map(f => f._id));
+    else setSelectedIds([]);
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Are you sure you want to permanently delete ${selectedIds.length} faculty? Their students will become unassigned.`)) return;
+    setDeletingBulk(true);
+    try {
+      await Promise.all(selectedIds.map(id => deleteUser(id)));
+      setSelectedIds([]);
+      load();
+    } catch (err) {
+      setError('Failed to delete some faculty. They may already be deleted.');
+    } finally {
+      setDeletingBulk(false);
+    }
+  };
+
   const load = () => {
     setLoading(true);
     getAllFaculty()
@@ -79,6 +105,15 @@ export default function Faculty() {
 
       {error && <div className="form-error">{error}</div>}
 
+      {selectedIds.length > 0 && (
+        <div style={{ marginBottom: 16, background: '#fcf3f3', border: '1px solid #f2dede', borderRadius: 6, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 14, fontWeight: 500, color: '#a94442' }}>{selectedIds.length} faculty selected</span>
+          <button className="btn btn-brick btn-sm" onClick={handleBulkDelete} disabled={deletingBulk}>
+            {deletingBulk ? 'Deleting…' : 'Delete Selected'}
+          </button>
+        </div>
+      )}
+
       <div className="card">
         {loading ? (
           <div className="loading-line">Fetching faculty…</div>
@@ -86,6 +121,7 @@ export default function Faculty() {
           <table className="ledger">
             <thead>
               <tr>
+                <th style={{ width: 44, paddingRight: 0, textAlign: 'center' }}><input type="checkbox" checked={faculty.length > 0 && selectedIds.length === faculty.length} onChange={handleSelectAll} style={{ cursor: 'pointer' }} /></th>
                 <th>Faculty</th>
                 <th>Department</th>
                 <th>Designation</th>
@@ -96,11 +132,12 @@ export default function Faculty() {
             <tbody>
               {faculty.length === 0 && (
                 <tr className="empty-row">
-                  <td colSpan={5}>No faculty on file yet.</td>
+                  <td colSpan={6}>No faculty on file yet.</td>
                 </tr>
               )}
               {faculty.map((f) => (
                 <tr key={f._id}>
+                  <td style={{ width: 44, paddingRight: 0, textAlign: 'center' }}><input type="checkbox" checked={selectedIds.includes(f._id)} onChange={() => toggleSelect(f._id)} style={{ cursor: 'pointer' }} /></td>
                   <td>
                     <div className="cell-name">{f.name}</div>
                     <div className="cell-sub">{f.email}</div>

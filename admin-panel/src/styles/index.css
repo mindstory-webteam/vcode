@@ -344,7 +344,7 @@ button { font-family: var(--font-body); }
   text-transform: uppercase;
   color: var(--muted);
   font-weight: 500;
-  padding: 0 14px 10px;
+  padding: 16px 14px 12px;
   border-bottom: 1px solid var(--paper-line);
 }
 .ledger tbody td {
