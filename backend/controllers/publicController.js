@@ -8,27 +8,26 @@ const User = require('../models/User');
 const verifyStudentProgress = asyncHandler(async (req, res) => {
   const { slug } = req.params;
 
-  // The slug might be "VC-0001", "VC-03SU22CC098", or just "0001" or "03SU22CC098"
-  // Let's strip "VC-" if it's there to easily search.
+  const fullId = slug.startsWith('VC-') ? slug : `VC-${slug}`;
   const rawId = slug.startsWith('VC-') ? slug.slice(3) : slug;
 
   // We check two things:
-  // 1. Is rawId the `program.code` in a ProgressReport?
-  // 2. Is rawId the `verificationCode` in a ProgressReport?
-  let report = await ProgressReport.findOne({ 'gradeCard.program.code': rawId })
+  // 1. Is the ID the `program.code` in a ProgressReport?
+  // 2. Is the ID the `verificationCode` in a ProgressReport?
+  let report = await ProgressReport.findOne({ 'gradeCard.program.code': { $in: [fullId, rawId] } })
     .populate('student', 'name profileImage studentInfo')
     .populate('faculty', 'name email facultyInfo');
 
   if (!report) {
-    report = await ProgressReport.findOne({ 'gradeCard.verification.verificationCode': rawId })
+    report = await ProgressReport.findOne({ 'gradeCard.verification.verificationCode': { $in: [fullId, rawId] } })
       .populate('student', 'name profileImage studentInfo')
       .populate('faculty', 'name email facultyInfo');
   }
 
-  // 3. Is rawId the `studentInfo.rollNumber` in a User?
+  // 3. Is the ID the `studentInfo.rollNumber` in a User?
   if (!report) {
     // Try by user roll number
-    const user = await User.findOne({ 'studentInfo.rollNumber': rawId, role: 'student' });
+    const user = await User.findOne({ 'studentInfo.rollNumber': { $in: [fullId, rawId] }, role: 'student' });
     if (user) {
       report = await ProgressReport.findOne({ student: user._id })
         .populate('student', 'name profileImage studentInfo')
