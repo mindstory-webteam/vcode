@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vcode-client",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "minify": true,
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  }
+}
