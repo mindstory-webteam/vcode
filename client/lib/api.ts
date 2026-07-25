@@ -43,7 +43,11 @@ async function handle(res: Response) {
 }
 
 export const api = {
-  get: (path: string) => fetch(`${API_URL}${path}`, { cache: "no-store", credentials: "include", headers: getHeaders() }).then(handle),
+  get: (path: string) => {
+    const separator = path.includes("?") ? "&" : "?";
+    const cacheBusterPath = `${path}${separator}_t=${Date.now()}`;
+    return fetch(`${API_URL}${cacheBusterPath}`, { cache: "no-store", credentials: "include", headers: getHeaders() }).then(handle);
+  },
 
   post: (path: string, body?: unknown) =>
     fetch(`${API_URL}${path}`, {
