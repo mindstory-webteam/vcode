@@ -106,9 +106,6 @@ export default function Layout({ children }) {
       <aside className="sidebar">
         <div className="sidebar-brand">
           <img src={vcaLogo} alt="VCA" className="brand-logo" />
-          <div className="sidebar-brand-text">
-            <div className="role-tag">{user?.role === 'superadmin' ? 'SuperAdmin Console' : 'Faculty Console'}</div>
-          </div>
         </div>
 
         <ul className="nav-list">

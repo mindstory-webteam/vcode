@@ -93,8 +93,9 @@ button { font-family: var(--font-body); }
 .sidebar-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
-  padding: 4px 20px 20px;
+  padding: 12px 20px 24px;
   border-bottom: 1px solid var(--paper-line);
   margin-bottom: 14px;
 }
@@ -102,7 +103,7 @@ button { font-family: var(--font-body); }
 /* ---- Logo: the actual VCA mark, given a soft settle-in on mount ---- */
 
 .brand-logo {
-  height: 34px;
+  height: 48px;
   width: auto;
   display: block;
   animation: logo-settle 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) both;

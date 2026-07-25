@@ -246,6 +246,19 @@ const rejectApplication = asyncHandler(async (req, res) => {
   application.reviewedAt = new Date();
   await application.save();
 
+  // Notify real-time clients via Socket.io
+  const io = req.app.get('io');
+  if (io) {
+    const payload = {
+      email: application.email,
+      status: 'rejected',
+      reason: application.rejectionReason,
+    };
+    const room = `application:${application.email.toLowerCase().trim()}`;
+    io.to(room).emit('application_rejected', payload);
+    io.emit('application_rejected', payload);
+  }
+
   res.json({ success: true, message: 'Application rejected', application });
 });
 

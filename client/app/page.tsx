@@ -496,12 +496,22 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
       }
     });
 
+    socket.on("application_rejected", (data: any) => {
+      if (data && data.email && data.email.toLowerCase() === email.toLowerCase()) {
+        setStatus("rejected");
+        if (data.reason) {
+          setReason(data.reason);
+        }
+      }
+    });
+
     // Auto-polling fallback every 3 seconds
     const interval = setInterval(async () => {
       try {
         const res = await api.get(`/api/auth/application-status/${encodeURIComponent(email)}`);
+        setStatus(res.status);
+        setReason(res.rejectionReason || null);
         if (res.isApproved || res.status === "approved") {
-          setStatus("approved");
           await handleApprovedRedirect(res);
         }
       } catch {
@@ -546,23 +556,23 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
             Application <span className="font-semibold text-gray-800">submitted</span>
           </h1>
           <p className="mt-6 text-sm text-gray-500 leading-relaxed">
-            Thanks! Your first-time sign-in for <span className="font-medium text-gray-700">{email}</span> is currently{" "}
-            <span className="font-bold uppercase tracking-wider" style={{ color: "#853a8c" }}>{status}</span>. A SuperAdmin will review it in the Admin Panel shortly.
+            {status === "pending" ? (
+              <>
+                Your application for <span className="font-medium text-gray-700">{email}</span> has been submitted successfully and is currently <span className="font-bold uppercase tracking-wider text-[#853a8c]">PENDING</span>. Our team will review your request shortly.
+              </>
+            ) : status === "rejected" ? (
+              <>
+                Your application for <span className="font-medium text-gray-700">{email}</span> was reviewed and unfortunately has been <span className="font-bold uppercase tracking-wider text-red-600">REJECTED</span>. If you believe this is a mistake, please contact the administration.
+              </>
+            ) : (
+              <>
+                Your application is <span className="font-bold uppercase tracking-wider text-[#853a8c]">{status}</span>.
+              </>
+            )}
           </p>
-          {reason && <p className="mt-2 text-sm text-red-500">Reason: {reason}</p>}
+          {reason && status === "rejected" && <p className="mt-4 text-sm font-medium text-red-500">Reason: {reason}</p>}
 
           <div className="mt-8 flex justify-center gap-4">
-            <button
-              onClick={checkStatus}
-              disabled={checking}
-              className="flex min-w-[140px] items-center justify-center rounded border border-gray-300 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-gray-600 transition-colors hover:border-[#853a8c] hover:text-[#853a8c] disabled:opacity-50"
-            >
-              {checking ? (
-                <Loader2 className="h-4 w-4 animate-spin text-current" />
-              ) : (
-                "Check status"
-              )}
-            </button>
             <button
               onClick={() => window.location.reload()}
               className="rounded px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-white transition-opacity"

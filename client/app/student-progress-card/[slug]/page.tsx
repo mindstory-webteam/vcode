@@ -81,15 +81,20 @@ export default function DashboardPage({ params }: { params: Promise<{ slug: stri
   }, [data?.student?._id]);
 
   if (fetching) {
-    return <CenteredMessage title="Loading your grade card…" />;
+    return <CenteredMessage isLoading={true} />;
   }
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
 
   if (error) {
     return (
       <CenteredMessage
         title="Couldn't load your progress report"
         subtitle={error}
-        action={user ? { label: "Log out", onClick: logout } : undefined}
+        action={user ? { label: "Log out", onClick: handleLogout } : undefined}
       />
     );
   }
@@ -99,7 +104,7 @@ export default function DashboardPage({ params }: { params: Promise<{ slug: stri
       <CenteredMessage
         title="Your grade card isn't ready yet"
         subtitle="Your mentor hasn't published your evaluation yet. Check back soon."
-        action={user ? { label: "Log out", onClick: logout } : undefined}
+        action={user ? { label: "Log out", onClick: handleLogout } : undefined}
       />
     );
   }
@@ -128,19 +133,30 @@ function CenteredMessage({
   title,
   subtitle,
   action,
+  isLoading,
 }: {
-  title: string;
+  title?: string;
   subtitle?: string;
   action?: { label: string; onClick: () => void };
+  isLoading?: boolean;
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-ink px-6 text-center text-paper">
-      <h1 className="font-display text-2xl font-medium">{title}</h1>
-      {subtitle && <p className="max-w-md text-sm text-paper/60">{subtitle}</p>}
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white px-6 text-center text-gray-900">
+      {isLoading && (
+        <div className="mb-4 flex flex-col items-center justify-center">
+          <img 
+            src="/imgs/Logo-VCA.png" 
+            alt="Viral Cat Academy" 
+            className="h-16 w-auto animate-pulse"
+          />
+        </div>
+      )}
+      {title && <h1 className="font-serif text-2xl font-medium">{title}</h1>}
+      {subtitle && <p className="max-w-md text-sm text-gray-600">{subtitle}</p>}
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-2 rounded-full border border-paper/25 px-5 py-2 font-mono text-xs uppercase tracking-widest text-paper/80 hover:border-gold hover:text-gold"
+          className="mt-2 rounded-full border border-gray-300 px-5 py-2 font-mono text-xs uppercase tracking-widest text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-colors"
         >
           {action.label}
         </button>
