@@ -9,20 +9,18 @@ import {
   exportAttendance,
 } from '../../api.js';
 
-const STATUSES = ['present', 'absent', 'half_day', 'leave'];
+const STATUSES = ['present', 'absent', 'half_day'];
 
 const STATUS_LABEL = {
   present: 'Present',
   absent: 'Absent',
   half_day: 'Half day',
-  leave: 'Leave',
 };
 
 const STATUS_STAMP_CLASS = {
   present: 'stamp-active',
   absent: 'stamp-inactive',
   half_day: 'stamp-active',
-  leave: 'stamp-inactive',
 };
 
 const todayStr = () => new Date().toISOString().substring(0, 10);
@@ -95,9 +93,9 @@ export default function FacultyAttendance() {
       acc[r.status] = (acc[r.status] || 0) + 1;
       return acc;
     },
-    { present: 0, absent: 0, half_day: 0, leave: 0 }
+    { present: 0, absent: 0, half_day: 0 }
   );
-  const countedTotal = counts.present + counts.absent + counts.half_day; // leave excluded from %
+  const countedTotal = counts.present + counts.absent + counts.half_day;
   const attendancePct = countedTotal > 0
     ? Math.round(((counts.present + counts.half_day * 0.5) / countedTotal) * 100)
     : null;
@@ -249,8 +247,7 @@ export default function FacultyAttendance() {
             <StatCard value={attendancePct != null ? `${attendancePct}%` : '—'} label="Attendance rate" />
             <StatCard value={counts.present} label="Present" />
             <StatCard value={counts.absent} label="Absent" />
-            <StatCard value={counts.half_day} label="Half day" />
-            <StatCard value={counts.leave} label="Leave" />
+            <StatCard value={counts.half_day} label="Half Days" />
           </div>
 
           <div className="card card-pad" style={{ marginBottom: 24 }}>

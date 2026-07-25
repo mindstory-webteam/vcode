@@ -24,6 +24,7 @@ import Achievements from "../../../components/Achievements";
 import Mentor from "../../../components/Mentor";
 import InterviewReadiness from "../../../components/InterviewReadiness";
 import Verification from "../../../components/Verification";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
@@ -80,8 +81,20 @@ export default function DashboardPage({ params }: { params: Promise<{ slug: stri
     };
   }, [data?.student?._id]);
 
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
   if (fetching) {
-    return <CenteredMessage isLoading={true} />;
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center pt-20">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
   }
 
   const handleLogout = async () => {
@@ -133,24 +146,13 @@ function CenteredMessage({
   title,
   subtitle,
   action,
-  isLoading,
 }: {
   title?: string;
   subtitle?: string;
   action?: { label: string; onClick: () => void };
-  isLoading?: boolean;
 }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white px-6 text-center text-gray-900">
-      {isLoading && (
-        <div className="mb-4 flex flex-col items-center justify-center">
-          <img 
-            src="/imgs/Logo-VCA.png" 
-            alt="Viral Cat Academy" 
-            className="h-16 w-auto animate-pulse"
-          />
-        </div>
-      )}
       {title && <h1 className="font-serif text-2xl font-medium">{title}</h1>}
       {subtitle && <p className="max-w-md text-sm text-gray-600">{subtitle}</p>}
       {action && (

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect, useRef } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, CalendarDays, LayoutDashboard, Bell } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -50,9 +50,17 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  let logoHref = "/";
+  if (pathname.startsWith("/student-progress-card/")) {
+    logoHref = pathname;
+  } else if (user && user.role === "student") {
+    const slug = user.studentInfo?.rollNumber || user._id;
+    logoHref = `/student-progress-card/${slug}`;
+  }
+
   return (
     <nav className={`fixed top-0 w-full z-50 flex items-center justify-between px-4 sm:px-6 md:px-10 lg:px-16 xl:px-[100px] py-4 sm:py-6 pointer-events-none transition-transform duration-300 ease-in-out ${hidden ? "-translate-y-full" : "translate-y-0"}`}>
-      <Link href="/" className="pointer-events-auto">
+      <Link href={logoHref} className="pointer-events-auto">
         <Image
           src={logoSrc}
           alt="Viral Cat Academy"
@@ -85,6 +93,39 @@ export default function Navbar() {
                 <div className="px-4 pb-3 border-b border-gray-100 flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Signed in as</span>
                   <span className="text-sm font-medium text-gray-900 truncate" title={user.email}>{user.email}</span>
+                </div>
+                
+                <div className="py-1">
+                  {/* Progress Card Link */}
+                  {user && user.role === "student" && (
+                    <Link
+                      href={`/student-progress-card/${user.studentInfo?.rollNumber || user._id}`}
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
+                    >
+                      <LayoutDashboard size={16} className="text-gray-400" />
+                      Progress Card
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/attendance"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
+                  >
+                    <CalendarDays size={16} className="text-gray-400" />
+                    Attendance
+                  </Link>
+                  
+                  {/* Notifications Link */}
+                  <Link
+                    href="/notifications"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
+                  >
+                    <Bell size={16} className="text-gray-400" />
+                    Notifications
+                  </Link>
                 </div>
                 
                 <button
