@@ -43,7 +43,7 @@ async function handle(res: Response) {
 }
 
 export const api = {
-  get: (path: string) => fetch(`${API_URL}${path}`, { credentials: "include", headers: getHeaders() }).then(handle),
+  get: (path: string) => fetch(`${API_URL}${path}`, { cache: "no-store", credentials: "include", headers: getHeaders() }).then(handle),
 
   post: (path: string, body?: unknown) =>
     fetch(`${API_URL}${path}`, {

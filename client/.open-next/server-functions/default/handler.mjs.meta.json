@@ -3662,7 +3662,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/chunks/106.js": {
-      "bytes": 9938,
+      "bytes": 9955,
       "imports": [],
       "format": "cjs"
     },
@@ -7810,7 +7810,7 @@
           "bytesInOutput": 516
         },
         ".open-next/server-functions/default/.next/server/chunks/106.js": {
-          "bytesInOutput": 10104
+          "bytesInOutput": 10121
         },
         ".open-next/server-functions/default/.next/server/chunks/331.js": {
           "bytesInOutput": 132734
@@ -8014,7 +8014,7 @@
           "bytesInOutput": 58953
         }
       },
-      "bytes": 3321581
+      "bytes": 3321598
     }
   }
 }
