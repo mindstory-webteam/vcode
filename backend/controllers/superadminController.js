@@ -387,6 +387,7 @@ const deleteUser = asyncHandler(async (req, res) => {
       }
     }
     await ProgressReport.findOneAndDelete({ student: user._id });
+    await StudentApplication.findOneAndDelete({ email: user.email });
   }
   if (user.role === 'faculty') {
     // Unassign this faculty from any students

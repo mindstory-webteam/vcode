@@ -1012,26 +1012,14 @@ export default function StudentReport() {
             </div>
           </div>
 
-          <div className="btn-row" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+          <div className="btn-row" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
             <div className="section-title" style={{ margin: 0 }}>Entries ({report.entries.length})</div>
             <div className="btn-row" style={{ gap: 8 }}>
-              <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-                {entriesBulkBusy ? 'Uploading…' : 'Bulk upload (Excel)'}
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleBulkUploadEntries}
-                  style={{ display: 'none' }}
-                  disabled={entriesBulkBusy}
-                />
-              </label>
               <button className="btn btn-ghost btn-sm" onClick={handleExportEntries} disabled={entriesExportBusy}>
                 {entriesExportBusy ? 'Exporting…' : 'Export entries'}
               </button>
             </div>
           </div>
-          {entriesBulkError && <div className="form-error" style={{ marginTop: 6 }}>{entriesBulkError}</div>}
-          {entriesBulkMessage && <div className="muted" style={{ fontSize: 12, margin: '6px 0' }}>{entriesBulkMessage} ✓</div>}
 
           {report.entries.length === 0 && (
             <div className="card card-pad muted" style={{ fontStyle: 'italic', marginTop: 10 }}>

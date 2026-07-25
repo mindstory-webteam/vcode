@@ -35,6 +35,16 @@ const verifyStudentProgress = asyncHandler(async (req, res) => {
     }
   }
 
+  // 4. Is the ID the user's `_id`?
+  if (!report) {
+    const mongoose = require('mongoose');
+    if (mongoose.isValidObjectId(rawId)) {
+      report = await ProgressReport.findOne({ student: rawId })
+        .populate('student', 'name profileImage studentInfo')
+        .populate('faculty', 'name email facultyInfo');
+    }
+  }
+
   if (!report) {
     return res.status(404).json({ success: false, message: 'No student progress card found for this ID' });
   }

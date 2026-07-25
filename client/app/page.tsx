@@ -77,7 +77,7 @@ function AuthContent() {
   }, [resendTimer]);
 
   // Handle Redirect after login
-  async function handlePostLoginRedirect(authUser: { role: string; studentInfo?: { rollNumber?: string } }) {
+  async function handlePostLoginRedirect(authUser: any) {
     let redirectUrl = params.get("redirect");
     if (!redirectUrl || redirectUrl === "/dashboard") {
       if (authUser.role === "student") {
@@ -88,12 +88,14 @@ function AuthContent() {
             report?.gradeCard?.program?.code ||
             report?.verification?.verificationCode ||
             authUser.studentInfo?.rollNumber ||
+            authUser._id ||
+            authUser.id ||
             "unknown";
-          if (!vcode.startsWith("VC-")) vcode = `VC-${vcode}`;
+          if (vcode !== "unknown" && !vcode.startsWith("VC-")) vcode = `VC-${vcode}`;
           redirectUrl = `/student-progress-card/${vcode}`;
         } catch {
-          let fallbackCode = authUser.studentInfo?.rollNumber || "unknown";
-          if (!fallbackCode.startsWith("VC-")) fallbackCode = `VC-${fallbackCode}`;
+          let fallbackCode = authUser.studentInfo?.rollNumber || authUser._id || authUser.id || "unknown";
+          if (fallbackCode !== "unknown" && !fallbackCode.startsWith("VC-")) fallbackCode = `VC-${fallbackCode}`;
           redirectUrl = `/student-progress-card/${fallbackCode}`;
         }
       } else {
@@ -426,8 +428,8 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
       localStorage.setItem("token", data.token);
     }
 
-    let vcode = data?.vcode || data?.user?.studentInfo?.rollNumber || "unknown";
-    if (!vcode.startsWith("VC-")) vcode = `VC-${vcode}`;
+    let vcode = data?.vcode || data?.user?.studentInfo?.rollNumber || data?.user?._id || data?.user?.id || "unknown";
+    if (vcode !== "unknown" && !vcode.startsWith("VC-")) vcode = `VC-${vcode}`;
 
     try {
       const res = await api.get("/api/student/progress-report");
@@ -435,7 +437,10 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
       const reportCode =
         report?.gradeCard?.program?.code ||
         report?.verification?.verificationCode ||
-        report?.student?.studentInfo?.rollNumber;
+        report?.student?.studentInfo?.rollNumber ||
+        report?.student?._id ||
+        report?.student?.id ||
+        (typeof report?.student === 'string' ? report.student : undefined);
       if (reportCode) {
         vcode = reportCode.startsWith("VC-") ? reportCode : `VC-${reportCode}`;
       }

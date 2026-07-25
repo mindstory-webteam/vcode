@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
+import { io } from "socket.io-client";
 import { useAuth } from "../../../contexts/AuthContext";
 import { api, ApiError } from "../../../lib/api";
 import {
@@ -31,6 +32,7 @@ export default function DashboardPage({ params }: { params: Promise<{ slug: stri
   const [data, setData] = useState<StudentData | null>(null);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -56,7 +58,27 @@ export default function DashboardPage({ params }: { params: Promise<{ slug: stri
         setFetching(false);
       }
     })();
-  }, [resolvedParams.slug, router]);
+  }, [resolvedParams.slug, router, refreshTrigger]);
+
+  useEffect(() => {
+    if (!data?.student?._id) return;
+
+    const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const socket = io(socketUrl, {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+    });
+
+    socket.emit("join_progress_report_room", data.student._id);
+
+    socket.on("progress_report_updated", () => {
+      setRefreshTrigger((prev) => prev + 1);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [data?.student?._id]);
 
   if (fetching) {
     return <CenteredMessage title="Loading your grade card…" />;

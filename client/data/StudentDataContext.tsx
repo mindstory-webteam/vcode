@@ -28,6 +28,7 @@ export interface PortfolioItem {
 
 export interface StudentData {
   student: {
+    _id: string;
     name: string;
     program: string;
     duration: string;
@@ -157,6 +158,7 @@ export function mapReportToStudentData(user: any, report: any): StudentData {
 
   return {
     student: {
+      _id: user?._id || user?.id || report?.student?._id || report?.student?.id || (typeof report?.student === 'string' ? report.student : "") || "",
       name: user?.name || "",
       program: program.name || "",
       duration: program.durationLabel || "",

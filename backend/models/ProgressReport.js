@@ -238,4 +238,18 @@ const progressReportSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const socketHelper = require('../socketHelper');
+
+progressReportSchema.post('save', function (doc) {
+  if (doc && doc.student) {
+    socketHelper.emitProgressUpdate(doc.student);
+  }
+});
+
+progressReportSchema.post('findOneAndUpdate', function (doc) {
+  if (doc && doc.student) {
+    socketHelper.emitProgressUpdate(doc.student);
+  }
+});
+
 module.exports = mongoose.model('ProgressReport', progressReportSchema);

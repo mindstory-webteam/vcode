@@ -91,6 +91,8 @@ const io = new Server(server, {
   },
 });
 
+const socketHelper = require('./socketHelper');
+
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id}`);
   socket.on('join_application_room', (email) => {
@@ -100,8 +102,17 @@ io.on('connection', (socket) => {
       console.log(`Socket ${socket.id} joined room ${room}`);
     }
   });
+
+  socket.on('join_progress_report_room', (studentId) => {
+    if (studentId) {
+      const room = `progress_report:${studentId.toString()}`;
+      socket.join(room);
+      console.log(`Socket ${socket.id} joined room ${room}`);
+    }
+  });
 });
 
+socketHelper.setIo(io);
 app.set('io', io);
 
 const PORT = process.env.PORT || 5000;
