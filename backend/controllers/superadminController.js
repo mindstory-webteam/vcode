@@ -262,6 +262,28 @@ const rejectApplication = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Application rejected', application });
 });
 
+// @desc    Delete a student application
+// @route   DELETE /api/superadmin/applications/:id
+// @access  Private/SuperAdmin
+const deleteApplication = asyncHandler(async (req, res) => {
+  const application = await StudentApplication.findById(req.params.id);
+  if (!application) {
+    return res.status(404).json({ success: false, message: 'Application not found' });
+  }
+
+  // Clean up the applicant's uploaded profile image from Cloudinary
+  if (application.profileImagePublicId) {
+    try {
+      await deleteFromCloudinary(application.profileImagePublicId, 'image');
+    } catch (err) {
+      console.error('Cloudinary delete failed:', err.message);
+    }
+  }
+
+  await application.deleteOne();
+  res.json({ success: true, message: 'Application deleted successfully' });
+});
+
 // ---------------------------------------------------------------------------
 // STUDENT MANAGEMENT
 // ---------------------------------------------------------------------------
@@ -1345,6 +1367,7 @@ module.exports = {
   getApplicationById,
   approveApplication,
   rejectApplication,
+  deleteApplication,
   createStudent,
   getAllStudents,
   assignFaculty,

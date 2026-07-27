@@ -71,6 +71,7 @@ export const approveApplication = (id, assignedFacultyId) =>
   api.put(`/superadmin/applications/${id}/approve`, assignedFacultyId ? { assignedFacultyId } : {});
 export const rejectApplication = (id, reason) =>
   api.put(`/superadmin/applications/${id}/reject`, { reason });
+export const deleteApplication = (id) => api.delete(`/superadmin/applications/${id}`);
 
 export const createStudent = (data) => api.post('/superadmin/students', data);
 export const getAllStudents = () => api.get('/superadmin/students');

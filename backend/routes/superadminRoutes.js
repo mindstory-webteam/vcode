@@ -8,6 +8,7 @@ const {
   getApplicationById,
   approveApplication,
   rejectApplication,
+  deleteApplication,
   createStudent,
   getAllStudents,
   assignFaculty,
@@ -53,6 +54,7 @@ router.get('/applications', getApplications);
 router.get('/applications/:id', getApplicationById);
 router.put('/applications/:id/approve', approveApplication);
 router.put('/applications/:id/reject', rejectApplication);
+router.delete('/applications/:id', deleteApplication);
 
 // Student management & bulk import
 // NOTE: Static sub-paths MUST come before :id/:studentId parameterised routes

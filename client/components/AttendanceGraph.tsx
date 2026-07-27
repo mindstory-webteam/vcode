@@ -62,11 +62,11 @@ export default function AttendanceGraph({ records }: AttendanceGraphProps) {
       case "present":
         return "bg-[#1f9c3c]"; // Dark green
       case "half_day":
-        return "bg-[#9be9a8]"; // Light green
+        return "bg-[#833a89]"; // Purple
       case "absent":
         return "bg-[#f85149]"; // Red
       default:
-        return "bg-gray-100 dark:bg-gray-800"; // Empty/none
+        return "bg-gray-100"; // Empty/none
     }
   };
 
@@ -122,7 +122,7 @@ export default function AttendanceGraph({ records }: AttendanceGraphProps) {
       {/* Legend */}
       <div className="flex items-center justify-center gap-4 text-xs text-gray-500 mt-4 w-full flex-wrap">
         <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-[#1f9c3c]" /> Present</div>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-[#9be9a8]" /> Half Day</div>
+        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-[#833a89]" /> Half Day</div>
         <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-[#f85149]" /> Absent</div>
       </div>
       </div>

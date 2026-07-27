@@ -6,6 +6,7 @@ import {
   getApplications,
   approveApplication,
   rejectApplication,
+  deleteApplication,
   getAllFaculty,
 } from '../../api.js';
 
@@ -28,6 +29,32 @@ export default function Applications() {
   const [rejectReason, setRejectReason] = useState('');
   const [busy, setBusy] = useState(false);
 
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [deletingBulk, setDeletingBulk] = useState(false);
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) setSelectedIds(applications.map(a => a._id));
+    else setSelectedIds([]);
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Are you sure you want to permanently delete ${selectedIds.length} applications?`)) return;
+    setDeletingBulk(true);
+    try {
+      await Promise.all(selectedIds.map(id => deleteApplication(id)));
+      setSelectedIds([]);
+      load();
+    } catch (err) {
+      setError('Failed to delete some applications. They may already be deleted.');
+    } finally {
+      setDeletingBulk(false);
+    }
+  };
+
   const load = () => {
     setLoading(true);
     setError('');
@@ -40,7 +67,10 @@ export default function Applications() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(load, [tab]);
+  useEffect(() => {
+    setSelectedIds([]);
+    load();
+  }, [tab]);
 
   const openApprove = (app) => {
     setApproveTarget(app);
@@ -74,6 +104,16 @@ export default function Applications() {
     }
   };
 
+  const handleDelete = async (app) => {
+    if (!confirm(`Permanently delete ${app.name}'s application?`)) return;
+    try {
+      await deleteApplication(app._id);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not delete application');
+    }
+  };
+
   return (
     <Layout>
       <div className="page-header">
@@ -98,6 +138,15 @@ export default function Applications() {
 
       {error && <div className="form-error">{error}</div>}
 
+      {selectedIds.length > 0 && (
+        <div style={{ marginBottom: 16, background: '#fcf3f3', border: '1px solid #f2dede', borderRadius: 6, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 14, fontWeight: 500, color: '#a94442' }}>{selectedIds.length} applications selected</span>
+          <button className="btn btn-brick btn-sm" onClick={handleBulkDelete} disabled={deletingBulk}>
+            {deletingBulk ? 'Deleting…' : 'Delete Selected'}
+          </button>
+        </div>
+      )}
+
       <div className="card">
         {loading ? (
           <div className="loading-line">Fetching applications…</div>
@@ -105,22 +154,24 @@ export default function Applications() {
           <table className="ledger">
             <thead>
               <tr>
+                <th style={{ width: 44, paddingRight: 0, textAlign: 'center' }}><input type="checkbox" checked={applications.length > 0 && selectedIds.length === applications.length} onChange={handleSelectAll} style={{ cursor: 'pointer' }} /></th>
                 <th>Applicant</th>
                 <th>Roll no.</th>
                 <th>Department</th>
                 <th>Submitted</th>
                 <th>Status</th>
-                {tab === 'pending' && <th></th>}
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {applications.length === 0 && (
                 <tr className="empty-row">
-                  <td colSpan={6}>No {tab} applications right now.</td>
+                  <td colSpan={7}>No {tab} applications right now.</td>
                 </tr>
               )}
               {applications.map((app) => (
                 <tr key={app._id}>
+                  <td style={{ width: 44, paddingRight: 0, textAlign: 'center' }}><input type="checkbox" checked={selectedIds.includes(app._id)} onChange={() => toggleSelect(app._id)} style={{ cursor: 'pointer' }} /></td>
                   <td>
                     <div className="cell-name">{app.name}</div>
                     <div className="cell-sub">{app.email}</div>
@@ -129,18 +180,23 @@ export default function Applications() {
                   <td>{app.department || '—'}</td>
                   <td className="cell-mono">{new Date(app.createdAt).toLocaleDateString()}</td>
                   <td><StampBadge status={app.status} /></td>
-                  {tab === 'pending' && (
-                    <td>
-                      <div className="btn-row">
-                        <button className="btn btn-teal btn-sm" onClick={() => openApprove(app)}>
-                          Approve
-                        </button>
-                        <button className="btn btn-brick btn-sm" onClick={() => setRejectTarget(app)}>
-                          Reject
-                        </button>
-                      </div>
-                    </td>
-                  )}
+                  <td>
+                    <div className="btn-row">
+                      {tab === 'pending' && (
+                        <>
+                          <button className="btn btn-teal btn-sm" onClick={() => openApprove(app)}>
+                            Approve
+                          </button>
+                          <button className="btn btn-brick btn-sm" onClick={() => setRejectTarget(app)}>
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      <button className="btn btn-brick btn-sm" onClick={() => handleDelete(app)}>
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
