@@ -132,6 +132,17 @@ export const updateOverallRemarksAdmin = (studentId, overallRemarks) =>
 export const updateGradeCardAdmin = (studentId, gradeCard) =>
   api.put(`/superadmin/students/${studentId}/progress-report/grade-card`, gradeCard);
 
+export const uploadCertificateToProgressReportAdmin = (studentId, file) => {
+  const formData = new FormData();
+  formData.append('certificate', file);
+  return api.put(`/superadmin/students/${studentId}/progress-report/certificate`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const deleteCertificateFromProgressReportAdmin = (studentId) =>
+  api.delete(`/superadmin/students/${studentId}/progress-report/certificate`);
+
 // SuperAdmin — grade card Excel export/import (any student)
 export const exportGradeCardAdmin = async (studentId, studentName = 'student') => {
   const res = await api.get(`/superadmin/students/${studentId}/progress-report/grade-card/export`, {

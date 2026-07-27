@@ -35,9 +35,11 @@ const {
   downloadBulkProgressTemplateAdmin,
   bulkImportStudentsAndProgressReportsAdmin,
   updateStudentProfileAdmin,
+  uploadCertificateToProgressReportAdmin,
+  deleteCertificateFromProgressReportAdmin,
 } = require('../controllers/superadminController');
 const { protect, authorize } = require('../middleware/authMiddleware');
-const { uploadProfileImage, uploadExcel } = require('../middleware/uploadMiddleware');
+const { uploadProfileImage, uploadExcel, uploadDocument } = require('../middleware/uploadMiddleware');
 
 // Every route here requires a logged-in superadmin
 router.use(protect, authorize('superadmin'));
@@ -102,6 +104,8 @@ router.post(
 router.get('/students/:studentId/progress-report/attendance/export', exportAttendanceAdmin);
 router.put('/students/:studentId/profile-photo', uploadProfileImage.single('photo'), uploadStudentProfilePhotoAdmin);
 router.put('/students/:studentId/profile', updateStudentProfileAdmin);
+router.put('/students/:studentId/progress-report/certificate', uploadDocument.single('certificate'), uploadCertificateToProgressReportAdmin);
+router.delete('/students/:studentId/progress-report/certificate', deleteCertificateFromProgressReportAdmin);
 
 // General user management
 router.put('/users/:id/toggle-active', toggleUserActive);

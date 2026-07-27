@@ -229,6 +229,10 @@ const progressReportSchema = new mongoose.Schema(
     entries: [entrySchema],
     documents: [documentSchema],
 
+    // Certificate PDF uploaded by admin (stored in Cloudinary)
+    certificatePdf: { type: String, default: null }, // Cloudinary secure URL
+    certificatePdfPublicId: { type: String, default: null }, // Cloudinary public_id
+
     // New: full grade card, editable only by Faculty (assigned) / SuperAdmin (any)
     gradeCard: { type: gradeCardSchema, default: () => ({}) },
 

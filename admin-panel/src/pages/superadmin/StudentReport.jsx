@@ -18,6 +18,8 @@ import {
   exportFullProgressReportAdmin,
   importFullProgressReportAdmin,
   fileUrl,
+  uploadCertificateToProgressReportAdmin,
+  deleteCertificateFromProgressReportAdmin,
 } from '../../api.js';
 
 const CATEGORIES = ['academic', 'attendance', 'behavior', 'project', 'exam', 'other'];
@@ -158,6 +160,10 @@ export default function SuperAdminStudentReport() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
 
+  const [certUploading, setCertUploading] = useState(false);
+  const [certError, setCertError] = useState('');
+  const [certSuccess, setCertSuccess] = useState('');
+
   // ---- Edit student details ----
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileForm, setProfileForm] = useState(emptyProfileForm);
@@ -195,6 +201,40 @@ export default function SuperAdminStudentReport() {
   };
 
   useEffect(load, [studentId]);
+
+  const handleCertUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCertError('');
+    setCertSuccess('');
+    setCertUploading(true);
+    try {
+      await uploadCertificateToProgressReportAdmin(studentId, file);
+      setCertSuccess('Certificate uploaded successfully!');
+      load();
+    } catch (err) {
+      setCertError(err.response?.data?.message || 'Upload failed. Please try again.');
+    } finally {
+      setCertUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleCertDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this student\'s certificate?')) return;
+    setCertError('');
+    setCertSuccess('');
+    setCertUploading(true);
+    try {
+      await deleteCertificateFromProgressReportAdmin(studentId);
+      setCertSuccess('Certificate deleted successfully!');
+      load();
+    } catch (err) {
+      setCertError(err.response?.data?.message || 'Delete failed. Please try again.');
+    } finally {
+      setCertUploading(false);
+    }
+  };
 
   const openCreate = () => {
     setEditingEntry(null);
@@ -531,6 +571,35 @@ export default function SuperAdminStudentReport() {
               <div><strong>Application status:</strong> {student?.status || '—'}</div>
               <div><strong>Joined:</strong> {student?.createdAt ? new Date(student.createdAt).toLocaleDateString() : '—'}</div>
             </div>
+          </div>
+
+          {/* Certificate PDF Card */}
+          <div className="card card-pad" style={{ marginBottom: 24 }}>
+            <div className="section-title" style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Student Certificate</span>
+              <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', margin: 0, backgroundColor: '#005bb5', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: 4, fontSize: 12.5 }}>
+                {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
+                <input type="file" accept="application/pdf" onChange={handleCertUpload} style={{ display: 'none' }} disabled={certUploading} />
+              </label>
+            </div>
+            {certError && <div className="form-error" style={{ fontSize: 12, marginTop: 8 }}>{certError}</div>}
+            {certSuccess && <div style={{ fontSize: 12, marginTop: 8, padding: '8px 12px', background: '#e6f4ea', color: '#137333', borderRadius: 4 }}>{certSuccess}</div>}
+            {report?.certificatePdf ? (
+              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span className="stamp stamp-active" style={{ fontSize: 11 }}>PDF Uploaded</span>
+                <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">View Certificate</a>
+                <button 
+                  className="btn btn-brick btn-sm" 
+                  style={{ backgroundColor: '#d93025', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer' }}
+                  onClick={handleCertDelete}
+                  disabled={certUploading}
+                >
+                  Delete Certificate
+                </button>
+              </div>
+            ) : (
+              <p className="muted" style={{ fontSize: 12.5, marginTop: 8 }}>No certificate uploaded yet. Upload a PDF to make it available on the student's progress card.</p>
+            )}
           </div>
 
           {gc?.overallGrade && (

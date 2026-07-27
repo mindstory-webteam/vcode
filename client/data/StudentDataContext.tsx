@@ -172,6 +172,7 @@ export function mapReportToStudentData(user: any, report: any): StudentData {
       verifyUrl,
       summary: program.summary || "",
       photo: resolveImage(user?.profileImage),
+      certificatePdf: resolveImage(report?.certificatePdf),
     },
     evaluation: (gc.skillScores || []).map((s: any) => ({
       label: s.skillName,

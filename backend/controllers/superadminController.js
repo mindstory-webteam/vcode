@@ -1359,6 +1359,73 @@ const bulkImportStudentsAndProgressReportsAdmin = asyncHandler(async (req, res) 
   res.json({ success: true, message: `Bulk import complete: ${summary.studentsCreated} student(s) created, ${summary.studentsUpdated} updated, ${summary.reportsUpdated} progress report(s) saved.`, ...summary });
 });
 
+// ---------------------------------------------------------------------------
+// UPLOAD CERTIFICATE PDF TO PROGRESS REPORT
+// PUT /api/superadmin/students/:studentId/progress-report/certificate
+// ---------------------------------------------------------------------------
+const uploadCertificateToProgressReportAdmin = asyncHandler(async (req, res) => {
+  const { studentId } = req.params;
+
+  let report = await ProgressReport.findOne({ student: studentId });
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found for this student' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please attach a PDF file' });
+  }
+
+  // Remove previous certificate from Cloudinary if it exists
+  if (report.certificatePdfPublicId) {
+    try {
+      await deleteFromCloudinary(report.certificatePdfPublicId, 'raw');
+    } catch (err) {
+      console.error('Cloudinary delete failed:', err.message);
+    }
+  }
+
+  report.certificatePdf = req.file.path;        // Cloudinary secure URL
+  report.certificatePdfPublicId = req.file.filename; // Cloudinary public_id
+  await report.save();
+
+  res.json({
+    success: true,
+    message: 'Certificate uploaded successfully',
+    certificatePdf: report.certificatePdf,
+  });
+});
+
+// ---------------------------------------------------------------------------
+// DELETE CERTIFICATE PDF FROM PROGRESS REPORT
+// DELETE /api/superadmin/students/:studentId/progress-report/certificate
+// ---------------------------------------------------------------------------
+const deleteCertificateFromProgressReportAdmin = asyncHandler(async (req, res) => {
+  const { studentId } = req.params;
+
+  let report = await ProgressReport.findOne({ student: studentId });
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found for this student' });
+  }
+
+  // Remove certificate from Cloudinary if it exists
+  if (report.certificatePdfPublicId) {
+    try {
+      await deleteFromCloudinary(report.certificatePdfPublicId, 'raw');
+    } catch (err) {
+      console.error('Cloudinary delete failed:', err.message);
+    }
+  }
+
+  report.certificatePdf = null;
+  report.certificatePdfPublicId = null;
+  await report.save();
+
+  res.json({
+    success: true,
+    message: 'Certificate deleted successfully',
+  });
+});
+
 module.exports = {
   createFaculty,
   bulkCreateFaculty,
@@ -1394,4 +1461,6 @@ module.exports = {
   downloadBulkProgressTemplateAdmin,
   bulkImportStudentsAndProgressReportsAdmin,
   updateStudentProfileAdmin,
+  uploadCertificateToProgressReportAdmin,
+  deleteCertificateFromProgressReportAdmin,
 };
