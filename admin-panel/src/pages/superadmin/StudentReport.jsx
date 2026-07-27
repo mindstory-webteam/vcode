@@ -526,32 +526,6 @@ export default function SuperAdminStudentReport() {
       {report && (
         <>
           <div className="card card-pad" style={{ marginBottom: 24 }}>
-            <div className="section-title" style={{ marginTop: 0 }}>Full progress report (Excel)</div>
-            <p className="muted" style={{ margin: '0 0 12px', fontSize: 12.5 }}>
-              One file with everything — overall remarks, entries, attendance, and the grade card. Import a file to
-              apply any sheets it contains (entries are replaced entirely, attendance is upserted by date); remove a
-              sheet before re-uploading to leave that section untouched.
-            </p>
-            {fullReportImportError && <div className="form-error" style={{ fontSize: 12 }}>{fullReportImportError}</div>}
-            {fullReportImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>{fullReportImportMessage} ✓</div>}
-            <div className="btn-row">
-              <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-                {fullReportImportBusy ? 'Importing…' : 'Import full report (Excel)'}
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleImportFullProgressReport}
-                  style={{ display: 'none' }}
-                  disabled={fullReportImportBusy}
-                />
-              </label>
-              <button className="btn btn-ghost btn-sm" onClick={handleExportFullProgressReport} disabled={fullReportExportBusy}>
-                {fullReportExportBusy ? 'Exporting…' : 'Export full report (Excel)'}
-              </button>
-            </div>
-          </div>
-
-          <div className="card card-pad" style={{ marginBottom: 24 }}>
             <div className="section-title" style={{ marginTop: 0 }}>Student details</div>
             <div className="btn-row" style={{ flexWrap: 'wrap', gap: 24 }}>
               <div><strong>Full name:</strong> {student?.name || '—'}</div>
@@ -573,33 +547,72 @@ export default function SuperAdminStudentReport() {
             </div>
           </div>
 
-          {/* Certificate PDF Card */}
-          <div className="card card-pad" style={{ marginBottom: 24 }}>
-            <div className="section-title" style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Student Certificate</span>
-              <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', margin: 0, backgroundColor: '#005bb5', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: 4, fontSize: 12.5 }}>
-                {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
-                <input type="file" accept="application/pdf" onChange={handleCertUpload} style={{ display: 'none' }} disabled={certUploading} />
-              </label>
-            </div>
-            {certError && <div className="form-error" style={{ fontSize: 12, marginTop: 8 }}>{certError}</div>}
-            {certSuccess && <div style={{ fontSize: 12, marginTop: 8, padding: '8px 12px', background: '#e6f4ea', color: '#137333', borderRadius: 4 }}>{certSuccess}</div>}
-            {report?.certificatePdf ? (
-              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span className="stamp stamp-active" style={{ fontSize: 11 }}>PDF Uploaded</span>
-                <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">View Certificate</a>
-                <button 
-                  className="btn btn-brick btn-sm" 
-                  style={{ backgroundColor: '#d93025', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer' }}
-                  onClick={handleCertDelete}
-                  disabled={certUploading}
-                >
-                  Delete Certificate
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: 24, marginBottom: 24 }}>
+            {/* Full progress report (Excel) */}
+            <div className="card card-pad" style={{ margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div className="section-title" style={{ marginTop: 0 }}>Full progress report (Excel)</div>
+                <p className="muted" style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.5 }}>
+                  One file with everything — overall remarks, entries, attendance, and the grade card. Import a file to
+                  apply any sheets it contains.
+                </p>
+                {fullReportImportError && <div className="form-error" style={{ fontSize: 12, marginBottom: 8 }}>{fullReportImportError}</div>}
+                {fullReportImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 8 }}>{fullReportImportMessage} ✓</div>}
+              </div>
+              <div className="btn-row" style={{ marginTop: 12 }}>
+                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0 }}>
+                  {fullReportImportBusy ? 'Importing…' : 'Import full report (Excel)'}
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleImportFullProgressReport}
+                    style={{ display: 'none' }}
+                    disabled={fullReportImportBusy}
+                  />
+                </label>
+                <button className="btn btn-ghost btn-sm" onClick={handleExportFullProgressReport} disabled={fullReportExportBusy}>
+                  {fullReportExportBusy ? 'Exporting…' : 'Export full report (Excel)'}
                 </button>
               </div>
-            ) : (
-              <p className="muted" style={{ fontSize: 12.5, marginTop: 8 }}>No certificate uploaded yet. Upload a PDF to make it available on the student's progress card.</p>
-            )}
+            </div>
+
+            {/* Certificate PDF Card */}
+            <div className="card card-pad" style={{ margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div className="section-title" style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Student Certificate (PDF)</span>
+                </div>
+                <p className="muted" style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.5 }}>
+                  Upload a PDF certificate to make it available on the student's progress card. Replacing or deleting will automatically sync the changes.
+                </p>
+                {certError && <div className="form-error" style={{ fontSize: 12, marginBottom: 8 }}>{certError}</div>}
+                {certSuccess && <div style={{ fontSize: 12, marginBottom: 8, padding: '8px 12px', background: '#e6f4ea', color: '#137333', borderRadius: 4 }}>{certSuccess}</div>}
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+                {report?.certificatePdf ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <span className="stamp stamp-active" style={{ fontSize: 10.5 }}>PDF Uploaded</span>
+                    <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '6px 12px' }}>View Certificate</a>
+                    <button 
+                      className="btn btn-brick btn-sm" 
+                      style={{ backgroundColor: '#d93025', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
+                      onClick={handleCertDelete}
+                      disabled={certUploading}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12.5, color: '#70757a' }}>No certificate uploaded yet.</div>
+                )}
+                
+                <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', margin: 0, backgroundColor: '#005bb5', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'fit-content' }}>
+                  {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
+                  <input type="file" accept="application/pdf" onChange={handleCertUpload} style={{ display: 'none' }} disabled={certUploading} />
+                </label>
+              </div>
+            </div>
           </div>
 
           {gc?.overallGrade && (
