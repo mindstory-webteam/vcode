@@ -244,6 +244,34 @@ const progressReportSchema = new mongoose.Schema(
 
 const socketHelper = require('../socketHelper');
 
+progressReportSchema.pre('save', async function (next) {
+  const doc = this;
+  const progCode = doc.gradeCard?.program?.code;
+  const verCode = doc.gradeCard?.verification?.verificationCode;
+
+  if (progCode && progCode.trim() !== '') {
+    const duplicate = await mongoose.model('ProgressReport').findOne({
+      _id: { $ne: doc._id },
+      'gradeCard.program.code': progCode.trim()
+    });
+    if (duplicate) {
+      return next(new Error(`Program Code "${progCode}" is already assigned to another student.`));
+    }
+  }
+
+  if (verCode && verCode.trim() !== '') {
+    const duplicate = await mongoose.model('ProgressReport').findOne({
+      _id: { $ne: doc._id },
+      'gradeCard.verification.verificationCode': verCode.trim()
+    });
+    if (duplicate) {
+      return next(new Error(`Verification Code "${verCode}" is already assigned to another student.`));
+    }
+  }
+
+  next();
+});
+
 progressReportSchema.post('save', function (doc) {
   if (doc && doc.student) {
     socketHelper.emitProgressUpdate(doc.student);

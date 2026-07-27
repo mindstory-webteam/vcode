@@ -146,15 +146,12 @@ export function mapReportToStudentData(user: any, report: any): StudentData {
   const mentorRemarks = gc.mentorRemarks || {};
   const interviewReadiness = gc.interviewReadiness || {};
 
-  const verificationCode =
-    verification.verificationCode || program.code || user?.studentInfo?.rollNumber || "";
+  const studentId = user?._id || user?.id || report?.student?._id || report?.student?.id || (typeof report?.student === 'string' ? report.student : "") || "";
 
   let verifyUrl = verification.verifyUrl || "";
-  if (typeof window !== "undefined" && verificationCode) {
+  if (typeof window !== "undefined" && studentId) {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-    let urlSlug = verificationCode;
-    if (!urlSlug.startsWith("VC-")) urlSlug = `VC-${urlSlug}`;
-    verifyUrl = `${baseUrl}/student-progress-card/${urlSlug}`;
+    verifyUrl = `${baseUrl}/student-progress-card/${studentId}`;
   }
 
   return {
@@ -164,7 +161,7 @@ export function mapReportToStudentData(user: any, report: any): StudentData {
       program: program.name || "",
       duration: program.durationLabel || "",
       batch: program.batch || "",
-      id: verificationCode,
+      id: verification.verificationCode || program.code || user?.studentInfo?.rollNumber || "",
       docNo: verification.docId || "",
       issued: formatDate(verification.issuedDate),
       overallGrade: gc.overallGrade || "—",

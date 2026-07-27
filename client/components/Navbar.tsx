@@ -148,7 +148,7 @@ export default function Navbar() {
                   {/* Progress Card Link */}
                   {user && user.role === "student" && (
                     <Link
-                      href={`/student-progress-card/${user.studentInfo?.rollNumber || user._id}`}
+                      href={`/student-progress-card/${user._id}`}
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
                     >

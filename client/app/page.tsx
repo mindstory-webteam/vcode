@@ -81,23 +81,7 @@ function AuthContent() {
     let redirectUrl = params.get("redirect");
     if (!redirectUrl || redirectUrl === "/dashboard") {
       if (authUser.role === "student") {
-        try {
-          const res = await api.get("/api/student/progress-report");
-          const report = res.report;
-          let vcode =
-            report?.gradeCard?.program?.code ||
-            report?.verification?.verificationCode ||
-            authUser.studentInfo?.rollNumber ||
-            authUser._id ||
-            authUser.id ||
-            "unknown";
-          if (vcode !== "unknown" && !vcode.startsWith("VC-")) vcode = `VC-${vcode}`;
-          redirectUrl = `/student-progress-card/${vcode}`;
-        } catch {
-          let fallbackCode = authUser.studentInfo?.rollNumber || authUser._id || authUser.id || "unknown";
-          if (fallbackCode !== "unknown" && !fallbackCode.startsWith("VC-")) fallbackCode = `VC-${fallbackCode}`;
-          redirectUrl = `/student-progress-card/${fallbackCode}`;
-        }
+        redirectUrl = `/student-progress-card/${authUser._id}`;
       } else {
         redirectUrl = "/student-progress-card/unknown";
       }
@@ -440,27 +424,8 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
       localStorage.setItem("token", data.token);
     }
 
-    let vcode = data?.vcode || data?.user?.studentInfo?.rollNumber || data?.user?._id || data?.user?.id || "unknown";
-    if (vcode !== "unknown" && !vcode.startsWith("VC-")) vcode = `VC-${vcode}`;
-
-    try {
-      const res = await api.get("/api/student/progress-report");
-      const report = res.report;
-      const reportCode =
-        report?.gradeCard?.program?.code ||
-        report?.verification?.verificationCode ||
-        report?.student?.studentInfo?.rollNumber ||
-        report?.student?._id ||
-        report?.student?.id ||
-        (typeof report?.student === 'string' ? report.student : undefined);
-      if (reportCode) {
-        vcode = reportCode.startsWith("VC-") ? reportCode : `VC-${reportCode}`;
-      }
-    } catch {
-      // fallback code
-    }
-
-    window.location.href = `/student-progress-card/${vcode}`;
+    const studentId = data?.user?._id || data?.user?.id || "unknown";
+    window.location.href = `/student-progress-card/${studentId}`;
   }
 
   async function checkStatus() {
