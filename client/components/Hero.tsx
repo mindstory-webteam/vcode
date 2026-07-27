@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { gsap, prefersReducedMotion } from "../lib/gsap";
@@ -14,6 +14,10 @@ export default function Hero() {
   const router = useRouter();
   const scope = useRef<HTMLElement>(null);
   const [photoSrc, setPhotoSrc] = useState(student.photo ?? "/student.svg");
+
+  useEffect(() => {
+    setPhotoSrc(student.photo ?? "/student.svg");
+  }, [student.photo]);
 
   const handleLogout = async () => {
     await logout();

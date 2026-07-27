@@ -28,7 +28,7 @@ import { Loader2 } from "lucide-react";
 
 export default function DashboardPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading, logout, refresh } = useAuth();
   const router = useRouter();
   const [data, setData] = useState<StudentData | null>(null);
   const [fetching, setFetching] = useState(true);
@@ -74,6 +74,9 @@ export default function DashboardPage({ params }: { params: Promise<{ slug: stri
 
     socket.on("progress_report_updated", () => {
       setRefreshTrigger((prev) => prev + 1);
+      if (refresh) {
+        refresh().catch(() => {});
+      }
     });
 
     return () => {

@@ -476,6 +476,10 @@ const updateStudentProfileAdmin = asyncHandler(async (req, res) => {
 
   await student.save();
 
+  // Emit progress update so student portal refreshes student details in real-time
+  const socketHelper = require('../socketHelper');
+  socketHelper.emitProgressUpdate(student._id);
+
   res.json({ success: true, message: 'Student profile updated', user: student });
 });
 
@@ -1233,6 +1237,10 @@ const uploadStudentProfilePhotoAdmin = asyncHandler(async (req, res) => {
   student.profileImagePublicId = req.file.filename; // Cloudinary public_id
   await student.save();
 
+  // Emit progress update so the student portal refreshes the photo in real-time
+  const socketHelper = require('../socketHelper');
+  socketHelper.emitProgressUpdate(student._id);
+
   res.json({
     success: true,
     message: 'Profile photo updated',
@@ -1388,6 +1396,10 @@ const uploadCertificateToProgressReportAdmin = asyncHandler(async (req, res) => 
   report.certificatePdfPublicId = req.file.filename; // Cloudinary public_id
   await report.save();
 
+  // Explicitly emit socket update for the student portal to refresh
+  const socketHelper = require('../socketHelper');
+  socketHelper.emitProgressUpdate(studentId);
+
   res.json({
     success: true,
     message: 'Certificate uploaded successfully',
@@ -1419,6 +1431,10 @@ const deleteCertificateFromProgressReportAdmin = asyncHandler(async (req, res) =
   report.certificatePdf = null;
   report.certificatePdfPublicId = null;
   await report.save();
+
+  // Explicitly emit socket update for the student portal to refresh
+  const socketHelper = require('../socketHelper');
+  socketHelper.emitProgressUpdate(studentId);
 
   res.json({
     success: true,

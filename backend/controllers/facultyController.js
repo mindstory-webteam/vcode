@@ -775,6 +775,10 @@ const uploadStudentProfilePhoto = asyncHandler(async (req, res) => {
   student.profileImagePublicId = req.file.filename; // Cloudinary public_id
   await student.save();
 
+  // Emit progress update so the student portal refreshes the photo in real-time
+  const socketHelper = require('../socketHelper');
+  socketHelper.emitProgressUpdate(student._id);
+
   res.json({
     success: true,
     message: 'Profile photo updated',
