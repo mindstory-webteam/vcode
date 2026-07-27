@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import {
@@ -210,9 +211,11 @@ export default function SuperAdminStudentReport() {
     setCertUploading(true);
     try {
       await uploadCertificateToProgressReportAdmin(studentId, file);
+      toast.success('Certificate uploaded successfully!');
       setCertSuccess('Certificate uploaded successfully!');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Upload failed. Please try again.');
       setCertError(err.response?.data?.message || 'Upload failed. Please try again.');
     } finally {
       setCertUploading(false);
@@ -227,9 +230,11 @@ export default function SuperAdminStudentReport() {
     setCertUploading(true);
     try {
       await deleteCertificateFromProgressReportAdmin(studentId);
+      toast.success('Certificate deleted successfully!');
       setCertSuccess('Certificate deleted successfully!');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Delete failed. Please try again.');
       setCertError(err.response?.data?.message || 'Delete failed. Please try again.');
     } finally {
       setCertUploading(false);
@@ -268,12 +273,15 @@ export default function SuperAdminStudentReport() {
     try {
       if (editingEntry) {
         await updateProgressEntryAdmin(studentId, editingEntry._id, payload);
+        toast.success('Entry updated successfully!');
       } else {
         await addProgressEntryAdmin(studentId, payload);
+        toast.success('Entry added successfully!');
       }
       setShowEntryModal(false);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not save this entry');
       setFormError(err.response?.data?.message || 'Could not save this entry');
     } finally {
       setBusy(false);
@@ -284,8 +292,10 @@ export default function SuperAdminStudentReport() {
     if (!confirm(`Remove the entry "${entry.title}"? This can't be undone.`)) return;
     try {
       await deleteProgressEntryAdmin(studentId, entry._id);
+      toast.success('Entry removed successfully!');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not remove entry');
       setError(err.response?.data?.message || 'Could not remove entry');
     }
   };
@@ -295,9 +305,11 @@ export default function SuperAdminStudentReport() {
     setRemarksSaved(false);
     try {
       await updateOverallRemarksAdmin(studentId, remarksDraft);
+      toast.success('Overall remarks saved!');
       setRemarksSaved(true);
       setTimeout(() => setRemarksSaved(false), 2000);
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not save overall remarks');
       setError(err.response?.data?.message || 'Could not save overall remarks');
     } finally {
       setRemarksSaving(false);
@@ -316,9 +328,11 @@ export default function SuperAdminStudentReport() {
     setGradeCardBusy(true);
     try {
       await updateGradeCardAdmin(studentId, serializeGradeCard(gradeCardForm));
+      toast.success('Grade card saved successfully!');
       setShowGradeCardModal(false);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not save the grade card');
       setGradeCardError(err.response?.data?.message || 'Could not save the grade card');
     } finally {
       setGradeCardBusy(false);
@@ -332,8 +346,10 @@ export default function SuperAdminStudentReport() {
     setPhotoUploading(true);
     try {
       await uploadStudentProfilePhotoAdmin(studentId, file);
+      toast.success('Profile photo uploaded successfully!');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not upload photo');
       setPhotoError(err.response?.data?.message || 'Could not upload photo');
     } finally {
       setPhotoUploading(false);
@@ -372,9 +388,11 @@ export default function SuperAdminStudentReport() {
           semester: profileForm.semester,
         },
       });
+      toast.success('Student details updated!');
       setShowProfileModal(false);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not update this student\u2019s details');
       setProfileError(err.response?.data?.message || 'Could not update this student\u2019s details');
     } finally {
       setProfileBusy(false);
@@ -390,9 +408,11 @@ export default function SuperAdminStudentReport() {
     setEntriesBulkBusy(true);
     try {
       const { data } = await bulkUploadEntriesAdmin(studentId, file);
+      toast.success(data?.message || `Imported ${data?.count ?? data?.inserted ?? ''} entries successfully!`);
       setEntriesBulkMessage(data?.message || `Imported ${data?.count ?? data?.inserted ?? ''} entries successfully`);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not bulk upload entries');
       setEntriesBulkError(err.response?.data?.message || 'Could not bulk upload entries');
     } finally {
       setEntriesBulkBusy(false);
@@ -405,7 +425,9 @@ export default function SuperAdminStudentReport() {
     setEntriesExportBusy(true);
     try {
       await exportEntriesAdmin(studentId, student?.name);
+      toast.success('Entries exported successfully!');
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not export entries');
       setError(err.response?.data?.message || 'Could not export entries');
     } finally {
       setEntriesExportBusy(false);
@@ -421,9 +443,11 @@ export default function SuperAdminStudentReport() {
     setGradeCardImportBusy(true);
     try {
       const { data } = await importGradeCardAdmin(studentId, file);
+      toast.success(data?.message || 'Grade card imported successfully!');
       setGradeCardImportMessage(data?.message || 'Grade card imported successfully');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not import the grade card');
       setGradeCardImportError(err.response?.data?.message || 'Could not import the grade card');
     } finally {
       setGradeCardImportBusy(false);
@@ -436,7 +460,9 @@ export default function SuperAdminStudentReport() {
     setGradeCardExportBusy(true);
     try {
       await exportGradeCardAdmin(studentId, student?.name);
+      toast.success('Grade card exported successfully!');
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not export the grade card');
       setError(err.response?.data?.message || 'Could not export the grade card');
     } finally {
       setGradeCardExportBusy(false);
@@ -452,9 +478,11 @@ export default function SuperAdminStudentReport() {
     setFullReportImportBusy(true);
     try {
       const { data } = await importFullProgressReportAdmin(studentId, file);
+      toast.success(data?.message || 'Progress report imported successfully!');
       setFullReportImportMessage(data?.message || 'Progress report imported successfully');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not import the progress report');
       setFullReportImportError(err.response?.data?.message || 'Could not import the progress report');
     } finally {
       setFullReportImportBusy(false);
@@ -467,7 +495,9 @@ export default function SuperAdminStudentReport() {
     setFullReportExportBusy(true);
     try {
       await exportFullProgressReportAdmin(studentId, student?.name);
+      toast.success('Progress report exported successfully!');
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not export the progress report');
       setError(err.response?.data?.message || 'Could not export the progress report');
     } finally {
       setFullReportExportBusy(false);

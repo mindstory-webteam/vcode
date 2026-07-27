@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
+import { toast } from 'react-toastify';
 import {
   getApplications,
   approveApplication,
@@ -46,9 +47,11 @@ export default function Applications() {
     setDeletingBulk(true);
     try {
       await Promise.all(selectedIds.map(id => deleteApplication(id)));
+      toast.success('Successfully deleted selected applications!');
       setSelectedIds([]);
       load();
     } catch (err) {
+      toast.error('Failed to delete some applications. They may already be deleted.');
       setError('Failed to delete some applications. They may already be deleted.');
     } finally {
       setDeletingBulk(false);
@@ -81,9 +84,11 @@ export default function Applications() {
     setBusy(true);
     try {
       await approveApplication(approveTarget._id, facultyChoice || undefined);
+      toast.success('Application approved successfully!');
       setApproveTarget(null);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not approve application');
       setError(err.response?.data?.message || 'Could not approve application');
     } finally {
       setBusy(false);
@@ -94,10 +99,12 @@ export default function Applications() {
     setBusy(true);
     try {
       await rejectApplication(rejectTarget._id, rejectReason || 'Not specified');
+      toast.success('Application rejected successfully!');
       setRejectTarget(null);
       setRejectReason('');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not reject application');
       setError(err.response?.data?.message || 'Could not reject application');
     } finally {
       setBusy(false);
@@ -108,8 +115,10 @@ export default function Applications() {
     if (!confirm(`Permanently delete ${app.name}'s application?`)) return;
     try {
       await deleteApplication(app._id);
+      toast.success('Application deleted successfully!');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not delete application');
       setError(err.response?.data?.message || 'Could not delete application');
     }
   };

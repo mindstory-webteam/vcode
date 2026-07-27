@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
+import { toast } from 'react-toastify';
 import {
   getStudentProgressReport,
   addProgressEntry,
@@ -323,12 +324,15 @@ export default function StudentReport() {
     try {
       if (editingEntry) {
         await updateProgressEntry(studentId, editingEntry._id, payload);
+        toast.success('Entry updated successfully!');
       } else {
         await addProgressEntry(studentId, payload);
+        toast.success('Entry added successfully!');
       }
       setShowEntryModal(false);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not save this entry');
       setFormError(err.response?.data?.message || 'Could not save this entry');
     } finally {
       setBusy(false);
@@ -339,8 +343,10 @@ export default function StudentReport() {
     if (!confirm(`Remove the entry "${entry.title}"? This can't be undone.`)) return;
     try {
       await deleteProgressEntry(studentId, entry._id);
+      toast.success('Entry removed successfully!');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not remove entry');
       setError(err.response?.data?.message || 'Could not remove entry');
     }
   };
@@ -350,9 +356,11 @@ export default function StudentReport() {
     setRemarksSaved(false);
     try {
       await updateOverallRemarks(studentId, remarksDraft);
+      toast.success('Overall remarks saved!');
       setRemarksSaved(true);
       setTimeout(() => setRemarksSaved(false), 2000);
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not save overall remarks');
       setError(err.response?.data?.message || 'Could not save overall remarks');
     } finally {
       setRemarksSaving(false);
@@ -371,9 +379,11 @@ export default function StudentReport() {
     setGradeCardBusy(true);
     try {
       await updateGradeCard(studentId, serializeGradeCard(gradeCardForm));
+      toast.success('Grade card saved successfully!');
       setShowGradeCardModal(false);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not save the grade card');
       setGradeCardError(err.response?.data?.message || 'Could not save the grade card');
     } finally {
       setGradeCardBusy(false);
@@ -389,9 +399,11 @@ export default function StudentReport() {
     setEntriesBulkBusy(true);
     try {
       const { data } = await bulkUploadEntries(studentId, file);
+      toast.success(data?.message || `Imported ${data?.count ?? data?.inserted ?? ''} entries successfully!`);
       setEntriesBulkMessage(data?.message || `Imported ${data?.count ?? data?.inserted ?? ''} entries successfully`);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not bulk upload entries');
       setEntriesBulkError(err.response?.data?.message || 'Could not bulk upload entries');
     } finally {
       setEntriesBulkBusy(false);
@@ -404,7 +416,9 @@ export default function StudentReport() {
     setEntriesExportBusy(true);
     try {
       await exportEntries(studentId, report?.student?.name);
+      toast.success('Entries exported successfully!');
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not export entries');
       setError(err.response?.data?.message || 'Could not export entries');
     } finally {
       setEntriesExportBusy(false);
@@ -420,9 +434,11 @@ export default function StudentReport() {
     setGradeCardImportBusy(true);
     try {
       const { data } = await importGradeCard(studentId, file);
+      toast.success(data?.message || 'Grade card imported successfully!');
       setGradeCardImportMessage(data?.message || 'Grade card imported successfully');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not import the grade card');
       setGradeCardImportError(err.response?.data?.message || 'Could not import the grade card');
     } finally {
       setGradeCardImportBusy(false);
@@ -435,7 +451,9 @@ export default function StudentReport() {
     setGradeCardExportBusy(true);
     try {
       await exportGradeCard(studentId, report?.student?.name);
+      toast.success('Grade card exported successfully!');
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not export the grade card');
       setError(err.response?.data?.message || 'Could not export the grade card');
     } finally {
       setGradeCardExportBusy(false);
@@ -451,9 +469,11 @@ export default function StudentReport() {
     setFullReportImportBusy(true);
     try {
       const { data } = await importFullProgressReport(studentId, file);
+      toast.success(data?.message || 'Progress report imported successfully!');
       setFullReportImportMessage(data?.message || 'Progress report imported successfully');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not import the progress report');
       setFullReportImportError(err.response?.data?.message || 'Could not import the progress report');
     } finally {
       setFullReportImportBusy(false);
@@ -466,7 +486,9 @@ export default function StudentReport() {
     setFullReportExportBusy(true);
     try {
       await exportFullProgressReport(studentId, report?.student?.name);
+      toast.success('Progress report exported successfully!');
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not export the progress report');
       setError(err.response?.data?.message || 'Could not export the progress report');
     } finally {
       setFullReportExportBusy(false);

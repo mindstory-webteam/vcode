@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
+import { toast } from 'react-toastify';
 import {
   getStudentProgressReport,
   markAttendance,
@@ -122,9 +123,11 @@ export default function FacultyAttendance() {
     setBusy(true);
     try {
       await markAttendance(studentId, form);
+      toast.success(editingId ? 'Attendance record updated!' : 'Attendance record created!');
       resetForm();
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not save attendance');
       setFormError(err.response?.data?.message || 'Could not save attendance');
     } finally {
       setBusy(false);
@@ -135,9 +138,11 @@ export default function FacultyAttendance() {
     if (!confirm(`Remove the attendance record for ${new Date(record.date).toLocaleDateString()}?`)) return;
     try {
       await deleteAttendance(studentId, record._id);
+      toast.success('Attendance record deleted!');
       if (editingId === record._id) resetForm();
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not remove this record');
       setError(err.response?.data?.message || 'Could not remove this record');
     }
   };
@@ -157,9 +162,11 @@ export default function FacultyAttendance() {
     setBulkBusy(true);
     try {
       const { data } = await bulkUploadAttendance(studentId, file);
+      toast.success('Bulk attendance upload complete!');
       setBulkSummary({ added: data.added, updated: data.updated, failed: data.failed || [] });
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not process this Excel file');
       setBulkError(err.response?.data?.message || 'Could not process this Excel file');
     } finally {
       setBulkBusy(false);
@@ -173,7 +180,9 @@ export default function FacultyAttendance() {
     setExportBusy(true);
     try {
       await exportAttendance(studentId, report?.student?.name || 'student');
+      toast.success('Attendance exported successfully!');
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not export attendance');
       setExportError(err.response?.data?.message || 'Could not export attendance');
     } finally {
       setExportBusy(false);

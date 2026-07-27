@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
+import { toast } from 'react-toastify';
 import { getAllFaculty, createFaculty, toggleUserActive, deleteUser } from '../../api.js';
 
 const emptyForm = {
@@ -36,9 +37,11 @@ export default function Faculty() {
     setDeletingBulk(true);
     try {
       await Promise.all(selectedIds.map(id => deleteUser(id)));
+      toast.success('Successfully deleted selected faculty!');
       setSelectedIds([]);
       load();
     } catch (err) {
+      toast.error('Failed to delete some faculty. They may already be deleted.');
       setError('Failed to delete some faculty. They may already be deleted.');
     } finally {
       setDeletingBulk(false);
@@ -61,10 +64,12 @@ export default function Faculty() {
     setBusy(true);
     try {
       await createFaculty(form);
+      toast.success('Faculty created successfully!');
       setShowCreate(false);
       setForm(emptyForm);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not create faculty account');
       setFormError(err.response?.data?.message || 'Could not create faculty account');
     } finally {
       setBusy(false);
@@ -74,8 +79,10 @@ export default function Faculty() {
   const handleToggleActive = async (f) => {
     try {
       await toggleUserActive(f._id);
+      toast.success(`Faculty status updated to ${f.isActive ? 'Inactive' : 'Active'}!`);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not update faculty status');
       setError(err.response?.data?.message || 'Could not update faculty status');
     }
   };
@@ -84,8 +91,10 @@ export default function Faculty() {
     if (!confirm(`Permanently delete ${f.name}'s faculty account? Their students will become unassigned.`)) return;
     try {
       await deleteUser(f._id);
+      toast.success('Faculty deleted successfully!');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not delete faculty');
       setError(err.response?.data?.message || 'Could not delete faculty');
     }
   };

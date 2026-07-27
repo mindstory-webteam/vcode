@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
+import { toast } from 'react-toastify';
 import {
   getAllStudents,
   getAllFaculty,
@@ -49,9 +50,11 @@ export default function Students() {
     setDeletingBulk(true);
     try {
       await Promise.all(selectedIds.map(id => deleteUser(id)));
+      toast.success('Successfully deleted selected students!');
       setSelectedIds([]);
       load();
     } catch (err) {
+      toast.error('Failed to delete some students. They may already be deleted.');
       setError('Failed to delete some students. They may already be deleted.');
     } finally {
       setDeletingBulk(false);
@@ -87,10 +90,12 @@ export default function Students() {
     setBusy(true);
     try {
       await createStudent({ ...form, assignedFacultyId: form.assignedFacultyId || undefined });
+      toast.success('Student created successfully!');
       setShowCreate(false);
       setForm(emptyForm);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not create student');
       setFormError(err.response?.data?.message || 'Could not create student');
     } finally {
       setBusy(false);
@@ -107,9 +112,11 @@ export default function Students() {
     setBusy(true);
     try {
       await assignFacultyToStudent(assignTarget._id, assignChoice);
+      toast.success('Faculty assigned successfully!');
       setAssignTarget(null);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not assign faculty');
       setError(err.response?.data?.message || 'Could not assign faculty');
     } finally {
       setBusy(false);
@@ -119,8 +126,10 @@ export default function Students() {
   const handleToggleActive = async (student) => {
     try {
       await toggleUserActive(student._id);
+      toast.success(`Student status updated to ${student.isActive ? 'Inactive' : 'Active'}!`);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not update student status');
       setError(err.response?.data?.message || 'Could not update student status');
     }
   };
@@ -129,8 +138,10 @@ export default function Students() {
     if (!confirm(`Permanently delete ${student.name}'s account and progress report?`)) return;
     try {
       await deleteUser(student._id);
+      toast.success('Student deleted successfully!');
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not delete student');
       setError(err.response?.data?.message || 'Could not delete student');
     }
   };
@@ -143,10 +154,12 @@ export default function Students() {
     setBulkBusy(true);
     try {
       const res = await bulkImportStudentsAndProgressReports(bulkFile);
+      toast.success(res.data.message || 'Bulk import successful!');
       setBulkMsg(res.data.message || 'Bulk import successful');
       setBulkFile(null);
       load();
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Bulk import failed. Please check the Excel format.');
       setBulkError(err.response?.data?.message || 'Bulk import failed. Please check the Excel format.');
     } finally {
       setBulkBusy(false);

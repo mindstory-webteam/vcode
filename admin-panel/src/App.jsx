@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/superadmin/Dashboard.jsx';
@@ -33,46 +35,49 @@ function HomeRedirect() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomeRedirect />} />
-      <Route path="/login" element={<Login />} />
+    <>
+      <Routes>
+        <Route path="/" element={<HomeRedirect />} />
+        <Route path="/login" element={<Login />} />
 
-      <Route
-        path="/superadmin/dashboard"
-        element={<ProtectedRoute roles={['superadmin']}><Dashboard /></ProtectedRoute>}
-      />
-      <Route
-        path="/superadmin/applications"
-        element={<ProtectedRoute roles={['superadmin']}><Applications /></ProtectedRoute>}
-      />
-      <Route
-        path="/superadmin/students"
-        element={<ProtectedRoute roles={['superadmin']}><Students /></ProtectedRoute>}
-      />
-      <Route
-        path="/superadmin/students/:studentId"
-        element={<ProtectedRoute roles={['superadmin']}><SuperAdminStudentReport /></ProtectedRoute>}
-      />
-      <Route
-        path="/superadmin/faculty"
-        element={<ProtectedRoute roles={['superadmin']}><Faculty /></ProtectedRoute>}
-      />
+        <Route
+          path="/superadmin/dashboard"
+          element={<ProtectedRoute roles={['superadmin']}><Dashboard /></ProtectedRoute>}
+        />
+        <Route
+          path="/superadmin/applications"
+          element={<ProtectedRoute roles={['superadmin']}><Applications /></ProtectedRoute>}
+        />
+        <Route
+          path="/superadmin/students"
+          element={<ProtectedRoute roles={['superadmin']}><Students /></ProtectedRoute>}
+        />
+        <Route
+          path="/superadmin/students/:studentId"
+          element={<ProtectedRoute roles={['superadmin']}><SuperAdminStudentReport /></ProtectedRoute>}
+        />
+        <Route
+          path="/superadmin/faculty"
+          element={<ProtectedRoute roles={['superadmin']}><Faculty /></ProtectedRoute>}
+        />
 
-      <Route path="/faculty/students/:studentId/attendance" element={<FacultyAttendance />} />
-      <Route path="/superadmin/students/:studentId/attendance" element={<SuperAdminAttendance />} />
+        <Route path="/faculty/students/:studentId/attendance" element={<FacultyAttendance />} />
+        <Route path="/superadmin/students/:studentId/attendance" element={<SuperAdminAttendance />} />
 
-      <Route path="/faculty/attendance" element={<FacultyAttendanceList />} />
-      <Route path="/superadmin/attendance" element={<SuperAdminAttendanceList />} />
-      <Route
-        path="/faculty/students"
-        element={<ProtectedRoute roles={['faculty']}><MyStudents /></ProtectedRoute>}
-      />
-      <Route
-        path="/faculty/students/:studentId"
-        element={<ProtectedRoute roles={['faculty']}><StudentReport /></ProtectedRoute>}
-      />
+        <Route path="/faculty/attendance" element={<FacultyAttendanceList />} />
+        <Route path="/superadmin/attendance" element={<SuperAdminAttendanceList />} />
+        <Route
+          path="/faculty/students"
+          element={<ProtectedRoute roles={['faculty']}><MyStudents /></ProtectedRoute>}
+        />
+        <Route
+          path="/faculty/students/:studentId"
+          element={<ProtectedRoute roles={['faculty']}><StudentReport /></ProtectedRoute>}
+        />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+    </>
   );
 }

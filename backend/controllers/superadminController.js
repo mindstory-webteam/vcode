@@ -813,7 +813,7 @@ const updateGradeCardAdmin = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: 'Grade card updated — visible immediately to the student',
+    message: 'Grade card updated ',
     report,
   });
 });
@@ -885,7 +885,7 @@ const importGradeCardAdmin = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: 'Grade card imported from Excel — visible immediately to the student',
+    message: 'Grade card imported from Excel',
     report,
   });
 });
@@ -998,7 +998,7 @@ const importFullProgressReportAdmin = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: 'Full progress report imported from Excel — visible immediately to the student',
+    message: 'Full progress report imported from Excel',
     entriesImported: parsed.entries ? parsed.entries.length : undefined,
     attendance: attendanceSummary,
     report,
