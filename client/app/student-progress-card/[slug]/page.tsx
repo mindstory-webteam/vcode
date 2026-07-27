@@ -4,7 +4,7 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
 import { useAuth } from "../../../contexts/AuthContext";
-import { api, ApiError } from "../../../lib/api";
+import { api, ApiError, SOCKET_URL } from "../../../lib/api";
 import {
   StudentDataProvider,
   mapReportToStudentData,
@@ -64,7 +64,7 @@ export default function DashboardPage({ params }: { params: Promise<{ slug: stri
   useEffect(() => {
     if (!data?.student?._id) return;
 
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const socketUrl = SOCKET_URL;
     const socket = io(socketUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,

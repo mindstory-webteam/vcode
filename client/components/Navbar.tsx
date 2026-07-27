@@ -7,7 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect, useRef } from "react";
 import { LogOut, CalendarDays, LayoutDashboard, Bell } from "lucide-react";
 import { io } from "socket.io-client";
-import { api } from "../lib/api";
+import { api, SOCKET_URL } from "../lib/api";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -41,7 +41,7 @@ export default function Navbar() {
   useEffect(() => {
     if (!user || user.role !== 'student') return;
 
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const socketUrl = SOCKET_URL;
     const socket = io(socketUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,

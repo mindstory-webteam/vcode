@@ -8,7 +8,7 @@ import { GoogleLogin, useGoogleLogin, CredentialResponse } from "@react-oauth/go
 import { jwtDecode } from "jwt-decode";
 import { io } from "socket.io-client";
 import { useAuth } from "../contexts/AuthContext";
-import { api, ApiError } from "../lib/api";
+import { api, ApiError, SOCKET_URL } from "../lib/api";
 import VcaCat from "../components/VcaCat";
 
 interface GoogleJwtPayload {
@@ -481,7 +481,7 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
 
   // Real-time Socket.io listener & automatic polling
   useEffect(() => {
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const socketUrl = SOCKET_URL;
     const socket = io(socketUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,

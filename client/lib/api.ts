@@ -4,7 +4,15 @@
 // sendTokenResponse sets an httpOnly "token" cookie on login.
 // ─────────────────────────────────────────────────────────────
 
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const rawApiUrl = (() => {
+  const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    return "https://vcode-3tai.onrender.com";
+  }
+  return url;
+})();
+
+export const SOCKET_URL = rawApiUrl;
 export const API_URL = rawApiUrl.replace(/\/+$/, "").replace(/\/api$/, "");
 
 export class ApiError extends Error {
