@@ -42,6 +42,7 @@ export interface StudentData {
     verifyUrl: string;
     summary: string;
     photo?: string | null;
+    certificatePdf?: string | null;
   };
   evaluation: SkillScore[];
   readinessBars: { label: string; value: number }[];
