@@ -369,7 +369,6 @@ export default function SuperAdminStudentReport() {
             {certSuccess && <div style={{ fontSize: 12, marginTop: 8, padding: '8px 12px', background: '#e6f4ea', color: '#137333', borderRadius: 4 }}>{certSuccess}</div>}
             {report?.certificatePdf ? (
               <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span className="stamp stamp-active" style={{ fontSize: 11 }}>PDF Uploaded</span>
                 <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">View Certificate</a>
               </div>
             ) : (

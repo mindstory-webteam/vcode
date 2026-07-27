@@ -619,20 +619,19 @@ export default function SuperAdminStudentReport() {
                 {certSuccess && <div style={{ fontSize: 12, marginBottom: 8, padding: '8px 12px', background: '#e6f4ea', color: '#137333', borderRadius: 4 }}>{certSuccess}</div>}
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+              <div className="btn-row" style={{ marginTop: 12, alignItems: 'center' }}>
                 {report?.certificatePdf ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    <span className="stamp stamp-active" style={{ fontSize: 10.5 }}>PDF Uploaded</span>
-                    <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '6px 12px' }}>View Certificate</a>
+                  <>
+                    <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '8px 14px', fontSize: 12.5 }}>View Certificate</a>
                     <button 
                       className="btn btn-brick btn-sm" 
-                      style={{ backgroundColor: '#d93025', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}
+                      style={{ backgroundColor: '#d93025', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12.5 }}
                       onClick={handleCertDelete}
                       disabled={certUploading}
                     >
                       Delete
                     </button>
-                  </div>
+                  </>
                 ) : (
                   <div style={{ fontSize: 12.5, color: '#70757a' }}>No certificate uploaded yet.</div>
                 )}
