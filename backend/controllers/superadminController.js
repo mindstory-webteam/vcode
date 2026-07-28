@@ -1248,6 +1248,35 @@ const uploadStudentProfilePhotoAdmin = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Delete profile photo for any student
+// @route   DELETE /api/superadmin/students/:studentId/profile-photo
+// @access  Private/SuperAdmin
+const deleteStudentProfilePhotoAdmin = asyncHandler(async (req, res) => {
+  const student = await findStudentOr404(req.params.studentId, res);
+  if (!student) return;
+
+  if (student.profileImagePublicId) {
+    try {
+      await deleteFromCloudinary(student.profileImagePublicId, 'image');
+    } catch (err) {
+      console.error('Cloudinary delete failed:', err.message);
+    }
+  }
+
+  student.profileImage = null;
+  student.profileImagePublicId = null;
+  await student.save();
+
+  const socketHelper = require('../socketHelper');
+  socketHelper.emitProgressUpdate(student._id);
+
+  res.json({
+    success: true,
+    message: 'Profile photo deleted',
+  });
+});
+
+
 // ---------------------------------------------------------------------------
 // BULK IMPORT STUDENTS & PROGRESS REPORTS
 // GET  /api/superadmin/students/bulk-import-template
@@ -1464,6 +1493,7 @@ module.exports = {
   updateOverallRemarksAdmin,
   updateGradeCardAdmin,
   uploadStudentProfilePhotoAdmin,
+  deleteStudentProfilePhotoAdmin,
   markAttendanceAdmin,
   deleteAttendanceAdmin,
   bulkUploadAttendanceAdmin,

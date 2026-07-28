@@ -12,6 +12,7 @@ import {
   updateGradeCardAdmin,
   updateStudentProfileAdmin,
   uploadStudentProfilePhotoAdmin,
+  deleteStudentProfilePhotoAdmin,
   bulkUploadEntriesAdmin,
   exportEntriesAdmin,
   importGradeCardAdmin,
@@ -357,6 +358,22 @@ export default function SuperAdminStudentReport() {
     }
   };
 
+  const handlePhotoDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this profile photo?')) return;
+    setPhotoError('');
+    setPhotoUploading(true);
+    try {
+      await deleteStudentProfilePhotoAdmin(studentId);
+      toast.success('Profile photo deleted successfully!');
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not delete photo');
+      setPhotoError(err.response?.data?.message || 'Could not delete photo');
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
   // ---- Edit student details handlers ----
   const openEditProfile = () => {
     setProfileForm({
@@ -513,14 +530,56 @@ export default function SuperAdminStudentReport() {
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
           <div style={{ textAlign: 'center' }}>
             <img
-              src={fileUrl(student?.profileImage) || '/avatar-placeholder.png'}
+              src={fileUrl(student?.profileImage) || '/dummy-profile-img.jpg'}
               alt={student?.name || 'Student'}
               style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)' }}
             />
-            <label className="btn btn-ghost btn-sm" style={{ display: 'block', marginTop: 6, cursor: 'pointer' }}>
-              {photoUploading ? 'Uploading…' : 'Change photo'}
-              <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} disabled={photoUploading} />
-            </label>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 6 }}>
+              <label 
+                className="btn btn-ghost btn-sm" 
+                style={{ 
+                  cursor: 'pointer', 
+                  padding: '4px 6px', 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  minWidth: 'auto',
+                  height: 'auto'
+                }} 
+                title="Change Photo"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                  <path d="m15 5 4 4"/>
+                </svg>
+                <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} disabled={photoUploading} />
+              </label>
+              {student?.profileImage && (
+                <button 
+                  type="button" 
+                  className="btn btn-ghost btn-sm" 
+                  style={{ 
+                    cursor: 'pointer', 
+                    padding: '4px 6px', 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    color: '#dc2626',
+                    minWidth: 'auto',
+                    height: 'auto'
+                  }} 
+                  onClick={handlePhotoDelete} 
+                  disabled={photoUploading}
+                  title="Delete Photo"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                  </svg>
+                </button>
+              )}
+            </div>
             {photoError && <div className="form-error" style={{ fontSize: 11, marginTop: 4, maxWidth: 100 }}>{photoError}</div>}
           </div>
           <div>

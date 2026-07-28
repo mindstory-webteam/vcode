@@ -786,6 +786,36 @@ const uploadStudentProfilePhoto = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Delete profile photo for assigned student
+// @route   DELETE /api/faculty/students/:studentId/profile-photo
+// @access  Private/Faculty
+const deleteStudentProfilePhoto = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  if (student.profileImagePublicId) {
+    try {
+      await deleteFromCloudinary(student.profileImagePublicId, 'image');
+    } catch (err) {
+      console.error('Cloudinary delete failed:', err.message);
+    }
+  }
+
+  student.profileImage = null;
+  student.profileImagePublicId = null;
+  await student.save();
+
+  const socketHelper = require('../socketHelper');
+  socketHelper.emitProgressUpdate(student._id);
+
+  res.json({
+    success: true,
+    message: 'Profile photo deleted',
+  });
+});
+
 module.exports = {
   getMyStudents,
   getStudentProgressReport,
@@ -795,6 +825,7 @@ module.exports = {
   updateOverallRemarks,
   updateGradeCard,
   uploadStudentProfilePhoto,
+  deleteStudentProfilePhoto,
   markAttendance,
   deleteAttendance,
   bulkUploadAttendance,

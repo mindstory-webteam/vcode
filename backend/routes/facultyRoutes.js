@@ -9,6 +9,7 @@ const {
   updateOverallRemarks,
   updateGradeCard,
   uploadStudentProfilePhoto,
+  deleteStudentProfilePhoto,
   markAttendance,
   deleteAttendance,
   bulkUploadAttendance,
@@ -63,5 +64,6 @@ router.post(
 );
 router.get('/students/:studentId/progress-report/attendance/export', exportAttendance);
 router.put('/students/:studentId/profile-photo', uploadProfileImage.single('photo'), uploadStudentProfilePhoto);
+router.delete('/students/:studentId/profile-photo', deleteStudentProfilePhoto);
 
 module.exports = router;

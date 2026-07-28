@@ -22,6 +22,7 @@ const {
   updateOverallRemarksAdmin,
   updateGradeCardAdmin,
   uploadStudentProfilePhotoAdmin,
+  deleteStudentProfilePhotoAdmin,
   markAttendanceAdmin,
   deleteAttendanceAdmin,
   bulkUploadAttendanceAdmin,
@@ -103,6 +104,7 @@ router.post(
 );
 router.get('/students/:studentId/progress-report/attendance/export', exportAttendanceAdmin);
 router.put('/students/:studentId/profile-photo', uploadProfileImage.single('photo'), uploadStudentProfilePhotoAdmin);
+router.delete('/students/:studentId/profile-photo', deleteStudentProfilePhotoAdmin);
 router.put('/students/:studentId/profile', updateStudentProfileAdmin);
 router.put('/students/:studentId/progress-report/certificate', uploadDocument.single('certificate'), uploadCertificateToProgressReportAdmin);
 router.delete('/students/:studentId/progress-report/certificate', deleteCertificateFromProgressReportAdmin);

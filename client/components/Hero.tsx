@@ -13,11 +13,12 @@ export default function Hero() {
   const { logout } = useAuth();
   const router = useRouter();
   const scope = useRef<HTMLElement>(null);
-  const [photoSrc, setPhotoSrc] = useState(student.photo ?? "/student.svg");
+  const fallbackPhoto = "/dummy-profile-img.jpg";
+  const [photoSrc, setPhotoSrc] = useState(student.photo ?? fallbackPhoto);
 
   useEffect(() => {
-    setPhotoSrc(student.photo ?? "/student.svg");
-  }, [student.photo]);
+    setPhotoSrc(student.photo ?? fallbackPhoto);
+  }, [student.photo, fallbackPhoto]);
 
   const handleLogout = async () => {
     await logout();
@@ -83,13 +84,13 @@ export default function Hero() {
             <div className="relative inline-block mb-8 sm:mb-10">
               <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-[140px] md:h-[140px] rounded-3xl bg-gray-100 border border-gray-200 shadow-inner overflow-hidden relative flex items-center justify-center">
                 <Image
-                  src={photoSrc || "/student.svg"}
+                  src={photoSrc}
                   alt={`Portrait of ${student.name}`}
                   fill
                   sizes="(max-width: 768px) 128px, 140px"
                   className="object-cover opacity-90"
-                  unoptimized={photoSrc?.endsWith(".svg") ?? true}
-                  onError={() => setPhotoSrc("/student.svg")}
+                  unoptimized={true}
+                  onError={() => setPhotoSrc(fallbackPhoto)}
                 />
               </div>
               <div className="absolute -bottom-3 -right-4 sm:-right-6 bg-white border border-gray-200 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1 sm:gap-1.5 shadow-sm">

@@ -128,13 +128,11 @@ export default function Navbar() {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white shadow-sm overflow-hidden hover:border-blue-500 transition-colors focus:outline-none"
             >
-              {user.profileImage ? (
-                <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="font-bold text-gray-700 text-sm">
-                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                </span>
-              )}
+              <img 
+                src={user.profileImage || "/dummy-profile-img.jpg"} 
+                alt={user.name} 
+                className="w-full h-full object-cover" 
+              />
             </button>
             
             {dropdownOpen && (

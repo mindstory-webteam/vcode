@@ -210,6 +210,10 @@ export const uploadStudentProfilePhotoAdmin = (studentId, file) => {
   });
 };
 
+export const deleteStudentProfilePhotoAdmin = (studentId) => {
+  return api.delete(`/superadmin/students/${studentId}/profile-photo`);
+};
+
 // SuperAdmin — edit student profile details (name, email, roll no, dept, semester)
 export const updateStudentProfileAdmin = (studentId, data) =>
   api.put(`/superadmin/students/${studentId}/profile`, data);
@@ -311,6 +315,10 @@ export const uploadStudentProfilePhoto = (studentId, file) => {
   return api.put(`/faculty/students/${studentId}/profile-photo`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+};
+
+export const deleteStudentProfilePhoto = (studentId) => {
+  return api.delete(`/faculty/students/${studentId}/profile-photo`);
 };
 
 // Faculty — edit student profile details (name, email, roll no, dept, semester)
