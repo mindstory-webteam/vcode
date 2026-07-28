@@ -54,7 +54,7 @@ export default function Verification() {
                   {student.certificatePdf ? (
                     <>
                       {/* QR pointing to certificate PDF */}
-                      <div className="w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] bg-white mb-4 sm:mb-6 flex items-center justify-center p-2 relative overflow-hidden border border-gray-200 rounded-xl group transition-colors">
+                      <div className="w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] bg-white mb-4 sm:mb-6 flex items-center justify-center p-2 relative overflow-hidden  group transition-colors">
                         <img
                           src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=${encodeURIComponent(student.certificatePdf)}`}
                           alt="Certificate QR Code"
