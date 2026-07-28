@@ -18,6 +18,7 @@ const superadminRoutes = require('./routes/superadminRoutes');
 const facultyRoutes = require('./routes/facultyRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const publicRoutes = require('./routes/publicRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 connectDB();
 
@@ -75,6 +76,7 @@ app.use('/api/superadmin', superadminRoutes);
 app.use('/api/faculty', facultyRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ---- Error handling ----
 app.use(notFound);
