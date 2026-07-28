@@ -25,6 +25,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
   loginWithGoogle: (email: string, name: string, googleId: string) => Promise<AuthUser>;
+  otpLogin: (email: string) => Promise<any>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -71,6 +72,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data.user as AuthUser;
   }, []);
 
+  const otpLogin = useCallback(async (email: string) => {
+    const data = await api.post("/api/auth/otp-login", { email });
+    if (data.token && typeof window !== "undefined") {
+      localStorage.setItem("token", data.token);
+    }
+    if (data.user) {
+      setUser(data.user);
+    }
+    return data;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await api.post("/api/auth/logout", {});
@@ -83,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout, refresh }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, otpLogin, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   );

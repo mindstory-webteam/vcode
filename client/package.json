@@ -10,6 +10,7 @@
     "deploy": "npm run build:cloudflare && wrangler deploy"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@react-oauth/google": "^0.13.5",
     "axios": "^1.7.9",
     "chart.js": "^4.5.1",

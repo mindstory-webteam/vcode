@@ -5,6 +5,7 @@ const {
   registerStudent,
   checkApplicationStatus,
   login,
+  otpLogin,
   getMe,
   logout,
   updatePassword,
@@ -17,6 +18,7 @@ router.post('/google', googleAuth);
 router.post('/register-student', uploadProfileImage.single('profileImage'), registerStudent);
 router.get('/application-status/:email', checkApplicationStatus);
 router.post('/login', login);
+router.post('/otp-login', otpLogin);
 
 // Private
 router.get('/me', protect, getMe);

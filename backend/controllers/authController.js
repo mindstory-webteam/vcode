@@ -211,11 +211,65 @@ const updatePassword = asyncHandler(async (req, res) => {
   sendTokenResponse(user, 200, res);
 });
 
+// @desc    Passwordless OTP login (called after frontend verifies the EmailJS OTP code)
+// @route   POST /api/auth/otp-login
+// @access  Public
+const otpLogin = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Please provide email' });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  let user = await User.findOne({ email: normalizedEmail });
+
+  if (user) {
+    if (!user.isActive) {
+      return res.status(403).json({ success: false, message: 'Your account has been deactivated. Contact the SuperAdmin.' });
+    }
+    return sendTokenResponse(user, 200, res);
+  }
+
+  // User not created yet -> Check for pending/rejected/approved StudentApplication
+  let application = await StudentApplication.findOne({ email: normalizedEmail });
+
+  if (!application) {
+    // First time OTP user registering -> Create a pending application for SuperAdmin approval
+    const studentName = normalizedEmail.split('@')[0];
+    application = await StudentApplication.create({
+      name: studentName,
+      email: normalizedEmail,
+      password: 'otp_password_' + Math.random().toString(36).slice(-8),
+      status: 'pending',
+    });
+  }
+
+  if (application.status === 'pending') {
+    return res.json({
+      success: true,
+      pendingApproval: true,
+      status: 'pending',
+      email: normalizedEmail,
+      message: 'Registration submitted. Please wait for SuperAdmin approval.',
+    });
+  }
+
+  if (application.status === 'rejected') {
+    return res.status(401).json({
+      success: false,
+      status: 'rejected',
+      message: 'Your registration was rejected by SuperAdmin',
+      reason: application.rejectionReason,
+    });
+  }
+});
+
 module.exports = {
   googleAuth,
   registerStudent,
   checkApplicationStatus,
   login,
+  otpLogin,
   getMe,
   logout,
   updatePassword,
