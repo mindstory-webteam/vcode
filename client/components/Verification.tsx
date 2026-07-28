@@ -23,8 +23,13 @@ export default function Verification() {
 
                 {/* ── LEFT · Mentor Signature ── */}
                 <div className="flex flex-col items-center md:items-start justify-end pt-6 md:pt-24 text-center md:text-left">
-                  <div className="w-full max-w-xs">
-                    <div className="mt-2 pt-3">
+                  <div className="w-full max-w-xs flex flex-col items-center md:items-start">
+                    <img 
+                      src="/imgs/digital-sign.png" 
+                      alt="Mentor Signature" 
+                      className="h-44 w-auto object-contain -my-12 mix-blend-multiply animate-in fade-in duration-500" 
+                    />
+                    <div className="w-full pt-2">
                       <p className="font-bold text-gray-900">Mentor Signature</p>
                       <p className="mt-0.5 text-xs sm:text-sm text-gray-500">Head of Digital Marketing · VCA</p>
                     </div>
