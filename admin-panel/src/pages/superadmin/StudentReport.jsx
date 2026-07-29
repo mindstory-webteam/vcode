@@ -27,10 +27,10 @@ import {
 } from '../../api.js';
 
 const ExcelIcon = ({ size = 15, style = {} }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    width={size} 
-    height={size} 
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
     style={{ marginRight: '6px', verticalAlign: 'middle', flexShrink: 0, ...style }}
   >
     {/* Right grid sheet flap */}
@@ -45,10 +45,10 @@ const ExcelIcon = ({ size = 15, style = {} }) => (
 );
 
 const PdfIcon = ({ size = 15, style = {} }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    width={size} 
-    height={size} 
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
     style={{ marginRight: '6px', verticalAlign: 'middle', flexShrink: 0, ...style }}
   >
     {/* Document Background */}
@@ -587,47 +587,47 @@ export default function SuperAdminStudentReport() {
               style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)' }}
             />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 6 }}>
-              <label 
-                className="btn btn-ghost btn-sm" 
-                style={{ 
-                  cursor: 'pointer', 
-                  padding: '4px 6px', 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
+              <label
+                className="btn btn-ghost btn-sm"
+                style={{
+                  cursor: 'pointer',
+                  padding: '4px 6px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   minWidth: 'auto',
                   height: 'auto'
-                }} 
+                }}
                 title="Change Photo"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                  <path d="m15 5 4 4"/>
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                  <path d="m15 5 4 4" />
                 </svg>
                 <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} disabled={photoUploading} />
               </label>
               {student?.profileImage && (
-                <button 
-                  type="button" 
-                  className="btn btn-ghost btn-sm" 
-                  style={{ 
-                    cursor: 'pointer', 
-                    padding: '4px 6px', 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  style={{
+                    cursor: 'pointer',
+                    padding: '4px 6px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     color: '#dc2626',
                     minWidth: 'auto',
                     height: 'auto'
-                  }} 
-                  onClick={handlePhotoDelete} 
+                  }}
+                  onClick={handlePhotoDelete}
                   disabled={photoUploading}
                   title="Delete Photo"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-                    <path d="M3 6h18"/>
-                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                   </svg>
                 </button>
               )}
@@ -655,8 +655,8 @@ export default function SuperAdminStudentReport() {
               {gc?.overallGrade ? 'Edit grade card' : '+ Create grade card'}
             </button>
             {gc?.overallGrade && (
-              <button 
-                className="btn btn-brick" 
+              <button
+                className="btn btn-brick"
                 onClick={handleDeleteGradeCard}
                 disabled={gradeCardBusy}
               >
@@ -738,13 +738,13 @@ export default function SuperAdminStudentReport() {
                 {certError && <div className="form-error" style={{ fontSize: 12, marginBottom: 8 }}>{certError}</div>}
                 {certSuccess && <div style={{ fontSize: 12, marginBottom: 8, padding: '8px 12px', background: '#e6f4ea', color: '#137333', borderRadius: 4 }}>{certSuccess}</div>}
               </div>
-              
+
               <div className="btn-row" style={{ marginTop: 12, alignItems: 'center' }}>
                 {report?.certificatePdf ? (
                   <>
                     <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '8px 14px', fontSize: 12.5, display: 'inline-flex', alignItems: 'center' }}><PdfIcon /> View Certificate</a>
-                    <button 
-                      className="btn btn-brick btn-sm" 
+                    <button
+                      className="btn btn-brick btn-sm"
                       style={{ backgroundColor: '#d93025', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12.5 }}
                       onClick={handleCertDelete}
                       disabled={certUploading}
@@ -755,7 +755,7 @@ export default function SuperAdminStudentReport() {
                 ) : (
                   <div style={{ fontSize: 12.5, color: '#70757a' }}>No certificate uploaded yet.</div>
                 )}
-                
+
                 <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'fit-content' }}>
                   <PdfIcon size={14} /> {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
                   <input type="file" accept="application/pdf" onChange={handleCertUpload} style={{ display: 'none' }} disabled={certUploading} />
@@ -794,7 +794,7 @@ export default function SuperAdminStudentReport() {
                   <div className="section-title" style={{ fontSize: 12.5, marginTop: 14 }}>Mentor remarks</div>
                   <p style={{ margin: 0, fontStyle: 'italic' }}>"{gc.mentorRemarks.text}"</p>
                   <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
-                   {gc.mentorRemarks.mentorName || 'Mentor'} {gc.mentorRemarks.mentorTitle ? `, ${gc.mentorRemarks.mentorTitle}` : ''}
+                    {gc.mentorRemarks.mentorName || 'Mentor'} {gc.mentorRemarks.mentorTitle ? `, ${gc.mentorRemarks.mentorTitle}` : ''}
                   </p>
                 </>
               )}
