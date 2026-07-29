@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
       type: String, // path to uploaded profile image
       default: null,
     },
+    profileImagePublicId: {
+      type: String, // Cloudinary public id of uploaded profile image
+      default: null,
+    },
 
     // ---- Student specific fields ----
     studentInfo: {

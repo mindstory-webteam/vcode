@@ -402,15 +402,26 @@ const deleteUser = asyncHandler(async (req, res) => {
   if (user.role === 'student') {
     // Clean up the student's files from Cloudinary before deleting DB records
     const report = await ProgressReport.findOne({ student: user._id });
-    if (report && Array.isArray(report.documents)) {
-      for (const doc of report.documents) {
-        if (doc.publicId) {
-          const resourceType = doc.fileType && doc.fileType.startsWith('image/') ? 'image' : 'raw';
-          try {
-            await deleteFromCloudinary(doc.publicId, resourceType);
-          } catch (err) {
-            console.error('Cloudinary delete failed:', err.message);
+    if (report) {
+      // 1. Delete documents
+      if (Array.isArray(report.documents)) {
+        for (const doc of report.documents) {
+          if (doc.publicId) {
+            const resourceType = doc.fileType && doc.fileType.startsWith('image/') ? 'image' : 'raw';
+            try {
+              await deleteFromCloudinary(doc.publicId, resourceType);
+            } catch (err) {
+              console.error('Cloudinary delete failed:', err.message);
+            }
           }
+        }
+      }
+      // 2. Delete certificate PDF
+      if (report.certificatePdfPublicId) {
+        try {
+          await deleteFromCloudinary(report.certificatePdfPublicId, 'raw');
+        } catch (err) {
+          console.error('Cloudinary certificate delete failed:', err.message);
         }
       }
     }
