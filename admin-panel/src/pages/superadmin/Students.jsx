@@ -36,8 +36,8 @@ const ExcelIcon = ({ size = 15, style = {} }) => (
 );
 
 const emptyForm = {
-  name: '', email: '', password: '', phone: '',
-  rollNumber: '', department: '', course: '', semester: '', assignedFacultyId: '',
+  name: '', email: '', phone: '',
+  rollNumber: '', department: '', course: '', assignedFacultyId: '',
 };
 
 export default function Students() {
@@ -344,15 +344,9 @@ export default function Students() {
               <label>Full name</label>
               <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
-            <div className="field-row">
-              <div className="field">
-                <label>Email</label>
-                <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              </div>
-              <div className="field">
-                <label>Password</label>
-                <input type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-              </div>
+            <div className="field">
+              <label>Email</label>
+              <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
             <div className="field-row">
               <div className="field">
@@ -364,15 +358,9 @@ export default function Students() {
                 <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               </div>
             </div>
-            <div className="field-row">
-              <div className="field">
-                <label>Department</label>
-                <input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
-              </div>
-              <div className="field">
-                <label>Semester</label>
-                <input value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value })} />
-              </div>
+            <div className="field">
+              <label>Department</label>
+              <input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
             </div>
             <div className="field">
               <label>Course</label>

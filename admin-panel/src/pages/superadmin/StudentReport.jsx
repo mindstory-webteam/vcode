@@ -73,7 +73,6 @@ const emptyProfileForm = {
   rollNumber: '',
   department: '',
   course: '',
-  semester: '',
 };
 
 const emptyGradeCard = {
@@ -421,7 +420,6 @@ export default function SuperAdminStudentReport() {
       rollNumber: report?.student?.studentInfo?.rollNumber || '',
       department: report?.student?.studentInfo?.department || '',
       course: report?.student?.studentInfo?.course || '',
-      semester: report?.student?.studentInfo?.semester || '',
     });
     setProfileError('');
     setShowProfileModal(true);
@@ -440,7 +438,6 @@ export default function SuperAdminStudentReport() {
           rollNumber: profileForm.rollNumber,
           department: profileForm.department,
           course: profileForm.course,
-          semester: profileForm.semester,
         },
       });
       toast.success('Student details updated!');
@@ -684,7 +681,6 @@ export default function SuperAdminStudentReport() {
               <div><strong>Roll number:</strong> {student?.studentInfo?.rollNumber || 'N/A'}</div>
               <div><strong>Department:</strong> {student?.studentInfo?.department || 'N/A'}</div>
               <div><strong>Course:</strong> {student?.studentInfo?.course || 'N/A'}</div>
-              <div><strong>Semester:</strong> {student?.studentInfo?.semester || 'N/A'}</div>
               <div><strong>Assigned faculty:</strong> {report?.faculty?.name || 'Unassigned'}</div>
               <div>
                 <strong>Account status:</strong>{' '}
@@ -987,15 +983,9 @@ export default function SuperAdminStudentReport() {
                 <input value={profileForm.department} onChange={(e) => setProfileForm({ ...profileForm, department: e.target.value })} placeholder="e.g. CC" />
               </div>
             </div>
-            <div className="field-row">
-              <div className="field">
-                <label>Course</label>
-                <input value={profileForm.course} onChange={(e) => setProfileForm({ ...profileForm, course: e.target.value })} placeholder="e.g. BCA" />
-              </div>
-              <div className="field">
-                <label>Semester</label>
-                <input value={profileForm.semester} onChange={(e) => setProfileForm({ ...profileForm, semester: e.target.value })} />
-              </div>
+            <div className="field">
+              <label>Course</label>
+              <input value={profileForm.course} onChange={(e) => setProfileForm({ ...profileForm, course: e.target.value })} placeholder="e.g. BCA" />
             </div>
             <div className="btn-row">
               <button className="btn btn-gold" type="submit" disabled={profileBusy}>

@@ -38,14 +38,13 @@ export default function FacultyAttendanceList() {
                 <th>Student</th>
                 <th>Roll no.</th>
                 <th>Department</th>
-                <th>Semester</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {students.length === 0 && (
                 <tr className="empty-row">
-                  <td colSpan={5}>No students have been assigned to you yet.</td>
+                  <td colSpan={4}>No students have been assigned to you yet.</td>
                 </tr>
               )}
               {students.map((s) => (
@@ -73,7 +72,6 @@ export default function FacultyAttendanceList() {
                   </td>
                   <td className="cell-mono">{s.studentInfo?.rollNumber || 'N/A'}</td>
                   <td>{s.studentInfo?.department || 'N/A'}</td>
-                  <td>{s.studentInfo?.semester || 'N/A'}</td>
                   <td>
                     <button
                       className="btn btn-ghost btn-sm"

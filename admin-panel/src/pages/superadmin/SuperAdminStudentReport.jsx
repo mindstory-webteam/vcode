@@ -441,7 +441,6 @@ export default function SuperAdminStudentReport() {
               <div><strong>Roll number:</strong> {student?.studentInfo?.rollNumber || 'N/A'}</div>
               <div><strong>Department:</strong> {student?.studentInfo?.department || 'N/A'}</div>
               <div><strong>Course:</strong> {student?.studentInfo?.course || 'N/A'}</div>
-              <div><strong>Semester:</strong> {student?.studentInfo?.semester || 'N/A'}</div>
               <div><strong>Assigned faculty:</strong> {report?.faculty?.name || 'Unassigned'}</div>
               <div>
                 <strong>Account status:</strong>{' '}

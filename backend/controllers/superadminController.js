@@ -173,7 +173,6 @@ const approveApplication = asyncHandler(async (req, res) => {
       rollNumber: application.rollNumber,
       department: application.department,
       course: application.course,
-      semester: application.semester,
       assignedFaculty,
     },
     createdBy: req.user._id,
@@ -292,10 +291,10 @@ const deleteApplication = asyncHandler(async (req, res) => {
 // @route   POST /api/superadmin/students
 // @access  Private/SuperAdmin
 const createStudent = asyncHandler(async (req, res) => {
-  const { name, email, password, phone, rollNumber, department, course, semester, assignedFacultyId } = req.body;
+  const { name, email, phone, rollNumber, department, course, assignedFacultyId } = req.body;
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ success: false, message: 'Name, email and password are required' });
+  if (!name || !email) {
+    return res.status(400).json({ success: false, message: 'Name and email are required' });
   }
 
   const existing = await User.findOne({ email });
@@ -315,11 +314,10 @@ const createStudent = asyncHandler(async (req, res) => {
   const student = await User.create({
     name,
     email,
-    password,
     phone,
     role: 'student',
     status: 'approved',
-    studentInfo: { rollNumber, department, course, semester, assignedFaculty },
+    studentInfo: { rollNumber, department, course, assignedFaculty },
     createdBy: req.user._id,
   });
 
@@ -468,7 +466,7 @@ const updateStudentProfileAdmin = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'Student not found' });
   }
 
-  const { name, email, phone, rollNumber, department, course, semester, assignedFaculty, studentInfo } = req.body;
+  const { name, email, phone, rollNumber, department, course, assignedFaculty, studentInfo } = req.body;
 
   if (name !== undefined) student.name = name;
   if (email !== undefined) student.email = email.toLowerCase().trim();
@@ -479,12 +477,10 @@ const updateStudentProfileAdmin = asyncHandler(async (req, res) => {
   const newRollNumber = rollNumber !== undefined ? rollNumber : info.rollNumber;
   const newDept = department !== undefined ? department : info.department;
   const newCourse = course !== undefined ? course : info.course;
-  const newSemester = semester !== undefined ? semester : info.semester;
 
   if (newRollNumber !== undefined) student.studentInfo.rollNumber = newRollNumber;
   if (newDept !== undefined) student.studentInfo.department = newDept;
   if (newCourse !== undefined) student.studentInfo.course = newCourse;
-  if (newSemester !== undefined) student.studentInfo.semester = newSemester;
 
   if (assignedFaculty !== undefined) {
     student.studentInfo.assignedFaculty = assignedFaculty || null;

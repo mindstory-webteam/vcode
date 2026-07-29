@@ -18,7 +18,6 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
       minlength: 6,
       select: false,
     },
@@ -45,7 +44,6 @@ const userSchema = new mongoose.Schema(
       rollNumber: { type: String, trim: true },
       department: { type: String, trim: true },
       course: { type: String, trim: true },
-      semester: { type: String, trim: true },
       assignedFaculty: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -90,7 +88,7 @@ userSchema.pre('save', async function (next) {
     this._passwordAlreadyHashed = false;
     return next();
   }
-  if (!this.isModified('password')) return next();
+  if (!this.password || !this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
