@@ -740,26 +740,29 @@ export default function SuperAdminStudentReport() {
               </div>
 
               <div className="btn-row" style={{ marginTop: 12, alignItems: 'center' }}>
-                {report?.certificatePdf ? (
-                  <>
-                    <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '8px 14px', fontSize: 12.5, display: 'inline-flex', alignItems: 'center' }}><PdfIcon /> View Certificate</a>
-                    <button
-                      className="btn btn-brick btn-sm"
-                      style={{ backgroundColor: '#d93025', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12.5 }}
-                      onClick={handleCertDelete}
-                      disabled={certUploading}
-                    >
-                      Delete
-                    </button>
-                  </>
-                ) : (
-                  <div style={{ fontSize: 12.5, color: '#70757a' }}>No certificate uploaded yet.</div>
+                {report?.certificatePdf && (
+                  <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '8px 14px', fontSize: 12.5, display: 'inline-flex', alignItems: 'center' }}><PdfIcon /> View Certificate</a>
                 )}
 
                 <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'fit-content' }}>
                   <PdfIcon size={14} /> {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
                   <input type="file" accept="application/pdf" onChange={handleCertUpload} style={{ display: 'none' }} disabled={certUploading} />
                 </label>
+
+                {!report?.certificatePdf && (
+                  <div style={{ fontSize: 12.5, color: '#70757a' }}>No certificate uploaded yet.</div>
+                )}
+
+                {report?.certificatePdf && (
+                  <button
+                    className="btn btn-brick btn-sm"
+                    style={{ backgroundColor: '#d93025', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12.5 }}
+                    onClick={handleCertDelete}
+                    disabled={certUploading}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             </div>
           </div>

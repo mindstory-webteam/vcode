@@ -466,8 +466,8 @@ export default function SuperAdminStudentReport() {
             {certError && <div className="form-error" style={{ fontSize: 12, marginTop: 8 }}>{certError}</div>}
             {certSuccess && <div style={{ fontSize: 12, marginTop: 8, padding: '8px 12px', background: '#e6f4ea', color: '#137333', borderRadius: 4 }}>{certSuccess}</div>}
             {report?.certificatePdf ? (
-              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center' }}><PdfIcon /> View Certificate</a>
+              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 ,}}>
+                <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center', }}><PdfIcon /> View Certificate</a>
               </div>
             ) : (
               <p className="muted" style={{ fontSize: 12.5, marginTop: 8 }}>No certificate uploaded yet. Upload a PDF to make it available on the student's progress card.</p>
