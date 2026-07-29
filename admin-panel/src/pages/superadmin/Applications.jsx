@@ -4,6 +4,7 @@ import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
 import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
+import { Trash2 } from 'lucide-react';
 import {
   getApplications,
   approveApplication,
@@ -152,8 +153,14 @@ export default function Applications() {
       {selectedIds.length > 0 && (
         <div style={{ marginBottom: 16, background: '#fcf3f3', border: '1px solid #f2dede', borderRadius: 6, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 14, fontWeight: 500, color: '#a94442' }}>{selectedIds.length} applications selected</span>
-          <button className="btn btn-brick btn-sm" onClick={handleBulkDelete} disabled={deletingBulk}>
-            {deletingBulk ? 'Deleting…' : 'Delete Selected'}
+          <button 
+            className="btn btn-brick btn-sm" 
+            onClick={handleBulkDelete} 
+            disabled={deletingBulk}
+            title="Delete Selected"
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Trash2 size={14} />
           </button>
         </div>
       )}
@@ -203,8 +210,13 @@ export default function Applications() {
                           </button>
                         </>
                       )}
-                      <button className="btn btn-brick btn-sm" onClick={() => handleDelete(app)}>
-                        Delete
+                      <button 
+                        className="btn btn-brick btn-sm" 
+                        onClick={() => handleDelete(app)}
+                        title="Delete Application"
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </td>

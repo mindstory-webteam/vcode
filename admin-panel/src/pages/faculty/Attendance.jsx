@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
+import { Trash2 } from 'lucide-react';
 import {
   getStudentProgressReport,
   markAttendance,
@@ -357,7 +358,14 @@ export default function FacultyAttendance() {
                       <td>
                         <div className="btn-row">
                           <button className="btn btn-ghost btn-sm" onClick={() => startEdit(r)}>Edit</button>
-                          <button className="btn btn-brick btn-sm" onClick={() => handleDelete(r)}>Delete</button>
+                          <button 
+                            className="btn btn-brick btn-sm" 
+                            onClick={() => handleDelete(r)}
+                            title="Delete Attendance Record"
+                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       </td>
                     </tr>

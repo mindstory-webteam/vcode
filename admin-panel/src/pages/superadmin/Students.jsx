@@ -5,6 +5,7 @@ import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
 import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
+import { Trash2 } from 'lucide-react';
 import {
   getAllStudents,
   getAllFaculty,
@@ -231,8 +232,14 @@ export default function Students() {
       {selectedIds.length > 0 && (
         <div style={{ marginBottom: 16, background: '#fcf3f3', border: '1px solid #f2dede', borderRadius: 6, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 14, fontWeight: 500, color: '#a94442' }}>{selectedIds.length} students selected</span>
-          <button className="btn btn-brick btn-sm" onClick={handleBulkDelete} disabled={deletingBulk}>
-            {deletingBulk ? 'Deleting…' : 'Delete Selected'}
+          <button 
+            className="btn btn-brick btn-sm" 
+            onClick={handleBulkDelete} 
+            disabled={deletingBulk}
+            title="Delete Selected"
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Trash2 size={14} />
           </button>
         </div>
       )}
@@ -298,8 +305,13 @@ export default function Students() {
                       <button className="btn btn-ghost btn-sm" onClick={() => handleToggleActive(s)}>
                         {s.isActive ? 'Deactivate' : 'Activate'}
                       </button>
-                      <button className="btn btn-brick btn-sm" onClick={() => handleDelete(s)}>
-                        Delete
+                      <button 
+                        className="btn btn-brick btn-sm" 
+                        onClick={() => handleDelete(s)}
+                        title="Delete Student"
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </td>

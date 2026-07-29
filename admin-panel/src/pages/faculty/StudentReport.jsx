@@ -4,6 +4,7 @@ import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
+import { Trash2 } from 'lucide-react';
 import {
   getStudentProgressReport,
   addProgressEntry,
@@ -956,8 +957,10 @@ export default function StudentReport() {
                 className="btn btn-brick" 
                 onClick={handleDeleteGradeCard}
                 disabled={gradeCardBusy}
+                title="Delete grade card"
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                {gradeCardBusy ? 'Deleting…' : 'Delete grade card'}
+                <Trash2 size={16} />
               </button>
             )}
             <button className="btn btn-gold" onClick={openCreate}>
@@ -1102,7 +1105,14 @@ export default function StudentReport() {
                 </div>
                 <div className="btn-row">
                   <button className="btn btn-ghost btn-sm" onClick={() => openEdit(entry)}>Edit</button>
-                  <button className="btn btn-brick btn-sm" onClick={() => handleDeleteEntry(entry)}>Delete</button>
+                  <button 
+                    className="btn btn-brick btn-sm" 
+                    onClick={() => handleDeleteEntry(entry)}
+                    title="Delete Entry"
+                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </div>
               {entry.description && <p style={{ margin: '10px 0 0' }}>{entry.description}</p>}
