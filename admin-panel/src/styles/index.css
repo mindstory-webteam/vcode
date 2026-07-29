@@ -53,6 +53,40 @@ h1, h2, h3, h4 {
   color: var(--ink);
 }
 
+/* ---- Full-screen page loader (shown on refresh while auth resolves) ---- */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper-wash);
+  z-index: 9999;
+}
+
+.page-loader-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3.5px solid var(--paper-line);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Inline loading text used inside table cards ---- */
+.loading-line {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+}
+
 a { color: inherit; text-decoration: none; }
 
 button { font-family: var(--font-body); }

@@ -18,9 +18,17 @@ import SuperAdminAttendanceList from './pages/superadmin/AttendanceList.jsx';
 
 import { ConfirmProvider } from './context/ConfirmContext.jsx';
 
+function PageLoader() {
+  return (
+    <div className="page-loader">
+      <div className="page-loader-spinner" />
+    </div>
+  );
+}
+
 function ProtectedRoute({ roles, children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="loading-line">Loading…</div>;
+  if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user.role)) return <Navigate to="/login" replace />;
   return children;
@@ -28,7 +36,7 @@ function ProtectedRoute({ roles, children }) {
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
-  if (loading) return <div className="loading-line">Loading…</div>;
+  if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/login" replace />;
   if (user.role === 'superadmin') return <Navigate to="/superadmin/dashboard" replace />;
   if (user.role === 'faculty') return <Navigate to="/faculty/students" replace />;
