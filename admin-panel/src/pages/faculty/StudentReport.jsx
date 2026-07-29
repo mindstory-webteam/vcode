@@ -1071,7 +1071,7 @@ export default function StudentReport() {
 
           {report.entries.length === 0 && (
             <div className="card card-pad muted" style={{ fontStyle: 'italic', marginTop: 10 }}>
-              No entries yet — add the first one to start this student's record.
+              No entries yet add the first one to start this student's record.
             </div>
           )}
 

@@ -362,7 +362,7 @@ export default function Students() {
             <div className="field">
               <label>Assign faculty (optional)</label>
               <select value={form.assignedFacultyId} onChange={(e) => setForm({ ...form, assignedFacultyId: e.target.value })}>
-                <option value="">— No faculty yet —</option>
+                <option value="">No faculty yet</option>
                 {faculty.map((f) => (
                   <option key={f._id} value={f._id}>{f.name}</option>
                 ))}
@@ -385,7 +385,7 @@ export default function Students() {
           <div className="field">
             <label>Faculty</label>
             <select value={assignChoice} onChange={(e) => setAssignChoice(e.target.value)}>
-              <option value="">— Select faculty —</option>
+              <option value="">Select faculty</option>
               {faculty.map((f) => (
                 <option key={f._id} value={f._id}>
                   {f.name} {f.facultyInfo?.department ? `· ${f.facultyInfo.department}` : ''}

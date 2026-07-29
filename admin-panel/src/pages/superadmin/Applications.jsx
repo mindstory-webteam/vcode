@@ -224,7 +224,7 @@ export default function Applications() {
           <div className="field">
             <label htmlFor="faculty-pick">Assign faculty (optional)</label>
             <select id="faculty-pick" value={facultyChoice} onChange={(e) => setFacultyChoice(e.target.value)}>
-              <option value="">— No faculty yet —</option>
+              <option value="">No faculty yet</option>
               {faculty.map((f) => (
                 <option key={f._id} value={f._id}>
                   {f.name} {f.facultyInfo?.department ? `· ${f.facultyInfo.department}` : ''}

@@ -203,7 +203,7 @@ export default function FacultyAttendance() {
             / Attendance
           </div>
           <h1>{report?.student?.name || 'Attendance'}</h1>
-          <p className="sub">Daily attendance record — one entry per date.</p>
+          <p className="sub">Daily attendance record one entry per date.</p>
         </div>
         {report && (
           <div className="btn-row">
@@ -311,7 +311,7 @@ export default function FacultyAttendance() {
 
           {records.length === 0 ? (
             <div className="card card-pad muted" style={{ fontStyle: 'italic' }}>
-              No attendance marked yet — use the form above to add the first record.
+              No attendance marked yet use the form above to add the first record.
             </div>
           ) : (
             <div className="card">

@@ -384,6 +384,12 @@ const toggleUserActive = asyncHandler(async (req, res) => {
   }
   user.isActive = !user.isActive;
   await user.save();
+
+  if (!user.isActive) {
+    const socketHelper = require('../socketHelper');
+    socketHelper.emitUserDeactivated(user._id);
+  }
+
   res.json({ success: true, message: `User is now ${user.isActive ? 'active' : 'inactive'}`, user });
 });
 
@@ -444,7 +450,12 @@ const deleteUser = asyncHandler(async (req, res) => {
     await ProgressReport.updateMany({ faculty: user._id }, { $set: { faculty: null } });
   }
 
+  const userId = user._id;
   await user.deleteOne();
+
+  const socketHelper = require('../socketHelper');
+  socketHelper.emitUserDeleted(userId);
+
   res.json({ success: true, message: 'User deleted successfully' });
 });
 

@@ -86,7 +86,7 @@ export default function Dashboard() {
         <div className="section-title">Quick notes</div>
         <p className="muted" style={{ margin: 0 }}>
           New registrations land in <strong>Applications</strong> until you approve or reject them. Approving
-          creates the student's account immediately and — if you pick a faculty at the same time — assigns
+          creates the student's account immediately and if you pick a faculty at the same time assigns
           them in one step. You can always reassign later from <strong>Students</strong>.
         </p>
       </div>

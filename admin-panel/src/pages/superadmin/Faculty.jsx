@@ -107,7 +107,7 @@ export default function Faculty() {
         <div>
           <div className="eyebrow">Staff roster</div>
           <h1>Faculty</h1>
-          <p className="sub">Faculty accounts are created here directly — they never self-register.</p>
+          <p className="sub">Faculty accounts are created here directly they never self-register.</p>
         </div>
         <button className="btn btn-gold" onClick={() => setShowCreate(true)}>
           + Add faculty

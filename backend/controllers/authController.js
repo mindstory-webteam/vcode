@@ -19,7 +19,7 @@ const googleAuth = asyncHandler(async (req, res) => {
 
   if (user) {
     if (!user.isActive) {
-      return res.status(403).json({ success: false, message: 'Your account has been deactivated. Contact the SuperAdmin.' });
+      return res.status(403).json({ success: false, message: 'account deactivated by admin' });
     }
     return sendTokenResponse(user, 200, res);
   }
@@ -162,7 +162,7 @@ const login = asyncHandler(async (req, res) => {
   }
 
   if (!user.isActive) {
-    return res.status(403).json({ success: false, message: 'Your account has been deactivated. Contact the SuperAdmin.' });
+    return res.status(403).json({ success: false, message: 'account deactivated by admin' });
   }
 
   const isMatch = await user.matchPassword(password);
@@ -225,7 +225,7 @@ const otpLogin = asyncHandler(async (req, res) => {
 
   if (user) {
     if (!user.isActive) {
-      return res.status(403).json({ success: false, message: 'Your account has been deactivated. Contact the SuperAdmin.' });
+      return res.status(403).json({ success: false, message: 'account deactivated by admin' });
     }
     return sendTokenResponse(user, 200, res);
   }

@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { api } from "../lib/api";
+import { api, SOCKET_URL } from "../lib/api";
+import { io } from "socket.io-client";
 
 export interface AuthUser {
   _id: string;
@@ -35,13 +36,17 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeactivated, setIsDeactivated] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
       const data = await api.get("/api/auth/me");
       setUser(data.user);
-    } catch {
+    } catch (err: any) {
       setUser(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
     } finally {
       setLoading(false);
     }
@@ -93,6 +98,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
     }
   }, []);
+
+  // Listen to WebSocket deactivation/deletion alerts in real-time
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+    });
+
+    socket.emit("join_progress_report_room", user._id);
+
+    socket.on("user_deactivated", async () => {
+      try {
+        await logout();
+      } catch (err) {
+        // Ignore API failures (e.g. 403) since user is already deactivated
+      }
+      window.location.href = "/";
+    });
+
+    socket.on("user_deleted", async () => {
+      try {
+        await logout();
+      } catch (err) {
+        // Ignore API failures (e.g. 401) since user is already deleted
+      }
+      window.location.href = "/";
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user?._id, logout]);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, otpLogin, logout, refresh }}>

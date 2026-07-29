@@ -487,7 +487,7 @@ export default function SuperAdminStudentReport() {
                   <div className="section-title" style={{ fontSize: 12.5, marginTop: 14 }}>Mentor remarks</div>
                   <p style={{ margin: 0, fontStyle: 'italic' }}>"{gc.mentorRemarks.text}"</p>
                   <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
-                    — {gc.mentorRemarks.mentorName || 'Mentor'} {gc.mentorRemarks.mentorTitle ? `, ${gc.mentorRemarks.mentorTitle}` : ''}
+                   {gc.mentorRemarks.mentorName || 'Mentor'} {gc.mentorRemarks.mentorTitle ? `, ${gc.mentorRemarks.mentorTitle}` : ''}
                   </p>
                 </>
               )}
@@ -520,7 +520,7 @@ export default function SuperAdminStudentReport() {
 
           {report.entries.length === 0 && (
             <div className="card card-pad muted" style={{ fontStyle: 'italic' }}>
-              No entries yet — add the first one to start this student's record.
+              No entries yet add the first one to start this student's record.
             </div>
           )}
 

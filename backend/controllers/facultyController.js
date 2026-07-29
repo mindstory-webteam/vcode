@@ -100,7 +100,7 @@ const addProgressEntry = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'Progress entry added — reflected immediately on the student\'s report',
+    message: 'Progress entry added reflected immediately on the student\'s report',
     report,
   });
 });

@@ -79,7 +79,7 @@ export default function FacultyAttendanceList() {
                       className="btn btn-ghost btn-sm"
                       onClick={(e) => { e.stopPropagation(); navigate(`/faculty/students/${s._id}/attendance`); }}
                     >
-                      View attendance →
+                      View attendance
                     </button>
                   </td>
                 </tr>
