@@ -26,6 +26,41 @@ import {
   deleteCertificateFromProgressReportAdmin,
 } from '../../api.js';
 
+const ExcelIcon = ({ size = 15, style = {} }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    width={size} 
+    height={size} 
+    style={{ marginRight: '6px', verticalAlign: 'middle', flexShrink: 0, ...style }}
+  >
+    {/* Right grid sheet flap */}
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H8.5c-.8 0-1.5-.7-1.5-1.5V1.5h6.5z" fill="#107c41" opacity="0.15" />
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H8.5c-.8 0-1.5-.7-1.5-1.5V1.5h6.5z" fill="none" stroke="#107c41" strokeWidth="1.5" />
+    <path d="M13.5 1.5v6h6" fill="none" stroke="#107c41" strokeWidth="1.5" />
+    <path d="M10 11h7M10 14h7M10 17h7" stroke="#107c41" strokeWidth="1.5" strokeLinecap="round" />
+    {/* Left green flap with X */}
+    <rect x="2" y="7" width="10" height="10" rx="1" fill="#107c41" />
+    <path d="M5 9.5l4 5M9 9.5l-4 5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+const PdfIcon = ({ size = 15, style = {} }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    width={size} 
+    height={size} 
+    style={{ marginRight: '6px', verticalAlign: 'middle', flexShrink: 0, ...style }}
+  >
+    {/* Document Background */}
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H5.5c-.8 0-1.5-.7-1.5-1.5V3c0-.8.7-1.5 1.5-1.5h8z" fill="#e52230" opacity="0.15" />
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H5.5c-.8 0-1.5-.7-1.5-1.5V3c0-.8.7-1.5 1.5-1.5h8z" fill="none" stroke="#e52230" strokeWidth="1.5" />
+    <path d="M13.5 1.5v6h6" fill="none" stroke="#e52230" strokeWidth="1.5" />
+    {/* PDF text badge overlay */}
+    <rect x="5.5" y="11" width="13" height="7" rx="1" fill="#e52230" />
+    <text x="12" y="16.5" fill="#ffffff" fontSize="5.5" fontWeight="900" textAnchor="middle" fontFamily="sans-serif" letterSpacing="0.2">PDF</text>
+  </svg>
+);
+
 const CATEGORIES = ['academic', 'attendance', 'behavior', 'project', 'exam', 'other'];
 const PLACEMENT_STATUSES = ['not_ready', 'in_training', 'job_ready', 'placed'];
 
@@ -643,13 +678,13 @@ export default function SuperAdminStudentReport() {
           <div className="card card-pad" style={{ marginBottom: 24 }}>
             <div className="section-title" style={{ marginTop: 0 }}>Student details</div>
             <div className="btn-row" style={{ flexWrap: 'wrap', gap: 24 }}>
-              <div><strong>Full name:</strong> {student?.name || '—'}</div>
-              <div><strong>Email:</strong> {student?.email || '—'}</div>
-              <div><strong>Phone:</strong> {student?.phone || '—'}</div>
-              <div><strong>Roll number:</strong> {student?.studentInfo?.rollNumber || '—'}</div>
-              <div><strong>Department:</strong> {student?.studentInfo?.department || '—'}</div>
-              <div><strong>Course:</strong> {student?.studentInfo?.course || '—'}</div>
-              <div><strong>Semester:</strong> {student?.studentInfo?.semester || '—'}</div>
+              <div><strong>Full name:</strong> {student?.name || 'N/A'}</div>
+              <div><strong>Email:</strong> {student?.email || 'N/A'}</div>
+              <div><strong>Phone:</strong> {student?.phone || 'N/A'}</div>
+              <div><strong>Roll number:</strong> {student?.studentInfo?.rollNumber || 'N/A'}</div>
+              <div><strong>Department:</strong> {student?.studentInfo?.department || 'N/A'}</div>
+              <div><strong>Course:</strong> {student?.studentInfo?.course || 'N/A'}</div>
+              <div><strong>Semester:</strong> {student?.studentInfo?.semester || 'N/A'}</div>
               <div><strong>Assigned faculty:</strong> {report?.faculty?.name || 'Unassigned'}</div>
               <div>
                 <strong>Account status:</strong>{' '}
@@ -657,8 +692,8 @@ export default function SuperAdminStudentReport() {
                   {student?.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <div><strong>Application status:</strong> {student?.status || '—'}</div>
-              <div><strong>Joined:</strong> {student?.createdAt ? new Date(student.createdAt).toLocaleDateString() : '—'}</div>
+              <div><strong>Application status:</strong> {student?.status || 'N/A'}</div>
+              <div><strong>Joined:</strong> {student?.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'N/A'}</div>
             </div>
           </div>
 
@@ -675,8 +710,8 @@ export default function SuperAdminStudentReport() {
                 {fullReportImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 8 }}>{fullReportImportMessage} ✓</div>}
               </div>
               <div className="btn-row" style={{ marginTop: 12 }}>
-                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0 }}>
-                  {fullReportImportBusy ? 'Importing…' : 'Import full report (Excel)'}
+                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center' }}>
+                  <ExcelIcon /> {fullReportImportBusy ? 'Importing…' : 'Import full report (Excel)'}
                   <input
                     type="file"
                     accept=".xlsx,.xls"
@@ -685,8 +720,8 @@ export default function SuperAdminStudentReport() {
                     disabled={fullReportImportBusy}
                   />
                 </label>
-                <button className="btn btn-ghost btn-sm" onClick={handleExportFullProgressReport} disabled={fullReportExportBusy}>
-                  {fullReportExportBusy ? 'Exporting…' : 'Export full report (Excel)'}
+                <button className="btn btn-ghost btn-sm" onClick={handleExportFullProgressReport} disabled={fullReportExportBusy} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <ExcelIcon /> {fullReportExportBusy ? 'Exporting…' : 'Export full report (Excel)'}
                 </button>
               </div>
             </div>
@@ -695,7 +730,7 @@ export default function SuperAdminStudentReport() {
             <div className="card card-pad" style={{ margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div className="section-title" style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>Student Certificate (PDF)</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}><PdfIcon /> Student Certificate (PDF)</span>
                 </div>
                 <p className="muted" style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.5 }}>
                   Upload a PDF certificate to make it available on the student's progress card. Replacing or deleting will automatically sync the changes.
@@ -707,7 +742,7 @@ export default function SuperAdminStudentReport() {
               <div className="btn-row" style={{ marginTop: 12, alignItems: 'center' }}>
                 {report?.certificatePdf ? (
                   <>
-                    <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '8px 14px', fontSize: 12.5 }}>View Certificate</a>
+                    <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ padding: '8px 14px', fontSize: 12.5, display: 'inline-flex', alignItems: 'center' }}><PdfIcon /> View Certificate</a>
                     <button 
                       className="btn btn-brick btn-sm" 
                       style={{ backgroundColor: '#d93025', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12.5 }}
@@ -721,8 +756,8 @@ export default function SuperAdminStudentReport() {
                   <div style={{ fontSize: 12.5, color: '#70757a' }}>No certificate uploaded yet.</div>
                 )}
                 
-                <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', margin: 0, backgroundColor: '#005bb5', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'fit-content' }}>
-                  {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
+                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'fit-content' }}>
+                  <PdfIcon size={14} /> {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
                   <input type="file" accept="application/pdf" onChange={handleCertUpload} style={{ display: 'none' }} disabled={certUploading} />
                 </label>
               </div>
@@ -733,9 +768,9 @@ export default function SuperAdminStudentReport() {
             <div className="card card-pad" style={{ marginBottom: 24 }}>
               <div className="section-title">Grade card</div>
               <div className="btn-row" style={{ flexWrap: 'wrap', gap: 16, marginBottom: 12 }}>
-                <div><strong>Overall grade:</strong> {gc.overallGrade || '—'}</div>
-                <div><strong>Industry readiness:</strong> {gc.industryReadiness != null ? `${gc.industryReadiness}%` : '—'}</div>
-                <div><strong>Status:</strong> {gc.placementStatus?.replace('_', ' ') || '—'}</div>
+                <div><strong>Overall grade:</strong> {gc.overallGrade || 'N/A'}</div>
+                <div><strong>Industry readiness:</strong> {gc.industryReadiness != null ? `${gc.industryReadiness}%` : 'N/A'}</div>
+                <div><strong>Status:</strong> {gc.placementStatus?.replace('_', ' ') || 'N/A'}</div>
               </div>
               {gc.program?.name && (
                 <p className="muted" style={{ margin: '0 0 10px' }}>
@@ -748,7 +783,7 @@ export default function SuperAdminStudentReport() {
                   <div className="btn-row" style={{ flexWrap: 'wrap', gap: 10 }}>
                     {gc.skillScores.map((s, i) => (
                       <span key={i} className="stamp stamp-active" style={{ fontSize: 11 }}>
-                        {s.skillName}: {s.score ?? '—'} {s.grade ? `(${s.grade})` : ''}
+                        {s.skillName}: {s.score ?? 'N/A'} {s.grade ? `(${s.grade})` : ''}
                       </span>
                     ))}
                   </div>
@@ -773,8 +808,8 @@ export default function SuperAdminStudentReport() {
               {gradeCardImportError && <div className="form-error" style={{ fontSize: 12 }}>{gradeCardImportError}</div>}
               {gradeCardImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>{gradeCardImportMessage} ✓</div>}
               <div className="btn-row">
-                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-                  {gradeCardImportBusy ? 'Importing…' : 'Import from Excel'}
+                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+                  <ExcelIcon /> {gradeCardImportBusy ? 'Importing…' : 'Import from Excel'}
                   <input
                     type="file"
                     accept=".xlsx,.xls"
@@ -783,8 +818,8 @@ export default function SuperAdminStudentReport() {
                     disabled={gradeCardImportBusy}
                   />
                 </label>
-                <button className="btn btn-ghost btn-sm" onClick={handleExportGradeCard} disabled={gradeCardExportBusy}>
-                  {gradeCardExportBusy ? 'Exporting…' : 'Export to Excel'}
+                <button className="btn btn-ghost btn-sm" onClick={handleExportGradeCard} disabled={gradeCardExportBusy} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <ExcelIcon /> {gradeCardExportBusy ? 'Exporting…' : 'Export to Excel'}
                 </button>
               </div>
             </div>
@@ -861,7 +896,7 @@ export default function SuperAdminStudentReport() {
                   {report.documents.map((doc) => (
                     <tr key={doc._id}>
                       <td className="cell-mono">{doc.fileName}</td>
-                      <td>{doc.description || '—'}</td>
+                      <td>{doc.description || 'N/A'}</td>
                       <td className="cell-mono">{new Date(doc.createdAt).toLocaleDateString()}</td>
                       <td>
                         <a className="btn btn-ghost btn-sm" href={fileUrl(doc.filePath)} target="_blank" rel="noreferrer">

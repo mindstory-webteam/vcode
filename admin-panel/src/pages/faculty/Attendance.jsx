@@ -11,6 +11,24 @@ import {
   exportAttendance,
 } from '../../api.js';
 
+const ExcelIcon = ({ size = 15, style = {} }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    width={size} 
+    height={size} 
+    style={{ marginRight: '6px', verticalAlign: 'middle', flexShrink: 0, ...style }}
+  >
+    {/* Right grid sheet flap */}
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H8.5c-.8 0-1.5-.7-1.5-1.5V1.5h6.5z" fill="#107c41" opacity="0.15" />
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H8.5c-.8 0-1.5-.7-1.5-1.5V1.5h6.5z" fill="none" stroke="#107c41" strokeWidth="1.5" />
+    <path d="M13.5 1.5v6h6" fill="none" stroke="#107c41" strokeWidth="1.5" />
+    <path d="M10 11h7M10 14h7M10 17h7" stroke="#107c41" strokeWidth="1.5" strokeLinecap="round" />
+    {/* Left green flap with X */}
+    <rect x="2" y="7" width="10" height="10" rx="1" fill="#107c41" />
+    <path d="M5 9.5l4 5M9 9.5l-4 5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
 const STATUSES = ['present', 'absent', 'half_day'];
 
 const STATUS_LABEL = {
@@ -214,11 +232,11 @@ export default function FacultyAttendance() {
               style={{ display: 'none' }}
               onChange={handleBulkFileChange}
             />
-            <button className="btn btn-ghost" type="button" onClick={openBulkUpload} disabled={bulkBusy}>
-              {bulkBusy ? 'Uploading…' : 'Bulk upload (Excel)'}
+            <button className="btn btn-ghost" type="button" onClick={openBulkUpload} disabled={bulkBusy} style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <ExcelIcon /> {bulkBusy ? 'Uploading…' : 'Bulk upload (Excel)'}
             </button>
-            <button className="btn btn-ghost" type="button" onClick={handleExport} disabled={exportBusy}>
-              {exportBusy ? 'Exporting…' : 'Export to Excel'}
+            <button className="btn btn-ghost" type="button" onClick={handleExport} disabled={exportBusy} style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <ExcelIcon /> {exportBusy ? 'Exporting…' : 'Export to Excel'}
             </button>
           </div>
         )}
@@ -334,8 +352,8 @@ export default function FacultyAttendance() {
                           {STATUS_LABEL[r.status]}
                         </span>
                       </td>
-                      <td>{r.remarks || '—'}</td>
-                      <td>{r.markedBy?.name || '—'}</td>
+                      <td>{r.remarks || 'N/A'}</td>
+                      <td>{r.markedBy?.name || 'N/A'}</td>
                       <td>
                         <div className="btn-row">
                           <button className="btn btn-ghost btn-sm" onClick={() => startEdit(r)}>Edit</button>

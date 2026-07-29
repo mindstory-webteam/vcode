@@ -153,8 +153,8 @@ export default function Faculty() {
                     <div className="cell-name">{f.name}</div>
                     <div className="cell-sub">{f.email}</div>
                   </td>
-                  <td>{f.facultyInfo?.department || '—'}</td>
-                  <td>{f.facultyInfo?.designation || '—'}</td>
+                  <td>{f.facultyInfo?.department || 'N/A'}</td>
+                  <td>{f.facultyInfo?.designation || 'N/A'}</td>
                   <td><StampBadge status={f.isActive ? 'active' : 'inactive'} /></td>
                   <td>
                     <div className="btn-row">

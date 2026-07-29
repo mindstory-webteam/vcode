@@ -187,8 +187,8 @@ export default function Applications() {
                     <div className="cell-name">{app.name}</div>
                     <div className="cell-sub">{app.email}</div>
                   </td>
-                  <td className="cell-mono">{app.rollNumber || '—'}</td>
-                  <td>{app.department || '—'}</td>
+                  <td className="cell-mono">{app.rollNumber || 'N/A'}</td>
+                  <td>{app.department || 'N/A'}</td>
                   <td className="cell-mono">{new Date(app.createdAt).toLocaleDateString()}</td>
                   <td><StampBadge status={app.status} /></td>
                   <td>

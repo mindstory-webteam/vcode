@@ -21,6 +21,24 @@ import {
   fileUrl,
 } from '../../api.js';
 
+const ExcelIcon = ({ size = 15, style = {} }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    width={size} 
+    height={size} 
+    style={{ marginRight: '6px', verticalAlign: 'middle', flexShrink: 0, ...style }}
+  >
+    {/* Right grid sheet flap */}
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H8.5c-.8 0-1.5-.7-1.5-1.5V1.5h6.5z" fill="#107c41" opacity="0.15" />
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H8.5c-.8 0-1.5-.7-1.5-1.5V1.5h6.5z" fill="none" stroke="#107c41" strokeWidth="1.5" />
+    <path d="M13.5 1.5v6h6" fill="none" stroke="#107c41" strokeWidth="1.5" />
+    <path d="M10 11h7M10 14h7M10 17h7" stroke="#107c41" strokeWidth="1.5" strokeLinecap="round" />
+    {/* Left green flap with X */}
+    <rect x="2" y="7" width="10" height="10" rx="1" fill="#107c41" />
+    <path d="M5 9.5l4 5M9 9.5l-4 5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
 const CATEGORIES = ['academic', 'attendance', 'behavior', 'project', 'exam', 'other'];
 const PLACEMENT_STATUSES = ['not_ready', 'in_training', 'job_ready', 'placed'];
 
@@ -115,7 +133,7 @@ function StatCard({ icon, value, label }) {
     <div style={statCardStyle}>
       <div style={statIconStyle}>{icon}</div>
       <div style={{ fontFamily: 'var(--font-body)', fontSize: 30, fontWeight: 700, lineHeight: 1 }}>
-        {value || '—'}
+        {value || 'N/A'}
       </div>
       <div style={statLabelStyle}>{label}</div>
     </div>
@@ -964,8 +982,8 @@ export default function StudentReport() {
             {fullReportImportError && <div className="form-error" style={{ fontSize: 12 }}>{fullReportImportError}</div>}
             {fullReportImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>{fullReportImportMessage} ✓</div>}
             <div className="btn-row">
-              <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-                {fullReportImportBusy ? 'Importing…' : 'Import full report (Excel)'}
+              <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+                <ExcelIcon /> {fullReportImportBusy ? 'Importing…' : 'Import full report (Excel)'}
                 <input
                   type="file"
                   accept=".xlsx,.xls"
@@ -974,8 +992,8 @@ export default function StudentReport() {
                   disabled={fullReportImportBusy}
                 />
               </label>
-              <button className="btn btn-ghost btn-sm" onClick={handleExportFullProgressReport} disabled={fullReportExportBusy}>
-                {fullReportExportBusy ? 'Exporting…' : 'Export full report (Excel)'}
+              <button className="btn btn-ghost btn-sm" onClick={handleExportFullProgressReport} disabled={fullReportExportBusy} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <ExcelIcon /> {fullReportExportBusy ? 'Exporting…' : 'Export full report (Excel)'}
               </button>
             </div>
           </div>
@@ -1026,8 +1044,8 @@ export default function StudentReport() {
               {gradeCardImportError && <div className="form-error" style={{ fontSize: 12 }}>{gradeCardImportError}</div>}
               {gradeCardImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>{gradeCardImportMessage} ✓</div>}
               <div className="btn-row">
-                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-                  {gradeCardImportBusy ? 'Importing…' : 'Import from Excel'}
+                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+                  <ExcelIcon /> {gradeCardImportBusy ? 'Importing…' : 'Import from Excel'}
                   <input
                     type="file"
                     accept=".xlsx,.xls"
@@ -1036,8 +1054,8 @@ export default function StudentReport() {
                     disabled={gradeCardImportBusy}
                   />
                 </label>
-                <button className="btn btn-ghost btn-sm" onClick={handleExportGradeCard} disabled={gradeCardExportBusy}>
-                  {gradeCardExportBusy ? 'Exporting…' : 'Export to Excel'}
+                <button className="btn btn-ghost btn-sm" onClick={handleExportGradeCard} disabled={gradeCardExportBusy} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <ExcelIcon /> {gradeCardExportBusy ? 'Exporting…' : 'Export to Excel'}
                 </button>
               </div>
             </div>
@@ -1115,7 +1133,7 @@ export default function StudentReport() {
                   {report.documents.map((doc) => (
                     <tr key={doc._id}>
                       <td className="cell-mono">{doc.fileName}</td>
-                      <td>{doc.description || '—'}</td>
+                      <td>{doc.description || 'N/A'}</td>
                       <td className="cell-mono">{new Date(doc.createdAt).toLocaleDateString()}</td>
                       <td>
                         <a className="btn btn-ghost btn-sm" href={fileUrl(doc.filePath)} target="_blank" rel="noreferrer">

@@ -71,8 +71,8 @@ export default function SuperAdminAttendanceList() {
                       </div>
                     </div>
                   </td>
-                  <td className="cell-mono">{s.studentInfo?.rollNumber || '—'}</td>
-                  <td>{s.studentInfo?.department || '—'}</td>
+                  <td className="cell-mono">{s.studentInfo?.rollNumber || 'N/A'}</td>
+                  <td>{s.studentInfo?.department || 'N/A'}</td>
                   <td>{s.studentInfo?.assignedFaculty?.name || 'Unassigned'}</td>
                   <td>
                     <button

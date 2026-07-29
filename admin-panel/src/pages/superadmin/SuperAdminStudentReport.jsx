@@ -18,6 +18,23 @@ import {
   fileUrl,
 } from '../../api.js';
 
+const PdfIcon = ({ size = 15, style = {} }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    width={size} 
+    height={size} 
+    style={{ marginRight: '6px', verticalAlign: 'middle', flexShrink: 0, ...style }}
+  >
+    {/* Document Background */}
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H5.5c-.8 0-1.5-.7-1.5-1.5V3c0-.8.7-1.5 1.5-1.5h8z" fill="#e52230" opacity="0.15" />
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H5.5c-.8 0-1.5-.7-1.5-1.5V3c0-.8.7-1.5 1.5-1.5h8z" fill="none" stroke="#e52230" strokeWidth="1.5" />
+    <path d="M13.5 1.5v6h6" fill="none" stroke="#e52230" strokeWidth="1.5" />
+    {/* PDF text badge overlay */}
+    <rect x="5.5" y="11" width="13" height="7" rx="1" fill="#e52230" />
+    <text x="12" y="16.5" fill="#ffffff" fontSize="5.5" fontWeight="900" textAnchor="middle" fontFamily="sans-serif" letterSpacing="0.2">PDF</text>
+  </svg>
+);
+
 const CATEGORIES = ['academic', 'attendance', 'behavior', 'project', 'exam', 'other'];
 const PLACEMENT_STATUSES = ['not_ready', 'in_training', 'job_ready', 'placed'];
 
@@ -418,13 +435,13 @@ export default function SuperAdminStudentReport() {
           <div className="card card-pad" style={{ marginBottom: 24 }}>
             <div className="section-title" style={{ marginTop: 0 }}>Student details</div>
             <div className="btn-row" style={{ flexWrap: 'wrap', gap: 24 }}>
-              <div><strong>Full name:</strong> {student?.name || '—'}</div>
-              <div><strong>Email:</strong> {student?.email || '—'}</div>
-              <div><strong>Phone:</strong> {student?.phone || '—'}</div>
-              <div><strong>Roll number:</strong> {student?.studentInfo?.rollNumber || '—'}</div>
-              <div><strong>Department:</strong> {student?.studentInfo?.department || '—'}</div>
-              <div><strong>Course:</strong> {student?.studentInfo?.course || '—'}</div>
-              <div><strong>Semester:</strong> {student?.studentInfo?.semester || '—'}</div>
+              <div><strong>Full name:</strong> {student?.name || 'N/A'}</div>
+              <div><strong>Email:</strong> {student?.email || 'N/A'}</div>
+              <div><strong>Phone:</strong> {student?.phone || 'N/A'}</div>
+              <div><strong>Roll number:</strong> {student?.studentInfo?.rollNumber || 'N/A'}</div>
+              <div><strong>Department:</strong> {student?.studentInfo?.department || 'N/A'}</div>
+              <div><strong>Course:</strong> {student?.studentInfo?.course || 'N/A'}</div>
+              <div><strong>Semester:</strong> {student?.studentInfo?.semester || 'N/A'}</div>
               <div><strong>Assigned faculty:</strong> {report?.faculty?.name || 'Unassigned'}</div>
               <div>
                 <strong>Account status:</strong>{' '}
@@ -432,17 +449,17 @@ export default function SuperAdminStudentReport() {
                   {student?.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <div><strong>Application status:</strong> {student?.status || '—'}</div>
-              <div><strong>Joined:</strong> {student?.createdAt ? new Date(student.createdAt).toLocaleDateString() : '—'}</div>
+              <div><strong>Application status:</strong> {student?.status || 'N/A'}</div>
+              <div><strong>Joined:</strong> {student?.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'N/A'}</div>
             </div>
           </div>
 
           {/* Certificate PDF Card */}
           <div className="card card-pad" style={{ marginBottom: 24 }}>
             <div className="section-title" style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Student Certificate</span>
-              <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', margin: 0, backgroundColor: '#005bb5', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: 4, fontSize: 12.5 }}>
-                {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
+              <span style={{ display: 'inline-flex', alignItems: 'center' }}><PdfIcon /> Student Certificate (PDF)</span>
+              <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center' }}>
+                <PdfIcon size={14} /> {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
                 <input type="file" accept="application/pdf" onChange={handleCertUpload} style={{ display: 'none' }} disabled={certUploading} />
               </label>
             </div>
@@ -450,7 +467,7 @@ export default function SuperAdminStudentReport() {
             {certSuccess && <div style={{ fontSize: 12, marginTop: 8, padding: '8px 12px', background: '#e6f4ea', color: '#137333', borderRadius: 4 }}>{certSuccess}</div>}
             {report?.certificatePdf ? (
               <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">View Certificate</a>
+                <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center' }}><PdfIcon /> View Certificate</a>
               </div>
             ) : (
               <p className="muted" style={{ fontSize: 12.5, marginTop: 8 }}>No certificate uploaded yet. Upload a PDF to make it available on the student's progress card.</p>
@@ -461,9 +478,9 @@ export default function SuperAdminStudentReport() {
             <div className="card card-pad" style={{ marginBottom: 24 }}>
               <div className="section-title">Grade card</div>
               <div className="btn-row" style={{ flexWrap: 'wrap', gap: 16, marginBottom: 12 }}>
-                <div><strong>Overall grade:</strong> {gc.overallGrade || '—'}</div>
-                <div><strong>Industry readiness:</strong> {gc.industryReadiness != null ? `${gc.industryReadiness}%` : '—'}</div>
-                <div><strong>Status:</strong> {gc.placementStatus?.replace('_', ' ') || '—'}</div>
+                <div><strong>Overall grade:</strong> {gc.overallGrade || 'N/A'}</div>
+                <div><strong>Industry readiness:</strong> {gc.industryReadiness != null ? `${gc.industryReadiness}%` : 'N/A'}</div>
+                <div><strong>Status:</strong> {gc.placementStatus?.replace('_', ' ') || 'N/A'}</div>
               </div>
               {gc.program?.name && (
                 <p className="muted" style={{ margin: '0 0 10px' }}>
@@ -476,7 +493,7 @@ export default function SuperAdminStudentReport() {
                   <div className="btn-row" style={{ flexWrap: 'wrap', gap: 10 }}>
                     {gc.skillScores.map((s, i) => (
                       <span key={i} className="stamp stamp-active" style={{ fontSize: 11 }}>
-                        {s.skillName}: {s.score ?? '—'} {s.grade ? `(${s.grade})` : ''}
+                        {s.skillName}: {s.score ?? 'N/A'} {s.grade ? `(${s.grade})` : ''}
                       </span>
                     ))}
                   </div>
@@ -564,7 +581,7 @@ export default function SuperAdminStudentReport() {
                   {report.documents.map((doc) => (
                     <tr key={doc._id}>
                       <td className="cell-mono">{doc.fileName}</td>
-                      <td>{doc.description || '—'}</td>
+                      <td>{doc.description || 'N/A'}</td>
                       <td className="cell-mono">{new Date(doc.createdAt).toLocaleDateString()}</td>
                       <td>
                         <a className="btn btn-ghost btn-sm" href={`${apiOrigin}${doc.filePath}`} target="_blank" rel="noreferrer">

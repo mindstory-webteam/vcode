@@ -17,6 +17,24 @@ import {
   downloadBulkImportTemplate,
 } from '../../api.js';
 
+const ExcelIcon = ({ size = 15, style = {} }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    width={size} 
+    height={size} 
+    style={{ marginRight: '6px', verticalAlign: 'middle', flexShrink: 0, ...style }}
+  >
+    {/* Right grid sheet flap */}
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H8.5c-.8 0-1.5-.7-1.5-1.5V1.5h6.5z" fill="#107c41" opacity="0.15" />
+    <path d="M13.5 1.5l6 6V21c0 .8-.7 1.5-1.5 1.5H8.5c-.8 0-1.5-.7-1.5-1.5V1.5h6.5z" fill="none" stroke="#107c41" strokeWidth="1.5" />
+    <path d="M13.5 1.5v6h6" fill="none" stroke="#107c41" strokeWidth="1.5" />
+    <path d="M10 11h7M10 14h7M10 17h7" stroke="#107c41" strokeWidth="1.5" strokeLinecap="round" />
+    {/* Left green flap with X */}
+    <rect x="2" y="7" width="10" height="10" rx="1" fill="#107c41" />
+    <path d="M5 9.5l4 5M9 9.5l-4 5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
 const emptyForm = {
   name: '', email: '', password: '', phone: '',
   rollNumber: '', department: '', course: '', semester: '', assignedFacultyId: '',
@@ -177,8 +195,8 @@ export default function Students() {
           <p className="sub">Everyone with an active account, who they're assigned to, and their standing.</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-ghost" onClick={() => setShowBulkModal(true)}>
-            Bulk Import Excel
+          <button className="btn btn-ghost" onClick={() => setShowBulkModal(true)} style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <ExcelIcon /> Bulk Import Excel
           </button>
           <button className="btn btn-gold" onClick={() => setShowCreate(true)}>
             + Add student directly
@@ -238,7 +256,7 @@ export default function Students() {
                       </div>
                     </div>
                   </td>
-                  <td className="cell-mono">{s.studentInfo?.rollNumber || '—'}</td>
+                  <td className="cell-mono">{s.studentInfo?.rollNumber || 'N/A'}</td>
                   <td>
                     {s.studentInfo?.assignedFaculty ? (
                       s.studentInfo.assignedFaculty.name
@@ -300,8 +318,9 @@ export default function Students() {
                 type="button"
                 className="btn btn-ghost btn-sm"
                 onClick={downloadBulkImportTemplate}
+                style={{ display: 'inline-flex', alignItems: 'center' }}
               >
-                Download Sample Template
+                <ExcelIcon /> Download Sample Template
               </button>
             </div>
 

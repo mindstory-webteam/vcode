@@ -67,9 +67,9 @@ export default function MyStudents() {
                       </div>
                     </div>
                   </td>
-                  <td className="cell-mono">{s.studentInfo?.rollNumber || '—'}</td>
-                  <td>{s.studentInfo?.department || '—'}</td>
-                  <td>{s.studentInfo?.semester || '—'}</td>
+                  <td className="cell-mono">{s.studentInfo?.rollNumber || 'N/A'}</td>
+                  <td>{s.studentInfo?.department || 'N/A'}</td>
+                  <td>{s.studentInfo?.semester || 'N/A'}</td>
                   <td>
                     <button className="btn btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); navigate(`/faculty/students/${s._id}`); }}>
                       Open report →
