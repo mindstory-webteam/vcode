@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import { toast } from 'react-toastify';
+import { useConfirm } from '../../context/ConfirmContext.jsx';
 import {
   getStudentProgressReport,
   addProgressEntry,
@@ -10,6 +11,7 @@ import {
   deleteProgressEntry,
   updateOverallRemarks,
   updateGradeCard,
+  deleteGradeCard,
   bulkUploadEntries,
   exportEntries,
   importGradeCard,
@@ -112,7 +114,7 @@ function StatCard({ icon, value, label }) {
   return (
     <div style={statCardStyle}>
       <div style={statIconStyle}>{icon}</div>
-      <div style={{ fontFamily: 'var(--serif, Georgia, serif)', fontSize: 30, fontWeight: 700, lineHeight: 1 }}>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: 30, fontWeight: 700, lineHeight: 1 }}>
         {value || '—'}
       </div>
       <div style={statLabelStyle}>{label}</div>
@@ -240,6 +242,7 @@ function serializeGradeCard(gc) {
 
 export default function StudentReport() {
   const { studentId } = useParams();
+  const confirm = useConfirm();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -340,7 +343,7 @@ export default function StudentReport() {
   };
 
   const handleDeleteEntry = async (entry) => {
-    if (!confirm(`Remove the entry "${entry.title}"? This can't be undone.`)) return;
+    if (!await confirm(`Remove the entry "${entry.title}"? This can't be undone.`)) return;
     try {
       await deleteProgressEntry(studentId, entry._id);
       toast.success('Entry removed successfully!');
@@ -492,6 +495,20 @@ export default function StudentReport() {
       setError(err.response?.data?.message || 'Could not export the progress report');
     } finally {
       setFullReportExportBusy(false);
+    }
+  };
+
+  const handleDeleteGradeCard = async () => {
+    if (!await confirm("Are you sure you want to delete this student's grade card? This action cannot be undone.")) return;
+    setGradeCardBusy(true);
+    try {
+      await deleteGradeCard(studentId);
+      toast.success('Grade card deleted successfully!');
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not delete grade card');
+    } finally {
+      setGradeCardBusy(false);
     }
   };
 
@@ -916,6 +933,15 @@ export default function StudentReport() {
             <button className="btn btn-ghost" onClick={openGradeCard}>
               {gc?.overallGrade ? 'Edit grade card' : '+ Create grade card'}
             </button>
+            {gc?.overallGrade && (
+              <button 
+                className="btn btn-brick" 
+                onClick={handleDeleteGradeCard}
+                disabled={gradeCardBusy}
+              >
+                {gradeCardBusy ? 'Deleting…' : 'Delete grade card'}
+              </button>
+            )}
             <button className="btn btn-gold" onClick={openCreate}>
               + Add entry
             </button>
@@ -931,7 +957,7 @@ export default function StudentReport() {
           <div className="card card-pad" style={{ marginBottom: 24 }}>
             <div className="section-title" style={{ marginTop: 0 }}>Full progress report (Excel)</div>
             <p className="muted" style={{ margin: '0 0 12px', fontSize: 12.5 }}>
-              One file with everything — overall remarks, entries, attendance, and the grade card. Import a file to
+              One file with everything overall remarks, entries, attendance, and the grade card. Import a file to
               apply any sheets it contains (entries are replaced entirely, attendance is upserted by date); remove a
               sheet before re-uploading to leave that section untouched.
             </p>
@@ -986,7 +1012,7 @@ export default function StudentReport() {
                   <div className="section-title" style={{ fontSize: 12.5, marginTop: 14 }}>Mentor remarks</div>
                   <p style={{ margin: 0, fontStyle: 'italic' }}>"{gc.mentorRemarks.text}"</p>
                   <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
-                    — {gc.mentorRemarks.mentorName || 'Mentor'} {gc.mentorRemarks.mentorTitle ? `, ${gc.mentorRemarks.mentorTitle}` : ''}
+                    {gc.mentorRemarks.mentorName || 'Mentor'} {gc.mentorRemarks.mentorTitle ? `, ${gc.mentorRemarks.mentorTitle}` : ''}
                   </p>
                 </>
               )}

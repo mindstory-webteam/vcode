@@ -19,7 +19,7 @@
   --muted: #8a7d94;
   --muted-light: #b9aec2;
 
-  --font-display: 'Fraunces', 'Iowan Old Style', serif;
+  --font-display: 'Inter', -apple-system, sans-serif;
   --font-body: 'Inter', -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
@@ -265,12 +265,7 @@ button { font-family: var(--font-body); }
   align-items: center;
   gap: 8px;
 }
-.section-title::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--paper-line);
-}
+
 
 /* ---- Stat tiles ---- */
 .stat-grid {
@@ -603,3 +598,104 @@ button { font-family: var(--font-body); }
 }
 .entry-item h4 { font-size: 14.5px; margin-bottom: 2px; }
 .entry-meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* ================= Custom Confirmation Dialog (Toast style) ================= */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(36, 27, 46, 0.05);
+  backdrop-filter: blur(1px);
+  z-index: 9999;
+}
+
+.confirm-card {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  background: #ffffff;
+  border: 1px solid var(--paper-line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 30px rgba(36, 27, 46, 0.15), 0 1px 8px rgba(36, 27, 46, 0.05);
+  width: 360px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  animation: confirm-toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.confirm-message-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.confirm-message-text {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.4;
+  display: block;
+}
+
+.confirm-actions-toast {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Tick (Confirm) Button */
+.confirm-btn-tick {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(47, 111, 98, 0.1);
+  color: var(--teal, #2f6f62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.confirm-btn-tick:hover {
+  background: var(--teal, #2f6f62);
+  color: #ffffff;
+}
+.confirm-btn-tick:active {
+  transform: scale(0.95);
+}
+
+/* Cross (Cancel) Button */
+.confirm-btn-cross {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(168, 67, 46, 0.1);
+  color: var(--brick, #a8432e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.confirm-btn-cross:hover {
+  background: var(--brick, #a8432e);
+  color: #ffffff;
+}
+.confirm-btn-cross:active {
+  transform: scale(0.95);
+}
+
+@keyframes confirm-toast-in {
+  from {
+    transform: translateX(120%) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}

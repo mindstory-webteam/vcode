@@ -3,6 +3,7 @@ import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
 import { toast } from 'react-toastify';
+import { useConfirm } from '../../context/ConfirmContext.jsx';
 import {
   getApplications,
   approveApplication,
@@ -18,6 +19,7 @@ const TABS = [
 ];
 
 export default function Applications() {
+  const confirm = useConfirm();
   const [tab, setTab] = useState('pending');
   const [applications, setApplications] = useState([]);
   const [faculty, setFaculty] = useState([]);
@@ -43,7 +45,7 @@ export default function Applications() {
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Are you sure you want to permanently delete ${selectedIds.length} applications?`)) return;
+    if (!await confirm(`Are you sure you want to permanently delete ${selectedIds.length} applications?`)) return;
     setDeletingBulk(true);
     try {
       await Promise.all(selectedIds.map(id => deleteApplication(id)));
@@ -112,7 +114,7 @@ export default function Applications() {
   };
 
   const handleDelete = async (app) => {
-    if (!confirm(`Permanently delete ${app.name}'s application?`)) return;
+    if (!await confirm(`Permanently delete ${app.name}'s application?`)) return;
     try {
       await deleteApplication(app._id);
       toast.success('Application deleted successfully!');

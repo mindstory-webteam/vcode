@@ -4,6 +4,7 @@ import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
 import { toast } from 'react-toastify';
+import { useConfirm } from '../../context/ConfirmContext.jsx';
 import {
   getAllStudents,
   getAllFaculty,
@@ -23,6 +24,7 @@ const emptyForm = {
 
 export default function Students() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const [students, setStudents] = useState([]);
   const [faculty, setFaculty] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +48,7 @@ export default function Students() {
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Are you sure you want to permanently delete ${selectedIds.length} students?`)) return;
+    if (!await confirm(`Are you sure you want to permanently delete ${selectedIds.length} students?`)) return;
     setDeletingBulk(true);
     try {
       await Promise.all(selectedIds.map(id => deleteUser(id)));
@@ -135,7 +137,7 @@ export default function Students() {
   };
 
   const handleDelete = async (student) => {
-    if (!confirm(`Permanently delete ${student.name}'s account and progress report?`)) return;
+    if (!await confirm(`Permanently delete ${student.name}'s account and progress report?`)) return;
     try {
       await deleteUser(student._id);
       toast.success('Student deleted successfully!');

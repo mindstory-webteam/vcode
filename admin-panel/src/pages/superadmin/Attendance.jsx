@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import { toast } from 'react-toastify';
+import { useConfirm } from '../../context/ConfirmContext.jsx';
 import {
   getStudentProgressReportAdmin,
   markAttendanceAdmin,
@@ -46,7 +47,7 @@ const statLabelStyle = {
 function StatCard({ value, label }) {
   return (
     <div style={statCardStyle}>
-      <div style={{ fontFamily: 'var(--serif, Georgia, serif)', fontSize: 28, fontWeight: 700, lineHeight: 1 }}>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: 28, fontWeight: 700, lineHeight: 1 }}>
         {value}
       </div>
       <div style={statLabelStyle}>{label}</div>
@@ -56,6 +57,7 @@ function StatCard({ value, label }) {
 
 export default function SuperAdminAttendance() {
   const { studentId } = useParams();
+  const confirm = useConfirm();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -135,7 +137,7 @@ export default function SuperAdminAttendance() {
   };
 
   const handleDelete = async (record) => {
-    if (!confirm(`Remove the attendance record for ${new Date(record.date).toLocaleDateString()}?`)) return;
+    if (!await confirm(`Remove the attendance record for ${new Date(record.date).toLocaleDateString()}?`)) return;
     try {
       await deleteAttendanceAdmin(studentId, record._id);
       toast.success('Attendance record deleted!');

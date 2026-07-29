@@ -833,6 +833,29 @@ const updateGradeCardAdmin = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Delete / clear the full grade card for any student
+// @route   DELETE /api/superadmin/students/:studentId/progress-report/grade-card
+// @access  Private/SuperAdmin
+const deleteGradeCardAdmin = asyncHandler(async (req, res) => {
+  const student = await findStudentOr404(req.params.studentId, res);
+  if (!student) return;
+
+  let report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found' });
+  }
+
+  report.gradeCard = {};
+  await report.save();
+
+  res.json({
+    success: true,
+    message: 'Grade card deleted successfully',
+    report,
+  });
+});
+
+
 // @desc    Export any student's grade card as a multi-sheet .xlsx file
 // @route   GET /api/superadmin/students/:studentId/progress-report/grade-card/export
 // @access  Private/SuperAdmin
@@ -1503,6 +1526,7 @@ module.exports = {
   deleteProgressEntryAdmin,
   updateOverallRemarksAdmin,
   updateGradeCardAdmin,
+  deleteGradeCardAdmin,
   uploadStudentProfilePhotoAdmin,
   deleteStudentProfilePhotoAdmin,
   markAttendanceAdmin,

@@ -31,6 +31,7 @@ const {
   bulkUploadEntriesAdmin,
   exportGradeCardAdmin,
   importGradeCardAdmin,
+  deleteGradeCardAdmin,
   exportFullProgressReportAdmin,
   importFullProgressReportAdmin,
   downloadBulkProgressTemplateAdmin,
@@ -80,6 +81,7 @@ router.post(
 );
 router.put('/students/:studentId/progress-report/remarks', updateOverallRemarksAdmin);
 router.put('/students/:studentId/progress-report/grade-card', updateGradeCardAdmin);
+router.delete('/students/:studentId/progress-report/grade-card', deleteGradeCardAdmin);
 router.get('/students/:studentId/progress-report/grade-card/export', exportGradeCardAdmin);
 router.post(
   '/students/:studentId/progress-report/grade-card/import',

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
+import { toast } from 'react-toastify';
+import { useConfirm } from '../../context/ConfirmContext.jsx';
 import {
   getStudentProgressReportAdmin,
   addProgressEntryAdmin,
@@ -9,6 +11,7 @@ import {
   deleteProgressEntryAdmin,
   updateOverallRemarksAdmin,
   updateGradeCardAdmin,
+  deleteGradeCardAdmin,
   uploadStudentProfilePhotoAdmin,
   deleteStudentProfilePhotoAdmin,
   uploadCertificateToProgressReportAdmin,
@@ -121,6 +124,7 @@ function serializeGradeCard(gc) {
 
 export default function SuperAdminStudentReport() {
   const { studentId } = useParams();
+  const confirm = useConfirm();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -223,7 +227,7 @@ export default function SuperAdminStudentReport() {
   };
 
   const handleDeleteEntry = async (entry) => {
-    if (!confirm(`Remove the entry "${entry.title}"? This can't be undone.`)) return;
+    if (!await confirm(`Remove the entry "${entry.title}"? This can't be undone.`)) return;
     try {
       await deleteProgressEntryAdmin(studentId, entry._id);
       load();
@@ -284,7 +288,7 @@ export default function SuperAdminStudentReport() {
   };
 
   const handlePhotoDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this profile photo?')) return;
+    if (!await confirm('Are you sure you want to delete this profile photo?')) return;
     setPhotoError('');
     setPhotoUploading(true);
     try {
@@ -294,6 +298,20 @@ export default function SuperAdminStudentReport() {
       setPhotoError(err.response?.data?.message || 'Could not delete photo');
     } finally {
       setPhotoUploading(false);
+    }
+  };
+
+  const handleDeleteGradeCard = async () => {
+    if (!await confirm("Are you sure you want to delete this student's grade card? This action cannot be undone.")) return;
+    setGradeCardBusy(true);
+    try {
+      await deleteGradeCardAdmin(studentId);
+      toast.success('Grade card deleted successfully!');
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not delete grade card');
+    } finally {
+      setGradeCardBusy(false);
     }
   };
 
@@ -376,6 +394,15 @@ export default function SuperAdminStudentReport() {
             <button className="btn btn-ghost" onClick={openGradeCard}>
               {gc?.overallGrade ? 'Edit grade card' : '+ Create grade card'}
             </button>
+            {gc?.overallGrade && (
+              <button 
+                className="btn btn-brick" 
+                onClick={handleDeleteGradeCard}
+                disabled={gradeCardBusy}
+              >
+                {gradeCardBusy ? 'Deleting…' : 'Delete grade card'}
+              </button>
+            )}
             <button className="btn btn-gold" onClick={openCreate}>
               + Add entry
             </button>

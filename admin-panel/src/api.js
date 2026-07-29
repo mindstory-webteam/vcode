@@ -131,6 +131,8 @@ export const updateOverallRemarksAdmin = (studentId, overallRemarks) =>
   api.put(`/superadmin/students/${studentId}/progress-report/remarks`, { overallRemarks });
 export const updateGradeCardAdmin = (studentId, gradeCard) =>
   api.put(`/superadmin/students/${studentId}/progress-report/grade-card`, gradeCard);
+export const deleteGradeCardAdmin = (studentId) =>
+  api.delete(`/superadmin/students/${studentId}/progress-report/grade-card`);
 
 export const uploadCertificateToProgressReportAdmin = (studentId, file) => {
   const formData = new FormData();
@@ -249,6 +251,8 @@ export const updateOverallRemarks = (studentId, overallRemarks) =>
   api.put(`/faculty/students/${studentId}/progress-report/remarks`, { overallRemarks });
 export const updateGradeCard = (studentId, gradeCard) =>
   api.put(`/faculty/students/${studentId}/progress-report/grade-card`, gradeCard);
+export const deleteGradeCard = (studentId) =>
+  api.delete(`/faculty/students/${studentId}/progress-report/grade-card`);
 
 // Faculty — grade card Excel export/import (assigned students only)
 export const exportGradeCard = async (studentId, studentName = 'student') => {

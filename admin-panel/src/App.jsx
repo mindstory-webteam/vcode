@@ -16,6 +16,8 @@ import SuperAdminAttendance from './pages/superadmin/Attendance.jsx';
 import FacultyAttendanceList from './pages/faculty/AttendanceList.jsx';
 import SuperAdminAttendanceList from './pages/superadmin/AttendanceList.jsx';
 
+import { ConfirmProvider } from './context/ConfirmContext.jsx';
+
 function ProtectedRoute({ roles, children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="loading-line">Loading…</div>;
@@ -35,7 +37,7 @@ function HomeRedirect() {
 
 export default function App() {
   return (
-    <>
+    <ConfirmProvider>
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/login" element={<Login />} />
@@ -78,6 +80,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-    </>
+    </ConfirmProvider>
   );
 }

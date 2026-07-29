@@ -18,6 +18,7 @@ const {
   bulkUploadEntries,
   exportGradeCard,
   importGradeCard,
+  deleteGradeCard,
   exportFullProgressReport,
   importFullProgressReport,
 } = require('../controllers/facultyController');
@@ -40,6 +41,7 @@ router.post(
 );
 router.put('/students/:studentId/progress-report/remarks', updateOverallRemarks);
 router.put('/students/:studentId/progress-report/grade-card', updateGradeCard);
+router.delete('/students/:studentId/progress-report/grade-card', deleteGradeCard);
 router.get('/students/:studentId/progress-report/grade-card/export', exportGradeCard);
 router.post(
   '/students/:studentId/progress-report/grade-card/import',

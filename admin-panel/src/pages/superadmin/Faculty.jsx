@@ -3,6 +3,7 @@ import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
 import { toast } from 'react-toastify';
+import { useConfirm } from '../../context/ConfirmContext.jsx';
 import { getAllFaculty, createFaculty, toggleUserActive, deleteUser } from '../../api.js';
 
 const emptyForm = {
@@ -11,6 +12,7 @@ const emptyForm = {
 };
 
 export default function Faculty() {
+  const confirm = useConfirm();
   const [faculty, setFaculty] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,7 +35,7 @@ export default function Faculty() {
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Are you sure you want to permanently delete ${selectedIds.length} faculty? Their students will become unassigned.`)) return;
+    if (!await confirm(`Are you sure you want to permanently delete ${selectedIds.length} faculty? Their students will become unassigned.`)) return;
     setDeletingBulk(true);
     try {
       await Promise.all(selectedIds.map(id => deleteUser(id)));
@@ -88,7 +90,7 @@ export default function Faculty() {
   };
 
   const handleDelete = async (f) => {
-    if (!confirm(`Permanently delete ${f.name}'s faculty account? Their students will become unassigned.`)) return;
+    if (!await confirm(`Permanently delete ${f.name}'s faculty account? Their students will become unassigned.`)) return;
     try {
       await deleteUser(f._id);
       toast.success('Faculty deleted successfully!');

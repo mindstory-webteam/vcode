@@ -353,6 +353,31 @@ const updateGradeCard = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Delete / clear the full grade card for an assigned student
+// @route   DELETE /api/faculty/students/:studentId/progress-report/grade-card
+// @access  Private/Faculty
+const deleteGradeCard = asyncHandler(async (req, res) => {
+  const student = await ensureStudentIsAssigned(req.user._id, req.params.studentId);
+  if (!student) {
+    return res.status(403).json({ success: false, message: 'This student is not assigned to you' });
+  }
+
+  let report = await ProgressReport.findOne({ student: student._id });
+  if (!report) {
+    return res.status(404).json({ success: false, message: 'Progress report not found' });
+  }
+
+  report.gradeCard = {};
+  await report.save();
+
+  res.json({
+    success: true,
+    message: 'Grade card deleted successfully',
+    report,
+  });
+});
+
+
 // @desc    Export an assigned student's grade card as a multi-sheet .xlsx file
 // @route   GET /api/faculty/students/:studentId/progress-report/grade-card/export
 // @access  Private/Faculty
@@ -824,6 +849,7 @@ module.exports = {
   deleteProgressEntry,
   updateOverallRemarks,
   updateGradeCard,
+  deleteGradeCard,
   uploadStudentProfilePhoto,
   deleteStudentProfilePhoto,
   markAttendance,
