@@ -71,8 +71,8 @@ export default function Students() {
     try {
       await Promise.all(selectedIds.map(id => deleteUser(id)));
       toast.success('Successfully deleted selected students!');
+      setStudents(prev => prev.filter(s => !selectedIds.includes(s._id)));
       setSelectedIds([]);
-      load();
     } catch (err) {
       toast.error('Failed to delete some students. They may already be deleted.');
       setError('Failed to delete some students. They may already be deleted.');
@@ -109,11 +109,19 @@ export default function Students() {
     setFormError('');
     setBusy(true);
     try {
-      await createStudent({ ...form, assignedFacultyId: form.assignedFacultyId || undefined });
+      const res = await createStudent({ ...form, assignedFacultyId: form.assignedFacultyId || undefined });
       toast.success('Student created successfully!');
+      // Append the newly created student; fall back to a full reload if
+      // the server didn't return the student object.
+      // Backend returns { user: student } so use res.data.user.
+      const newStudent = res.data?.user;
+      if (newStudent) {
+        setStudents(prev => [...prev, newStudent]);
+      } else {
+        load();
+      }
       setShowCreate(false);
       setForm(emptyForm);
-      load();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not create student');
       setFormError(err.response?.data?.message || 'Could not create student');
@@ -133,8 +141,16 @@ export default function Students() {
     try {
       await assignFacultyToStudent(assignTarget._id, assignChoice);
       toast.success('Faculty assigned successfully!');
+      // Patch the assigned faculty on just that student in local state.
+      const chosenFaculty = faculty.find(f => f._id === assignChoice);
+      setStudents(prev =>
+        prev.map(s =>
+          s._id === assignTarget._id
+            ? { ...s, studentInfo: { ...s.studentInfo, assignedFaculty: chosenFaculty || { _id: assignChoice, name: assignChoice } } }
+            : s
+        )
+      );
       setAssignTarget(null);
-      load();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not assign faculty');
       setError(err.response?.data?.message || 'Could not assign faculty');
@@ -147,7 +163,10 @@ export default function Students() {
     try {
       await toggleUserActive(student._id);
       toast.success(`Student status updated to ${student.isActive ? 'Inactive' : 'Active'}!`);
-      load();
+      // Flip isActive in-place — no full reload needed.
+      setStudents(prev =>
+        prev.map(s => s._id === student._id ? { ...s, isActive: !s.isActive } : s)
+      );
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not update student status');
       setError(err.response?.data?.message || 'Could not update student status');
@@ -159,7 +178,8 @@ export default function Students() {
     try {
       await deleteUser(student._id);
       toast.success('Student deleted successfully!');
-      load();
+      // Remove just this student from the list.
+      setStudents(prev => prev.filter(s => s._id !== student._id));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not delete student');
       setError(err.response?.data?.message || 'Could not delete student');
@@ -177,6 +197,8 @@ export default function Students() {
       toast.success(res.data.message || 'Bulk import successful!');
       setBulkMsg(res.data.message || 'Bulk import successful');
       setBulkFile(null);
+      // Bulk import can create many new students at once — do a full reload
+      // here since we don't know all the records the server created.
       load();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Bulk import failed. Please check the Excel format.');
