@@ -384,8 +384,18 @@ button { font-family: var(--font-body); }
 .stamp-pending { color: var(--orange-deep); background: var(--orange-tint); }
 .stamp-approved { color: var(--teal); background: rgba(47, 111, 98, 0.08); }
 .stamp-rejected { color: var(--brick); background: rgba(168, 67, 46, 0.08); }
-.stamp-active { color: var(--teal); background: rgba(47, 111, 98, 0.08); }
-.stamp-inactive { color: var(--muted); background: rgba(138, 125, 148, 0.1); }
+.stamp-active, .stamp-inactive {
+  border: none !important;
+  background: none !important;
+  padding: 0 !important;
+  transform: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+}
+.stamp-active { color: #137333 !important; }
+.stamp-inactive { color: #c5221f !important; }
 
 /* ================= Buttons ================= */
 

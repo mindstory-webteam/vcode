@@ -161,7 +161,6 @@ export default function Hero() {
               {/* Card 3 */}
               <div className="border border-gray-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[110px] md:h-[120px] bg-white">
                   <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">
-                    <BadgeCheck size={14} className="text-green-600 shrink-0" />
                     Status
                   </div>
                 <div className="font-serif text-lg sm:text-2xl md:text-[34px] text-gray-900 tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis capitalize">
