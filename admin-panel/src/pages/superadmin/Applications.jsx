@@ -52,7 +52,7 @@ export default function Applications() {
       await Promise.all(selectedIds.map(id => deleteApplication(id)));
       toast.success('Successfully deleted selected applications!');
       setSelectedIds([]);
-      load();
+      load(true);
     } catch (err) {
       toast.error('Failed to delete some applications. They may already be deleted.');
       setError('Failed to delete some applications. They may already be deleted.');
@@ -61,8 +61,8 @@ export default function Applications() {
     }
   };
 
-  const load = () => {
-    setLoading(true);
+  const load = (silent = false) => {
+    if (!silent) setLoading(true);
     setError('');
     Promise.all([getApplications(tab), getAllFaculty()])
       .then(([appsRes, facRes]) => {
@@ -70,7 +70,9 @@ export default function Applications() {
         setFaculty(facRes.data.faculty);
       })
       .catch((err) => setError(err.response?.data?.message || 'Could not load applications'))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -89,7 +91,7 @@ export default function Applications() {
       await approveApplication(approveTarget._id, facultyChoice || undefined);
       toast.success('Application approved successfully!');
       setApproveTarget(null);
-      load();
+      load(true);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not approve application');
       setError(err.response?.data?.message || 'Could not approve application');
@@ -105,7 +107,7 @@ export default function Applications() {
       toast.success('Application rejected successfully!');
       setRejectTarget(null);
       setRejectReason('');
-      load();
+      load(true);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not reject application');
       setError(err.response?.data?.message || 'Could not reject application');
@@ -119,7 +121,7 @@ export default function Applications() {
     try {
       await deleteApplication(app._id);
       toast.success('Application deleted successfully!');
-      load();
+      load(true);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not delete application');
       setError(err.response?.data?.message || 'Could not delete application');

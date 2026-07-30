@@ -326,9 +326,9 @@ function AuthContent() {
           </p>
         </div>
         <div className="absolute bottom-6 z-10 flex gap-5 text-[11px] text-white">
-          <span>About</span>
-          <span>Privacy</span>
-          <span>Terms of Use</span>
+          <a href="https://vcamasterclass.com/about-us" target="_blank" rel="noopener noreferrer" className="hover:underline opacity-80 hover:opacity-100 transition-opacity">About</a>
+          <a href="https://vcamasterclass.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:underline opacity-80 hover:opacity-100 transition-opacity">Privacy</a>
+          <a href="https://vcamasterclass.com/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="hover:underline opacity-80 hover:opacity-100 transition-opacity">Terms of Use</a>
         </div>
       </div>
 
@@ -584,9 +584,9 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
           </p>
         </div>
         <div className="absolute bottom-6 z-10 flex gap-5 text-[11px] text-white">
-          <span>About</span>
-          <span>Privacy</span>
-          <span>Terms of Use</span>
+          <a href="https://vcamasterclass.com/about-us" target="_blank" rel="noopener noreferrer" className="hover:underline opacity-80 hover:opacity-100 transition-opacity">About</a>
+          <a href="https://vcamasterclass.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:underline opacity-80 hover:opacity-100 transition-opacity">Privacy</a>
+          <a href="https://vcamasterclass.com/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="hover:underline opacity-80 hover:opacity-100 transition-opacity">Terms of Use</a>
         </div>
       </div>
 
