@@ -240,7 +240,7 @@ export default function SuperAdminAttendance() {
               <ExcelIcon /> {bulkBusy ? 'Uploading…' : 'Bulk upload (Excel)'}
             </button>
             <button className="btn btn-ghost" type="button" onClick={handleExport} disabled={exportBusy} style={{ display: 'inline-flex', alignItems: 'center' }}>
-              <ExcelIcon /> {exportBusy ? 'Exporting…' : 'Export to Excel'}
+              <ExcelIcon /> {exportBusy ? 'Exporting…' : 'Export'}
             </button>
           </div>
         )}

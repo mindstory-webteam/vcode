@@ -556,7 +556,7 @@ export default function StudentReport() {
           </div>
           <div className="btn-row">
             <label className="btn btn-ghost" style={{ cursor: 'pointer' }}>
-              {gradeCardImportBusy ? 'Importing…' : 'Import from Excel'}
+              {gradeCardImportBusy ? 'Importing…' : 'Import'}
               <input
                 type="file"
                 accept=".xlsx,.xls"
@@ -566,7 +566,7 @@ export default function StudentReport() {
               />
             </label>
             <button className="btn btn-ghost" type="button" onClick={handleExportGradeCard} disabled={gradeCardExportBusy}>
-              {gradeCardExportBusy ? 'Exporting…' : 'Export to Excel'}
+              {gradeCardExportBusy ? 'Exporting…' : 'Export'}
             </button>
             <button className="btn btn-ghost" type="button" onClick={() => setShowGradeCardModal(false)} disabled={gradeCardBusy}>
               Cancel
@@ -950,7 +950,7 @@ export default function StudentReport() {
         {report && (
           <div className="btn-row">
             <button className="btn btn-ghost" onClick={openGradeCard}>
-              {gc?.overallGrade ? 'Edit grade card' : '+ Create grade card'}
+              {gc?.overallGrade ? 'Edit Report' : '+ Create Report'}
             </button>
             {gc?.overallGrade && (
               <button 
@@ -986,7 +986,7 @@ export default function StudentReport() {
             {fullReportImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>{fullReportImportMessage} ✓</div>}
             <div className="btn-row">
               <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
-                <ExcelIcon /> {fullReportImportBusy ? 'Importing…' : 'Import full report (Excel)'}
+                <ExcelIcon /> {fullReportImportBusy ? 'Importing…' : 'Import'}
                 <input
                   type="file"
                   accept=".xlsx,.xls"
@@ -996,7 +996,7 @@ export default function StudentReport() {
                 />
               </label>
               <button className="btn btn-ghost btn-sm" onClick={handleExportFullProgressReport} disabled={fullReportExportBusy} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                <ExcelIcon /> {fullReportExportBusy ? 'Exporting…' : 'Export full report (Excel)'}
+                <ExcelIcon /> {fullReportExportBusy ? 'Exporting…' : 'Export'}
               </button>
             </div>
           </div>
@@ -1004,28 +1004,51 @@ export default function StudentReport() {
           {gc?.overallGrade && (
             <div className="card card-pad" style={{ marginBottom: 24 }}>
               <div className="section-title">Grade card</div>
-
-              <div style={{ ...statGridStyle, marginTop: 14, marginBottom: 14 }}>
-                <StatCard icon="🏅" value={gc.overallGrade} label="Overall grade" />
-                <StatCard icon="📈" value={gc.industryReadiness != null ? `${gc.industryReadiness}%` : ''} label="Industry readiness" />
-                <StatCard icon="🎯" value={gc.placementStatus?.replace('_', ' ')} label="Placement status" />
-              </div>
+              
+              <table className="ledger" style={{ marginBottom: 16 }}>
+                <thead>
+                  <tr>
+                    <th>Overall Grade</th>
+                    <th>Industry Readiness</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="cell-mono" style={{ fontSize: 15, fontWeight: 'bold' }}>{gc.overallGrade || 'N/A'}</td>
+                    <td className="cell-mono" style={{ fontSize: 15, fontWeight: 'bold' }}>{gc.industryReadiness != null ? `${gc.industryReadiness}%` : 'N/A'}</td>
+                    <td style={{ fontSize: 14, fontWeight: 'bold', textTransform: 'capitalize' }}>{gc.placementStatus?.replace('_', ' ') || 'N/A'}</td>
+                  </tr>
+                </tbody>
+              </table>
 
               {gc.program?.name && (
-                <p className="muted" style={{ margin: '0 0 10px' }}>
-                  {gc.program.name} {gc.program.durationLabel ? `· ${gc.program.durationLabel}` : ''} {gc.program.batch ? `· Batch ${gc.program.batch}` : ''}
+                <p className="muted" style={{ margin: '0 0 16px' }}>
+                  <strong>Program:</strong> {gc.program.name} {gc.program.durationLabel ? `· ${gc.program.durationLabel}` : ''} {gc.program.batch ? `· Batch ${gc.program.batch}` : ''}
                 </p>
               )}
+
               {gc.skillScores?.length > 0 && (
                 <>
                   <div className="section-title" style={{ fontSize: 12.5, marginTop: 14 }}>Skill scores</div>
-                  <div className="btn-row" style={{ flexWrap: 'wrap', gap: 10 }}>
-                    {gc.skillScores.map((s, i) => (
-                      <span key={i} className="stamp stamp-active" style={{ fontSize: 11 }}>
-                        {s.skillName}: {s.score ?? '—'} {s.grade ? `(${s.grade})` : ''}
-                      </span>
-                    ))}
-                  </div>
+                  <table className="ledger" style={{ marginTop: 8, marginBottom: 16 }}>
+                    <thead>
+                      <tr>
+                        <th>Skill Name</th>
+                        <th style={{ width: '120px', textAlign: 'center' }}>Score</th>
+                        <th style={{ width: '120px', textAlign: 'center' }}>Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {gc.skillScores.map((s, i) => (
+                        <tr key={i}>
+                          <td>{s.skillName}</td>
+                          <td style={{ textAlign: 'center' }} className="cell-mono">{s.score ?? 'N/A'}</td>
+                          <td style={{ textAlign: 'center' }} className="cell-mono">{s.grade || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </>
               )}
               {gc.mentorRemarks?.text && (
@@ -1043,24 +1066,7 @@ export default function StudentReport() {
                 </p>
               )}
 
-              <div className="section-title" style={{ fontSize: 12.5, marginTop: 16 }}>Grade card Excel</div>
-              {gradeCardImportError && <div className="form-error" style={{ fontSize: 12 }}>{gradeCardImportError}</div>}
-              {gradeCardImportMessage && <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>{gradeCardImportMessage} ✓</div>}
-              <div className="btn-row">
-                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
-                  <ExcelIcon /> {gradeCardImportBusy ? 'Importing…' : 'Import from Excel'}
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleImportGradeCard}
-                    style={{ display: 'none' }}
-                    disabled={gradeCardImportBusy}
-                  />
-                </label>
-                <button className="btn btn-ghost btn-sm" onClick={handleExportGradeCard} disabled={gradeCardExportBusy} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  <ExcelIcon /> {gradeCardExportBusy ? 'Exporting…' : 'Export to Excel'}
-                </button>
-              </div>
+
             </div>
           )}
 

@@ -410,7 +410,7 @@ export default function SuperAdminStudentReport() {
         {report && (
           <div className="btn-row">
             <button className="btn btn-ghost" onClick={openGradeCard}>
-              {gc?.overallGrade ? 'Edit grade card' : '+ Create grade card'}
+              {gc?.overallGrade ? 'Edit Report' : '+ Create Report'}
             </button>
             {gc?.overallGrade && (
               <button
@@ -461,15 +461,15 @@ export default function SuperAdminStudentReport() {
             <div className="section-title" style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center' }}><PdfIcon /> Student Certificate (PDF)</span>
               <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center' }}>
-                <PdfIcon size={14} /> {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace Certificate PDF' : 'Upload Certificate PDF'}
+                <PdfIcon size={14} /> {certUploading ? 'Uploading PDF…' : report?.certificatePdf ? 'Replace' : 'Upload'}
                 <input type="file" accept="application/pdf" onChange={handleCertUpload} style={{ display: 'none' }} disabled={certUploading} />
               </label>
             </div>
             {certError && <div className="form-error" style={{ fontSize: 12, marginTop: 8 }}>{certError}</div>}
             {certSuccess && <div style={{ fontSize: 12, marginTop: 8, padding: '8px 12px', background: '#e6f4ea', color: '#137333', borderRadius: 4 }}>{certSuccess}</div>}
             {report?.certificatePdf ? (
-              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 ,}}>
-                <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center', }}><PdfIcon /> View Certificate</a>
+              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12, }}>
+                <a href={report.certificatePdf} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center', }}><PdfIcon /> View</a>
               </div>
             ) : (
               <p className="muted" style={{ fontSize: 12.5, marginTop: 8 }}>No certificate uploaded yet. Upload a PDF to make it available on the student's progress card.</p>
@@ -479,26 +479,51 @@ export default function SuperAdminStudentReport() {
           {gc?.overallGrade && (
             <div className="card card-pad" style={{ marginBottom: 24 }}>
               <div className="section-title">Grade card</div>
-              <div className="btn-row" style={{ flexWrap: 'wrap', gap: 16, marginBottom: 12 }}>
-                <div><strong>Overall grade:</strong> {gc.overallGrade || 'N/A'}</div>
-                <div><strong>Industry readiness:</strong> {gc.industryReadiness != null ? `${gc.industryReadiness}%` : 'N/A'}</div>
-                <div><strong>Status:</strong> {gc.placementStatus?.replace('_', ' ') || 'N/A'}</div>
-              </div>
+
+              <table className="ledger" style={{ marginBottom: 16 }}>
+                <thead>
+                  <tr>
+                    <th>Overall Grade</th>
+                    <th>Industry Readiness</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="cell-mono" style={{ fontSize: 15, fontWeight: 'bold' }}>{gc.overallGrade || 'N/A'}</td>
+                    <td className="cell-mono" style={{ fontSize: 15, fontWeight: 'bold' }}>{gc.industryReadiness != null ? `${gc.industryReadiness}%` : 'N/A'}</td>
+                    <td style={{ fontSize: 14, fontWeight: 'bold', textTransform: 'capitalize' }}>{gc.placementStatus?.replace('_', ' ') || 'N/A'}</td>
+                  </tr>
+                </tbody>
+              </table>
+
               {gc.program?.name && (
-                <p className="muted" style={{ margin: '0 0 10px' }}>
-                  {gc.program.name} {gc.program.durationLabel ? `· ${gc.program.durationLabel}` : ''} {gc.program.batch ? `· Batch ${gc.program.batch}` : ''}
+                <p className="muted" style={{ margin: '0 0 16px' }}>
+                  <strong>Program:</strong> {gc.program.name} {gc.program.durationLabel ? `· ${gc.program.durationLabel}` : ''} {gc.program.batch ? `· Batch ${gc.program.batch}` : ''}
                 </p>
               )}
+
               {gc.skillScores?.length > 0 && (
                 <>
                   <div className="section-title" style={{ fontSize: 12.5, marginTop: 14 }}>Skill scores</div>
-                  <div className="btn-row" style={{ flexWrap: 'wrap', gap: 10 }}>
-                    {gc.skillScores.map((s, i) => (
-                      <span key={i} className="stamp stamp-active" style={{ fontSize: 11 }}>
-                        {s.skillName}: {s.score ?? 'N/A'} {s.grade ? `(${s.grade})` : ''}
-                      </span>
-                    ))}
-                  </div>
+                  <table className="ledger" style={{ marginTop: 8, marginBottom: 16 }}>
+                    <thead>
+                      <tr>
+                        <th>Skill Name</th>
+                        <th style={{ width: '120px', textAlign: 'center' }}>Score</th>
+                        <th style={{ width: '120px', textAlign: 'center' }}>Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {gc.skillScores.map((s, i) => (
+                        <tr key={i}>
+                          <td>{s.skillName}</td>
+                          <td style={{ textAlign: 'center' }} className="cell-mono">{s.score ?? 'N/A'}</td>
+                          <td style={{ textAlign: 'center' }} className="cell-mono">{s.grade || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </>
               )}
               {gc.mentorRemarks?.text && (
@@ -552,8 +577,8 @@ export default function SuperAdminStudentReport() {
                 </div>
                 <div className="btn-row">
                   <button className="btn btn-ghost btn-sm" onClick={() => openEdit(entry)}>Edit</button>
-                  <button 
-                    className="btn btn-brick btn-sm" 
+                  <button
+                    className="btn btn-brick btn-sm"
                     onClick={() => handleDeleteEntry(entry)}
                     title="Delete Entry"
                     style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}

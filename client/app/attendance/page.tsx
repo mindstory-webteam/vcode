@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
 import { api } from "../../lib/api";
 import Navbar from "../../components/Navbar";
 import AttendanceGraph from "../../components/AttendanceGraph";
-import { Loader2, CheckCircle2, XCircle, CalendarDays, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, CalendarDays, Clock, ChevronLeft, ChevronRight, Home } from "lucide-react";
 
 interface AttendanceRecord {
   date: string;
@@ -88,9 +89,20 @@ export default function AttendancePage() {
       
       <main className="mx-auto max-w-7xl px-6 pt-32">
         {/* Header Section */}
-        <div className="mb-8">
-          <h1 className="font-serif text-3xl font-medium tracking-tight">Your Attendance</h1>
-          <p className="mt-1 text-sm text-gray-500">Track your daily presence and absences.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="font-serif text-3xl font-medium tracking-tight">Your Attendance</h1>
+            <p className="mt-1 text-sm text-gray-500">Track your daily presence and absences.</p>
+          </div>
+          {user && (
+            <Link
+              href={`/student-progress-card/${user._id}`}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 hover:text-blue-600 transition-all w-fit"
+            >
+              <Home size={16} />
+              <span>Home</span>
+            </Link>
+          )}
         </div>
 
         <div className="flex flex-col gap-8">
@@ -141,7 +153,7 @@ export default function AttendancePage() {
                           {getStatusDisplay(record.status)}
                         </td>
                         <td className="py-4 pr-2 text-sm text-gray-500 max-w-[400px] truncate">
-                          {record.remarks || "-"}
+                          {record.remarks || "N/A"}
                         </td>
                       </tr>
                     ))}

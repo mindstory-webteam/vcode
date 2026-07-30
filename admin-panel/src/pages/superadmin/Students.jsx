@@ -297,7 +297,7 @@ export default function Students() {
                   <td>
                     <div className="btn-row">
                       <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/superadmin/students/${s._id}`)}>
-                        Open report
+                        Student Report
                       </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => openAssign(s)}>
                         Assign faculty
