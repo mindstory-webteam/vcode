@@ -97,7 +97,7 @@ export default function AttendancePage() {
           {user && (
             <Link
               href={`/student-progress-card/${user._id}`}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 hover:text-blue-600 transition-all w-fit"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 hover:text-[#833a89] transition-all w-fit"
             >
               <Home size={16} />
               <span>Home</span>
