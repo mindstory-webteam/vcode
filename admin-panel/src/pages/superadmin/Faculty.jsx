@@ -120,9 +120,9 @@ export default function Faculty() {
       {selectedIds.length > 0 && (
         <div style={{ marginBottom: 16, background: '#fcf3f3', border: '1px solid #f2dede', borderRadius: 6, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 14, fontWeight: 500, color: '#a94442' }}>{selectedIds.length} faculty selected</span>
-          <button 
-            className="btn btn-brick btn-sm" 
-            onClick={handleBulkDelete} 
+          <button
+            className="btn btn-brick btn-sm"
+            onClick={handleBulkDelete}
             disabled={deletingBulk}
             title="Delete Selected"
             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
@@ -168,8 +168,8 @@ export default function Faculty() {
                       <button className="btn btn-ghost btn-sm" onClick={() => handleToggleActive(f)}>
                         {f.isActive ? 'Deactivate' : 'Activate'}
                       </button>
-                      <button 
-                        className="btn btn-brick btn-sm" 
+                      <button
+                        className="btn btn-brick btn-sm"
                         onClick={() => handleDelete(f)}
                         title="Delete Faculty"
                         style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}

@@ -10,6 +10,7 @@ import {
   getAllStudents,
   getAllFaculty,
   createStudent,
+  updateStudentProfileAdmin,
   assignFacultyToStudent,
   toggleUserActive,
   deleteUser,
@@ -53,6 +54,10 @@ export default function Students() {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  const [showEdit, setShowEdit] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [editForm, setEditForm] = useState(emptyForm);
 
   const [selectedIds, setSelectedIds] = useState([]);
   const [deletingBulk, setDeletingBulk] = useState(false);
@@ -187,6 +192,49 @@ export default function Students() {
     }
   };
 
+  const handleEditClick = (student) => {
+    setEditingStudent(student);
+    setEditForm({
+      name: student.name || '',
+      email: student.email || '',
+      phone: student.phone || '',
+      rollNumber: student.studentInfo?.rollNumber || '',
+      department: student.studentInfo?.department || '',
+      course: student.studentInfo?.course || '',
+      assignedFacultyId: student.studentInfo?.assignedFaculty?._id || student.studentInfo?.assignedFaculty || '',
+    });
+    setFormError('');
+    setShowEdit(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    setBusy(true);
+    try {
+      await updateStudentProfileAdmin(editingStudent._id, {
+        name: editForm.name,
+        email: editForm.email,
+        phone: editForm.phone,
+        studentInfo: {
+          rollNumber: editForm.rollNumber,
+          department: editForm.department,
+          course: editForm.course,
+        },
+        assignedFaculty: editForm.assignedFacultyId || null,
+      });
+      toast.success('Student details updated successfully!');
+      setShowEdit(false);
+      setEditingStudent(null);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not update student');
+      setFormError(err.response?.data?.message || 'Could not update student');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleBulkSubmit = async (e) => {
     e.preventDefault();
     if (!bulkFile) return;
@@ -274,13 +322,22 @@ export default function Students() {
                         <img
                           src={fileUrl(s.profileImage)}
                           alt={s.name}
-                          style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)' }}
+                          style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)', cursor: 'pointer' }}
+                          onClick={() => handleEditClick(s)}
+                          title="Click to edit student details"
                         />
                       ) : (
-                        <div className="avatar-initial">{s.name?.[0]?.toUpperCase()}</div>
+                        <div 
+                          className="avatar-initial"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleEditClick(s)}
+                          title="Click to edit student details"
+                        >
+                          {s.name?.[0]?.toUpperCase()}
+                        </div>
                       )}
                       <div>
-                        <div className="cell-name">{s.name}</div>
+                        <div className="cell-name" style={{ cursor: 'pointer' }} onClick={() => handleEditClick(s)} title="Click to edit student details">{s.name}</div>
                         <div className="cell-sub">{s.email}</div>
                       </div>
                     </div>
@@ -296,6 +353,9 @@ export default function Students() {
                   <td><StampBadge status={s.isActive ? 'active' : 'inactive'} /></td>
                   <td>
                     <div className="btn-row">
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleEditClick(s)}>
+                        Edit
+                      </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/superadmin/students/${s._id}`)}>
                         Student Report
                       </button>
@@ -442,6 +502,56 @@ export default function Students() {
               Cancel
             </button>
           </div>
+        </Modal>
+      )}
+      {showEdit && (
+        <Modal title={`Edit ${editingStudent?.name || 'Student'}`} onClose={() => { setShowEdit(false); setEditingStudent(null); }}>
+          {formError && <div className="form-error">{formError}</div>}
+          <form onSubmit={handleEditSubmit}>
+            <div className="field">
+              <label>Full name</label>
+              <input required value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>Email</label>
+              <input type="email" required value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Roll number</label>
+                <input value={editForm.rollNumber} onChange={(e) => setEditForm({ ...editForm, rollNumber: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Phone</label>
+                <input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+              </div>
+            </div>
+            <div className="field">
+              <label>Department</label>
+              <input value={editForm.department} onChange={(e) => setEditForm({ ...editForm, department: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>Course</label>
+              <input value={editForm.course} onChange={(e) => setEditForm({ ...editForm, course: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>Assign faculty</label>
+              <select value={editForm.assignedFacultyId} onChange={(e) => setEditForm({ ...editForm, assignedFacultyId: e.target.value })}>
+                <option value="">No faculty yet</option>
+                {faculty.map((f) => (
+                  <option key={f._id} value={f._id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="btn-row">
+              <button className="btn btn-gold" type="submit" disabled={busy}>
+                {busy ? 'Saving…' : 'Save changes'}
+              </button>
+              <button className="btn btn-ghost" type="button" onClick={() => { setShowEdit(false); setEditingStudent(null); }} disabled={busy}>
+                Cancel
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
     </Layout>

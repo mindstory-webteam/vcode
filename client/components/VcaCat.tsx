@@ -12,7 +12,6 @@ export default function VcaCat() {
           .sc-eye { fill: none; stroke: #a56eaa; stroke-width: 3; stroke-linecap: round; }
         `}</style>
       </defs>
-
       {/* Solid background ellipse to block the grid */}
       <ellipse cx="80" cy="80" rx="75" ry="70" fill="#7A3580" />
 
