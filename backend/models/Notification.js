@@ -17,6 +17,20 @@ const notificationSchema = new mongoose.Schema(
       enum: ['broadcast', 'personal'],
       default: 'broadcast',
     },
+    targetType: {
+      type: String,
+      enum: ['all', 'department', 'student'],
+      default: 'all',
+    },
+    targetDepartment: {
+      type: String,
+      default: null,
+    },
+    targetUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
     deletedBy: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -29,6 +43,10 @@ const notificationSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    scheduledFor: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

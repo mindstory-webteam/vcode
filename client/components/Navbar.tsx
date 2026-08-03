@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect, useRef } from "react";
 import { LogOut, CalendarDays, LayoutDashboard, Bell, Trash2 } from "lucide-react";
-import { io } from "socket.io-client";
 import { api, SOCKET_URL } from "../lib/api";
 
 export default function Navbar() {
@@ -46,24 +45,32 @@ export default function Navbar() {
   useEffect(() => {
     if (!user) return;
 
-    const socketUrl = SOCKET_URL;
-    const socket = io(socketUrl, {
-      transports: ["websocket", "polling"],
-      reconnection: true,
-    });
+    let socket: any = null;
 
-    socket.emit("join_notification_rooms", {
-      userId: user._id,
-      department: user.studentInfo?.department
-    });
+    import("socket.io-client").then(({ io }) => {
+      const socketUrl = SOCKET_URL;
+      socket = io(socketUrl, {
+        transports: ["websocket", "polling"],
+        reconnection: true,
+      });
 
-    socket.on("new_notification", (notification) => {
-      setHasUnread(true);
-      setNotifications(prev => [notification, ...prev]);
+      socket.emit("join_notification_rooms", {
+        userId: user._id,
+        department: user.studentInfo?.department
+      });
+
+      socket.on("new_notification", (notification: any) => {
+        setHasUnread(true);
+        setNotifications(prev => [notification, ...prev]);
+      });
+    }).catch(err => {
+      console.error("Failed to load socket.io-client:", err);
     });
 
     return () => {
-      socket.disconnect();
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, [user]);
 

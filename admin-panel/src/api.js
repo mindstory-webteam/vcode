@@ -331,7 +331,11 @@ export const updateStudentProfile = (studentId, data) =>
 
 // ---- Notifications ----
 export const getNotificationsAdmin = () => api.get('/notifications');
-export const sendBroadcastNotification = (title, message) =>
-  api.post('/notifications/broadcast', { title, message });
+export const sendBroadcastNotification = (title, message, scheduledFor, targetType, targetDepartment, targetUser) =>
+  api.post('/notifications/broadcast', { title, message, scheduledFor, targetType, targetDepartment, targetUser });
+export const deleteNotificationAdmin = (id) =>
+  api.delete(`/notifications/${id}`);
+export const searchStudentsAdmin = (query) =>
+  api.get(`/notifications/search-students?query=${encodeURIComponent(query)}`);
 
 export default api;

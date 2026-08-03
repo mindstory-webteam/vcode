@@ -2,7 +2,6 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { api, SOCKET_URL } from "../lib/api";
-import { io } from "socket.io-client";
 
 export interface AuthUser {
   _id: string;
@@ -108,33 +107,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user?._id) return;
 
-    const socket = io(SOCKET_URL, {
-      transports: ["websocket", "polling"],
-      reconnection: true,
-    });
+    let socket: any = null;
 
-    socket.emit("join_progress_report_room", user._id);
+    import("socket.io-client").then(({ io }) => {
+      socket = io(SOCKET_URL, {
+        transports: ["websocket", "polling"],
+        reconnection: true,
+      });
 
-    socket.on("user_deactivated", async () => {
-      try {
-        await logout();
-      } catch (err) {
-        // Ignore API failures (e.g. 403) since user is already deactivated
-      }
-      window.location.href = "/";
-    });
+      socket.emit("join_progress_report_room", user._id);
 
-    socket.on("user_deleted", async () => {
-      try {
-        await logout();
-      } catch (err) {
-        // Ignore API failures (e.g. 401) since user is already deleted
-      }
-      window.location.href = "/";
+      socket.on("user_deactivated", async () => {
+        try {
+          await logout();
+        } catch (err) {
+          // Ignore API failures (e.g. 403) since user is already deactivated
+        }
+        window.location.href = "/";
+      });
+
+      socket.on("user_deleted", async () => {
+        try {
+          await logout();
+        } catch (err) {
+          // Ignore API failures (e.g. 401) since user is already deleted
+        }
+        window.location.href = "/";
+      });
+    }).catch(err => {
+      console.error("Failed to load socket.io-client:", err);
     });
 
     return () => {
-      socket.disconnect();
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, [user?._id, logout]);
 

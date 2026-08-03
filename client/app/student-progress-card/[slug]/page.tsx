@@ -2,7 +2,6 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { io } from "socket.io-client";
 import { useAuth } from "../../../contexts/AuthContext";
 import { api, ApiError, SOCKET_URL } from "../../../lib/api";
 import {
@@ -64,23 +63,31 @@ export default function DashboardPage({ params }: { params: Promise<{ slug: stri
   useEffect(() => {
     if (!data?.student?._id) return;
 
-    const socketUrl = SOCKET_URL;
-    const socket = io(socketUrl, {
-      transports: ["websocket", "polling"],
-      reconnection: true,
-    });
+    let socket: any = null;
 
-    socket.emit("join_progress_report_room", data.student._id);
+    import("socket.io-client").then(({ io }) => {
+      const socketUrl = SOCKET_URL;
+      socket = io(socketUrl, {
+        transports: ["websocket", "polling"],
+        reconnection: true,
+      });
 
-    socket.on("progress_report_updated", () => {
-      setRefreshTrigger((prev) => prev + 1);
-      if (refresh) {
-        refresh().catch(() => {});
-      }
+      socket.emit("join_progress_report_room", data.student._id);
+
+      socket.on("progress_report_updated", () => {
+        setRefreshTrigger((prev) => prev + 1);
+        if (refresh) {
+          refresh().catch(() => {});
+        }
+      });
+    }).catch(err => {
+      console.error("Failed to load socket.io-client:", err);
     });
 
     return () => {
-      socket.disconnect();
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, [data?.student?._id]);
 

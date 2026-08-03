@@ -112,6 +112,19 @@ io.on('connection', (socket) => {
       console.log(`Socket ${socket.id} joined room ${room}`);
     }
   });
+
+  socket.on('join_notification_rooms', ({ userId, department }) => {
+    if (userId) {
+      const userRoom = `user:${userId.toString()}`;
+      socket.join(userRoom);
+      console.log(`Socket ${socket.id} joined room ${userRoom}`);
+    }
+    if (department) {
+      const deptRoom = `department:${department.toLowerCase().trim()}`;
+      socket.join(deptRoom);
+      console.log(`Socket ${socket.id} joined room ${deptRoom}`);
+    }
+  });
 });
 
 socketHelper.setIo(io);

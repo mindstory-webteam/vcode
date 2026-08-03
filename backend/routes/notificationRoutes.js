@@ -5,22 +5,54 @@ const Notification = require('../models/Notification');
 const socketHelper = require('../socketHelper');
 
 // @route   POST /api/notifications/broadcast
-// @desc    Send a broadcast notification
+// @desc    Send a broadcast or targeted notification
 // @access  Private/SuperAdmin
 router.post('/broadcast', protect, authorize('superadmin'), async (req, res) => {
   try {
-    const { title, message } = req.body;
+    const { title, message, scheduledFor, targetType, targetDepartment, targetUser } = req.body;
     if (!title || !message) {
       return res.status(400).json({ success: false, message: 'Please provide title and message' });
+    }
+
+    if (targetType === 'department' && !targetDepartment) {
+      return res.status(400).json({ success: false, message: 'Please select a target department' });
+    }
+
+    if (targetType === 'student' && !targetUser) {
+      return res.status(400).json({ success: false, message: 'Please select a target student' });
+    }
+
+    let parsedScheduledFor = null;
+    let isFuture = false;
+
+    if (scheduledFor) {
+      parsedScheduledFor = new Date(scheduledFor);
+      if (isNaN(parsedScheduledFor.getTime())) {
+        return res.status(400).json({ success: false, message: 'Invalid schedule date' });
+      }
+      isFuture = parsedScheduledFor.getTime() > Date.now();
     }
 
     const notification = await Notification.create({
       title,
       message,
-      type: 'broadcast',
+      type: targetType === 'all' ? 'broadcast' : 'personal',
+      targetType: targetType || 'all',
+      targetDepartment: targetType === 'department' ? targetDepartment : null,
+      targetUser: targetType === 'student' ? targetUser : null,
+      scheduledFor: parsedScheduledFor,
     });
 
-    socketHelper.emitBroadcastNotification(notification);
+    // Populate targetUser details if present so socket payload and DB return match
+    if (notification.targetUser) {
+      await notification.populate('targetUser', 'name email role studentInfo');
+    }
+
+    if (isFuture) {
+      socketHelper.scheduleNotification(notification);
+    } else {
+      socketHelper.emitBroadcastNotification(notification);
+    }
 
     res.status(201).json({
       success: true,
@@ -32,13 +64,33 @@ router.post('/broadcast', protect, authorize('superadmin'), async (req, res) => 
 });
 
 // @route   GET /api/notifications/mine
-// @desc    Get user notifications (excluding deleted ones)
+// @desc    Get user notifications (excluding deleted ones, matching target segment)
 // @access  Private
 router.get('/mine', protect, async (req, res) => {
   try {
+    const now = new Date();
+    let userDept = null;
+    if (req.user.studentInfo && req.user.studentInfo.department) {
+      userDept = req.user.studentInfo.department;
+    } else if (req.user.department) {
+      userDept = req.user.department;
+    }
+
     const notifications = await Notification.find({
-      type: 'broadcast',
       deletedBy: { $ne: req.user._id },
+      $or: [
+        { scheduledFor: null },
+        { scheduledFor: { $lte: now } }
+      ],
+      $and: [
+        {
+          $or: [
+            { targetType: 'all' },
+            { targetType: 'department', targetDepartment: userDept },
+            { targetType: 'student', targetUser: req.user._id }
+          ]
+        }
+      ]
     }).sort({ createdAt: -1 });
 
     res.json({
@@ -55,11 +107,22 @@ router.get('/mine', protect, async (req, res) => {
 // @access  Private
 router.put('/read-all', protect, async (req, res) => {
   try {
+    let userDept = null;
+    if (req.user.studentInfo && req.user.studentInfo.department) {
+      userDept = req.user.studentInfo.department;
+    } else if (req.user.department) {
+      userDept = req.user.department;
+    }
+
     await Notification.updateMany(
       {
-        type: 'broadcast',
         deletedBy: { $ne: req.user._id },
-        readBy: { $ne: req.user._id }
+        readBy: { $ne: req.user._id },
+        $or: [
+          { targetType: 'all' },
+          { targetType: 'department', targetDepartment: userDept },
+          { targetType: 'student', targetUser: req.user._id }
+        ]
       },
       {
         $addToSet: { readBy: req.user._id }
@@ -76,7 +139,7 @@ router.put('/read-all', protect, async (req, res) => {
 });
 
 // @route   DELETE /api/notifications/:id
-// @desc    Delete (hide) a notification for the current user
+// @desc    Delete (hide) a notification for current user, or delete globally if superadmin
 // @access  Private
 router.delete('/:id', protect, async (req, res) => {
   try {
@@ -85,14 +148,52 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Notification not found' });
     }
 
-    if (!notification.deletedBy.includes(req.user._id)) {
-      notification.deletedBy.push(req.user._id);
-      await notification.save();
+    if (req.user.role === 'superadmin') {
+      await Notification.findByIdAndDelete(req.params.id);
+      socketHelper.cancelScheduledNotification(req.params.id);
+      res.json({
+        success: true,
+        message: 'Notification deleted globally',
+      });
+    } else {
+      if (!notification.deletedBy.includes(req.user._id)) {
+        notification.deletedBy.push(req.user._id);
+        await notification.save();
+      }
+      res.json({
+        success: true,
+        message: 'Notification deleted successfully',
+      });
     }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @route   GET /api/notifications/search-students
+// @desc    Search students by name, email, or roll number for targeted notifications
+// @access  Private/SuperAdmin
+router.get('/search-students', protect, authorize('superadmin'), async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.json({ success: true, students: [] });
+    }
+
+    const User = require('../models/User');
+    const regex = new RegExp(query, 'i');
+    const students = await User.find({
+      role: 'student',
+      $or: [
+        { name: regex },
+        { email: regex },
+        { 'studentInfo.rollNumber': regex }
+      ]
+    }).limit(10).select('_id name email role studentInfo');
 
     res.json({
       success: true,
-      message: 'Notification deleted successfully',
+      students
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -104,7 +205,9 @@ router.delete('/:id', protect, async (req, res) => {
 // @access  Private/SuperAdmin
 router.get('/', protect, authorize('superadmin'), async (req, res) => {
   try {
-    const notifications = await Notification.find({}).sort({ createdAt: -1 });
+    const notifications = await Notification.find({})
+      .populate('targetUser', 'name email role studentInfo')
+      .sort({ createdAt: -1 });
     res.json({
       success: true,
       notifications,
