@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect, useRef } from "react";
-import { LogOut, CalendarDays, LayoutDashboard, Bell } from "lucide-react";
+import { LogOut, CalendarDays, LayoutDashboard, Bell, Trash2 } from "lucide-react";
 import { io } from "socket.io-client";
 import { api, SOCKET_URL } from "../lib/api";
 
@@ -25,21 +25,26 @@ export default function Navbar() {
 
   const [hidden, setHidden] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
 
   // Check for existing unread notifications on load
   useEffect(() => {
-    if (user && user.role === 'student') {
+    if (user) {
       api.get("/api/notifications/mine").then(res => {
-        const unread = res.notifications?.some((n: any) => !n.readBy.includes(user._id));
-        setHasUnread(!!unread);
-      }).catch(() => {});
+        if (res.success) {
+          const list = res.notifications || [];
+          setNotifications(list);
+          const unread = list.some((n: any) => !n.readBy?.includes(user._id));
+          setHasUnread(unread);
+        }
+      }).catch((e) => console.error("Error loading notifications:", e));
     }
   }, [user]);
 
   // Setup Socket.io
   useEffect(() => {
-    if (!user || user.role !== 'student') return;
+    if (!user) return;
 
     const socketUrl = SOCKET_URL;
     const socket = io(socketUrl, {
@@ -54,8 +59,7 @@ export default function Navbar() {
 
     socket.on("new_notification", (notification) => {
       setHasUnread(true);
-      setToastMsg(notification.title);
-      setTimeout(() => setToastMsg(""), 5000);
+      setNotifications(prev => [notification, ...prev]);
     });
 
     return () => {
@@ -84,11 +88,22 @@ export default function Navbar() {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
+        setNotifDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleDeleteNotification = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await api.delete(`/api/notifications/${id}`);
+      setNotifications(prev => prev.filter(n => n._id !== id));
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+    }
+  };
 
   let logoHref = "/";
   if (pathname.startsWith("/student-progress-card/")) {
@@ -111,16 +126,77 @@ export default function Navbar() {
         />
       </Link>
       
-      {toastMsg && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-xl text-sm font-medium animate-in fade-in slide-in-from-top-5 z-50 pointer-events-auto">
-          New Notification: {toastMsg}
-        </div>
-      )}
+
 
       {user && !isAuthPage && (
         <div className="flex items-center gap-4 pointer-events-auto" ref={dropdownRef}>
-          
-
+          {/* Notifications Dropdown */}
+          <div className="relative">
+            <button 
+              onClick={() => {
+                setNotifDropdownOpen(!notifDropdownOpen);
+                setDropdownOpen(false);
+                if (hasUnread) {
+                  setHasUnread(false);
+                  api.put("/api/notifications/read-all").then(() => {
+                    setNotifications(prev => prev.map(n => ({
+                      ...n,
+                      readBy: [...(n.readBy || []), user._id]
+                    })));
+                  }).catch(e => console.error("Failed to mark notifications as read:", e));
+                }
+              }}
+              className="relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white shadow-sm  transition-all focus:outline-none"
+              title="Notifications"
+            >
+              <Bell size={18} className={hasUnread ? "text-blue-600 " : "text-gray-600"} />
+              {hasUnread && (
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white " />
+              )}
+              {hasUnread && (
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+              )}
+            </button>
+            
+            {notifDropdownOpen && (
+              <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 flex flex-col z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="px-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Notifications</span>
+                </div>
+                
+                <div className="max-h-80 overflow-y-auto py-1">
+                  {notifications.length === 0 ? (
+                    <div className="px-6 py-10 text-center flex flex-col items-center gap-2">
+                      <Bell size={24} className="text-gray-300 " />
+                      <span className="text-sm font-medium text-gray-400">All caught up!</span>
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div 
+                        key={n._id} 
+                        className="group px-4 py-3 hover:bg-gray-50 transition-colors flex items-start justify-between gap-3 border-b border-gray-50 last:border-b-0"
+                      >
+                        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                          <span className="text-xs font-semibold text-gray-800 break-words">{n.title}</span>
+                          <span className="text-xs text-gray-500 leading-relaxed break-words">{n.message}</span>
+                          <span className="text-[9px] text-gray-400 mt-1 font-mono">
+                            {new Date(n.createdAt).toLocaleDateString()} {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <button
+                          onClick={(e) => handleDeleteNotification(n._id, e)}
+                          className="text-gray-300 hover:text-red-500 p-1 rounded-md hover:bg-red-50 transition-colors shrink-0"
+                          title="Delete notification"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Profile Dropdown */}
           <div className="relative">

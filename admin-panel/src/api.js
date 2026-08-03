@@ -329,4 +329,9 @@ export const deleteStudentProfilePhoto = (studentId) => {
 export const updateStudentProfile = (studentId, data) =>
   api.put(`/faculty/students/${studentId}/profile`, data);
 
+// ---- Notifications ----
+export const getNotificationsAdmin = () => api.get('/notifications');
+export const sendBroadcastNotification = (title, message) =>
+  api.post('/notifications/broadcast', { title, message });
+
 export default api;

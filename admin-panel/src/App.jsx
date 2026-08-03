@@ -9,6 +9,7 @@ import Applications from './pages/superadmin/Applications.jsx';
 import Students from './pages/superadmin/Students.jsx';
 import Faculty from './pages/superadmin/Faculty.jsx';
 import SuperAdminStudentReport from './pages/superadmin/StudentReport.jsx';
+import Broadcasts from './pages/superadmin/Broadcasts.jsx';
 import MyStudents from './pages/faculty/MyStudents.jsx';
 import StudentReport from './pages/faculty/StudentReport.jsx';
 import FacultyAttendance from './pages/faculty/Attendance.jsx';
@@ -69,6 +70,10 @@ export default function App() {
         <Route
           path="/superadmin/faculty"
           element={<ProtectedRoute roles={['superadmin']}><Faculty /></ProtectedRoute>}
+        />
+        <Route
+          path="/superadmin/notifications"
+          element={<ProtectedRoute roles={['superadmin']}><Broadcasts /></ProtectedRoute>}
         />
 
         <Route path="/faculty/students/:studentId/attendance" element={<FacultyAttendance />} />

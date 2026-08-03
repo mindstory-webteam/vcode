@@ -19,5 +19,10 @@ module.exports = {
     if (ioInstance && userId) {
       ioInstance.to(`progress_report:${userId.toString()}`).emit('user_deleted');
     }
+  },
+  emitBroadcastNotification: (notification) => {
+    if (ioInstance && notification) {
+      ioInstance.emit('new_notification', notification);
+    }
   }
 };
