@@ -26,7 +26,8 @@ interface AuthContextValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
   loginWithGoogle: (email: string, name: string, googleId: string) => Promise<AuthUser>;
-  otpLogin: (email: string) => Promise<any>;
+  otpLogin: (email: string, passcode: string) => Promise<any>;
+  requestOtp: (email: string) => Promise<any>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -77,8 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data.user as AuthUser;
   }, []);
 
-  const otpLogin = useCallback(async (email: string) => {
-    const data = await api.post("/api/auth/otp-login", { email });
+  const otpLogin = useCallback(async (email: string, passcode: string) => {
+    const data = await api.post("/api/auth/otp-login", { email, passcode });
     if (data.token && typeof window !== "undefined") {
       localStorage.setItem("token", data.token);
     }
@@ -86,6 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
     }
     return data;
+  }, []);
+
+  const requestOtp = useCallback(async (email: string) => {
+    return await api.post("/api/auth/request-otp", { email });
   }, []);
 
   const logout = useCallback(async () => {
@@ -134,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?._id, logout]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, otpLogin, logout, refresh }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, otpLogin, requestOtp, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   );

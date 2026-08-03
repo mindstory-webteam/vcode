@@ -2,6 +2,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const StudentApplication = require('../models/StudentApplication');
 const ProgressReport = require('../models/ProgressReport');
+const Otp = require('../models/Otp');
 const { generateToken, sendTokenResponse } = require('../utils/generateToken');
 
 // @desc    Google OAuth login & first-time approval request
@@ -211,16 +212,121 @@ const updatePassword = asyncHandler(async (req, res) => {
   sendTokenResponse(user, 200, res);
 });
 
-// @desc    Passwordless OTP login (called after frontend verifies the EmailJS OTP code)
-// @route   POST /api/auth/otp-login
+// @desc    Generate and send OTP via email securely from backend
+// @route   POST /api/auth/request-otp
 // @access  Public
-const otpLogin = asyncHandler(async (req, res) => {
+const requestOtp = asyncHandler(async (req, res) => {
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ success: false, message: 'Please provide email' });
   }
 
   const normalizedEmail = email.toLowerCase().trim();
+
+  // Validate check for active or rejected student applications
+  const checkRes = await StudentApplication.findOne({ email: normalizedEmail });
+  if (checkRes && checkRes.status === 'rejected') {
+    return res.status(401).json({
+      success: false,
+      status: 'rejected',
+      message: 'Your registration was rejected by SuperAdmin',
+      reason: checkRes.rejectionReason,
+    });
+  }
+
+  // 1. Generate 6-digit OTP passcode
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiry = Date.now() + 1 * 60 * 1000; // valid for 1 minute
+  const timeStr = new Date(expiry).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  // 2. Save OTP record in DB (overwriting any previous OTP for the same email)
+  await Otp.deleteMany({ email: normalizedEmail });
+  await Otp.create({ email: normalizedEmail, code });
+
+  // Debug print in terminal console for easy developer testing
+  console.log("==========================================");
+  console.log(`[BACKEND SECURE OTP CODE FOR ${normalizedEmail}]: ${code} (expires in 60s at ${timeStr})`);
+  console.log("==========================================");
+
+  // 3. Send email via EmailJS API securely from backend
+  const serviceId = process.env.EMAILJS_SERVICE_ID || "service_ptafsqi";
+  const templateId = process.env.EMAILJS_TEMPLATE_ID || "template_bpiaj3s";
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY || "WGpMDI4EQf2GSpNim";
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY || ""; // Optional accessToken
+
+  try {
+    const payload = {
+      service_id: serviceId,
+      template_id: templateId,
+      user_id: publicKey,
+      template_params: {
+        email: normalizedEmail,
+        to_name: normalizedEmail.split("@")[0],
+        passcode: code,
+        time: timeStr
+      }
+    };
+    if (privateKey) {
+      payload.accessToken = privateKey;
+    }
+
+    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`EmailJS responded with status ${response.status}: ${errText}`);
+    }
+  } catch (err) {
+    console.error("Backend OTP email delivery failed:", err.message || err);
+    // In development mode or if keys are empty/unset, we succeed so local developer testing continues (via console.log)
+    if (publicKey === "your_public_key" || !publicKey) {
+      // Allow local console testing
+    } else if (process.env.NODE_ENV === 'production') {
+      return res.status(500).json({ success: false, message: 'Failed to send verification email.' });
+    }
+  }
+
+  res.json({ success: true, message: 'Verification code sent successfully.' });
+});
+
+// @desc    Passwordless OTP login (called with email & passcode)
+// @route   POST /api/auth/otp-login
+// @access  Public
+const otpLogin = asyncHandler(async (req, res) => {
+  const { email, passcode } = req.body;
+  if (!email || !passcode) {
+    return res.status(400).json({ success: false, message: 'Please provide email and passcode' });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // 1. Retrieve the active OTP record
+  const activeOtp = await Otp.findOne({ email: normalizedEmail });
+  if (!activeOtp) {
+    return res.status(400).json({ success: false, message: 'No active verification code found or code expired' });
+  }
+
+  // 2. High-precision manual expiration check (60 seconds)
+  const otpAgeMs = Date.now() - new Date(activeOtp.createdAt).getTime();
+  if (otpAgeMs > 60 * 1000) {
+    await Otp.deleteOne({ _id: activeOtp._id });
+    return res.status(400).json({ success: false, message: 'This OTP has expired. Please request a new OTP code.' });
+  }
+
+  // 3. Compare passcode
+  if (activeOtp.code !== passcode) {
+    return res.status(400).json({ success: false, message: 'Invalid OTP code. Please check and try again.' });
+  }
+
+  // 4. Verification successful, delete code immediately to prevent replay
+  await Otp.deleteOne({ _id: activeOtp._id });
+
   let user = await User.findOne({ email: normalizedEmail });
 
   if (user) {
@@ -269,6 +375,7 @@ module.exports = {
   registerStudent,
   checkApplicationStatus,
   login,
+  requestOtp,
   otpLogin,
   getMe,
   logout,

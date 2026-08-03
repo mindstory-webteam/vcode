@@ -7,7 +7,6 @@ import { Loader2, Mail, RefreshCw, AlertCircle } from "lucide-react";
 import { GoogleLogin, useGoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { io } from "socket.io-client";
-import emailjs from "@emailjs/browser";
 import { useAuth } from "../contexts/AuthContext";
 import { api, ApiError, SOCKET_URL } from "../lib/api";
 import VcaCat from "../components/VcaCat";
@@ -20,7 +19,7 @@ interface GoogleJwtPayload {
 }
 
 function AuthContent() {
-  const { loginWithGoogle, otpLogin } = useAuth();
+  const { loginWithGoogle, otpLogin, requestOtp } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
 
@@ -35,8 +34,6 @@ function AuthContent() {
   const [originError, setOriginError] = useState(false);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<{ email: string; status: string } | null>(null);
-  const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
-  const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
 
   // Helper to start/reset the 60s timer and persist to localStorage
   const startResendTimer = () => {
@@ -93,45 +90,6 @@ function AuthContent() {
     router.replace(redirectUrl);
   }
 
-  // Helper to send OTP using EmailJS
-  async function sendOtpViaEmail(targetEmail: string) {
-    // 1. Generate 6-digit OTP passcode
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = Date.now() + 1 * 60 * 1000; // valid for 1 minute
-    const timeStr = new Date(expiry).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_vca";
-    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_otp";
-    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "your_public_key";
-
-    // Debug print in terminal console for easy developer testing
-    console.log("==========================================");
-    console.log(`[VCA LOGIN OTP CODE]: ${code} (expires ${timeStr})`);
-    console.log("==========================================");
-
-    if (publicKey === "your_public_key" || !publicKey) {
-      setGeneratedOtp(code);
-      setOtpExpiry(expiry);
-      return;
-    }
-
-    // 2. Send email via EmailJS
-    await emailjs.send(
-      serviceId,
-      templateId,
-      {
-        email: targetEmail,
-        to_name: targetEmail.split("@")[0],
-        passcode: code,
-        time: timeStr
-      },
-      publicKey
-    );
-
-    setGeneratedOtp(code);
-    setOtpExpiry(expiry);
-  }
-
   // Step 1: Send OTP
   async function handleSendOtp(e: FormEvent) {
     e.preventDefault();
@@ -153,7 +111,7 @@ function AuthContent() {
         return;
       }
 
-      await sendOtpViaEmail(email);
+      await requestOtp(email);
       startResendTimer();
       setStep("otp");
       setInfoMsg(`OTP has been sent to ${email}`);
@@ -171,7 +129,7 @@ function AuthContent() {
     setInfoMsg(null);
     setSendingOtp(true);
     try {
-      await sendOtpViaEmail(email);
+      await requestOtp(email);
       startResendTimer();
       setInfoMsg(`A new OTP has been sent to ${email}`);
     } catch (err: any) {
@@ -191,24 +149,9 @@ function AuthContent() {
       return;
     }
 
-    if (!generatedOtp || !otpExpiry) {
-      setError("No active OTP. Please request a new OTP code.");
-      return;
-    }
-
-    if (Date.now() > otpExpiry) {
-      setError("This OTP has expired. Please request a new OTP code.");
-      return;
-    }
-
-    if (otpCode !== generatedOtp) {
-      setError("Invalid OTP code. Please check and try again.");
-      return;
-    }
-
     setVerifyingOtp(true);
     try {
-      const res = await otpLogin(email);
+      const res = await otpLogin(email, otpCode);
       if (res.pendingApproval) {
         setSubmitted({ email: res.email || email, status: res.status || "pending" });
       } else {
