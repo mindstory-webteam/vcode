@@ -132,7 +132,6 @@ export default function Applications() {
     <Layout>
       <div className="page-header">
         <div>
-          <div className="eyebrow">Registration intake</div>
           <h1>Applications</h1>
           <p className="sub">Student self-registrations wait here until you approve or reject them.</p>
         </div>

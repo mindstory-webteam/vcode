@@ -415,10 +415,10 @@ button { font-family: var(--font-body); }
 }
 .stamp.rotate { transform: rotate(-3deg); }
 
-.stamp-pending { color: var(--orange-deep); background: var(--orange-tint); }
-.stamp-approved { color: var(--teal); background: rgba(47, 111, 98, 0.08); }
+.stamp-pending { color: var(--orange-deep); }
+.stamp-approved { color: var(--teal); }
 .stamp-rejected { color: var(--brick); background: rgba(168, 67, 46, 0.08); }
-.stamp-active, .stamp-inactive {
+.stamp-approved, .stamp-pending, .stamp-active, .stamp-inactive {
   border: none !important;
   background: none !important;
   padding: 0 !important;

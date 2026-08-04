@@ -62,6 +62,7 @@ export const logout = () => api.post('/auth/logout');
 export const getDashboardStats = () => api.get('/superadmin/dashboard');
 
 export const createFaculty = (data) => api.post('/superadmin/faculty', data);
+export const updateFaculty = (id, data) => api.put(`/superadmin/faculty/${id}`, data);
 export const getAllFaculty = () => api.get('/superadmin/faculty');
 
 export const getApplications = (status) =>

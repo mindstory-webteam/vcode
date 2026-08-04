@@ -59,6 +59,46 @@ const createFaculty = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, message: 'Faculty created successfully', user: faculty });
 });
 
+// @desc    Update a faculty account
+// @route   PUT /api/superadmin/faculty/:id
+// @access  Private/SuperAdmin
+const updateFaculty = asyncHandler(async (req, res) => {
+  const { name, email, password, phone, department, designation, employeeId } = req.body;
+  const facultyId = req.params.id;
+
+  const faculty = await User.findOne({ _id: facultyId, role: 'faculty' }).select('+password');
+  if (!faculty) {
+    return res.status(404).json({ success: false, message: 'Faculty not found' });
+  }
+
+  if (email && email.toLowerCase() !== faculty.email.toLowerCase()) {
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'A user with this email already exists' });
+    }
+    faculty.email = email;
+  }
+
+  if (name) faculty.name = name;
+  if (phone !== undefined) faculty.phone = phone;
+
+  if (faculty.facultyInfo) {
+    if (department !== undefined) faculty.facultyInfo.department = department;
+    if (designation !== undefined) faculty.facultyInfo.designation = designation;
+    if (employeeId !== undefined) faculty.facultyInfo.employeeId = employeeId;
+  } else {
+    faculty.facultyInfo = { department, designation, employeeId };
+  }
+
+  if (password) {
+    faculty.password = password;
+  }
+
+  await faculty.save();
+
+  res.json({ success: true, message: 'Faculty updated successfully', user: faculty });
+});
+
 // @desc    Bulk create faculty accounts
 // @route   POST /api/superadmin/faculty/bulk
 // @access  Private/SuperAdmin
@@ -1514,6 +1554,7 @@ const deleteCertificateFromProgressReportAdmin = asyncHandler(async (req, res) =
 
 module.exports = {
   createFaculty,
+  updateFaculty,
   bulkCreateFaculty,
   getAllFaculty,
   getApplications,

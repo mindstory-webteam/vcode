@@ -20,10 +20,10 @@ import {
 } from '../../api.js';
 
 const ExcelIcon = ({ size = 15, style = {} }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    width={size} 
-    height={size} 
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
     style={{ marginRight: '6px', verticalAlign: 'middle', flexShrink: 0, ...style }}
   >
     {/* Right grid sheet flap */}
@@ -261,7 +261,6 @@ export default function Students() {
     <Layout>
       <div className="page-header">
         <div>
-          <div className="eyebrow">Student roster</div>
           <h1>Students</h1>
           <p className="sub">Everyone with an active account, who they're assigned to, and their standing.</p>
         </div>
@@ -280,9 +279,9 @@ export default function Students() {
       {selectedIds.length > 0 && (
         <div style={{ marginBottom: 16, background: '#fcf3f3', border: '1px solid #f2dede', borderRadius: 6, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 14, fontWeight: 500, color: '#a94442' }}>{selectedIds.length} students selected</span>
-          <button 
-            className="btn btn-brick btn-sm" 
-            onClick={handleBulkDelete} 
+          <button
+            className="btn btn-brick btn-sm"
+            onClick={handleBulkDelete}
             disabled={deletingBulk}
             title="Delete Selected"
             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
@@ -327,7 +326,7 @@ export default function Students() {
                           title="Click to edit student details"
                         />
                       ) : (
-                        <div 
+                        <div
                           className="avatar-initial"
                           style={{ cursor: 'pointer' }}
                           onClick={() => handleEditClick(s)}
@@ -365,8 +364,8 @@ export default function Students() {
                       <button className="btn btn-ghost btn-sm" onClick={() => handleToggleActive(s)}>
                         {s.isActive ? 'Deactivate' : 'Activate'}
                       </button>
-                      <button 
-                        className="btn btn-brick btn-sm" 
+                      <button
+                        className="btn btn-brick btn-sm"
                         onClick={() => handleDelete(s)}
                         title="Delete Student"
                         style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}

@@ -159,7 +159,6 @@ export default function Broadcasts() {
     <Layout>
       <div className="page-header">
         <div>
-          <div className="eyebrow">Announcements</div>
           <h1>Broadcast Notifications</h1>
           <p className="sub">Send real-time alerts and notices to all users </p>
         </div>

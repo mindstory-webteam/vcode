@@ -47,7 +47,6 @@ export default function Dashboard() {
     <Layout>
       <div className="page-header">
         <div>
-          <div className="eyebrow">Registrar overview</div>
           <h1>Dashboard</h1>
           <p className="sub">A running tally of everyone recorded in the ledger, and what still needs your signature.</p>
         </div>

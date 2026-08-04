@@ -20,7 +20,6 @@ export default function FacultyAttendanceList() {
     <Layout>
       <div className="page-header">
         <div>
-          <div className="eyebrow">Attendance</div>
           <h1>Attendance</h1>
           <p className="sub">Pick a student to view or mark their attendance.</p>
         </div>

@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 // Generates a signed JWT containing the user's id and role
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d',
+    expiresIn: process.env.JWT_EXPIRE || '24h',
   });
 };
 
@@ -11,7 +11,7 @@ const generateToken = (id, role) => {
 const sendTokenResponse = (user, statusCode, res) => {
   const token = generateToken(user._id, user.role);
 
-  const cookieExpireDays = parseInt(process.env.JWT_COOKIE_EXPIRE || '7', 10);
+  const cookieExpireDays = parseInt(process.env.JWT_COOKIE_EXPIRE || '1', 10);
   const isProd = process.env.NODE_ENV === 'production';
   const options = {
     expires: new Date(Date.now() + cookieExpireDays * 24 * 60 * 60 * 1000),

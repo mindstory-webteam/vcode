@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   createFaculty,
+  updateFaculty,
   bulkCreateFaculty,
   getAllFaculty,
   getApplications,
@@ -50,6 +51,7 @@ router.get('/dashboard', getDashboardStats);
 
 // Faculty management
 router.post('/faculty', createFaculty);
+router.put('/faculty/:id', updateFaculty);
 router.post('/faculty/bulk', bulkCreateFaculty);
 router.get('/faculty', getAllFaculty);
 

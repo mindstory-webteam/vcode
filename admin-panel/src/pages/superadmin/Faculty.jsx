@@ -5,7 +5,7 @@ import StampBadge from '../../components/StampBadge.jsx';
 import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
 import { Trash2 } from 'lucide-react';
-import { getAllFaculty, createFaculty, toggleUserActive, deleteUser } from '../../api.js';
+import { getAllFaculty, createFaculty, updateFaculty, toggleUserActive, deleteUser } from '../../api.js';
 
 const emptyForm = {
   name: '', email: '', password: '', phone: '',
@@ -19,6 +19,8 @@ export default function Faculty() {
   const [error, setError] = useState('');
 
   const [showCreate, setShowCreate] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editingFaculty, setEditingFaculty] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -79,6 +81,44 @@ export default function Faculty() {
     }
   };
 
+  const handleEditClick = (f) => {
+    setEditingFaculty(f);
+    setForm({
+      name: f.name || '',
+      email: f.email || '',
+      password: '',
+      phone: f.phone || '',
+      department: f.facultyInfo?.department || '',
+      designation: f.facultyInfo?.designation || '',
+      employeeId: f.facultyInfo?.employeeId || '',
+    });
+    setFormError('');
+    setShowEdit(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    setBusy(true);
+    try {
+      const dataToSubmit = { ...form };
+      if (!dataToSubmit.password) {
+        delete dataToSubmit.password;
+      }
+      await updateFaculty(editingFaculty._id, dataToSubmit);
+      toast.success('Faculty updated successfully!');
+      setShowEdit(false);
+      setEditingFaculty(null);
+      setForm(emptyForm);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not update faculty account');
+      setFormError(err.response?.data?.message || 'Could not update faculty account');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleToggleActive = async (f) => {
     try {
       await toggleUserActive(f._id);
@@ -106,7 +146,6 @@ export default function Faculty() {
     <Layout>
       <div className="page-header">
         <div>
-          <div className="eyebrow">Staff roster</div>
           <h1>Faculty</h1>
           <p className="sub">Faculty accounts are created here directly they never self-register.</p>
         </div>
@@ -165,6 +204,9 @@ export default function Faculty() {
                   <td><StampBadge status={f.isActive ? 'active' : 'inactive'} /></td>
                   <td>
                     <div className="btn-row">
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleEditClick(f)}>
+                        Edit
+                      </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => handleToggleActive(f)}>
                         {f.isActive ? 'Deactivate' : 'Activate'}
                       </button>
@@ -228,6 +270,55 @@ export default function Faculty() {
                 {busy ? 'Creating…' : 'Create faculty'}
               </button>
               <button className="btn btn-ghost" type="button" onClick={() => setShowCreate(false)} disabled={busy}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+      {showEdit && (
+        <Modal title="Edit faculty account" onClose={() => { setShowEdit(false); setForm(emptyForm); }}>
+          {formError && <div className="form-error">{formError}</div>}
+          <form onSubmit={handleEditSubmit}>
+            <div className="field">
+              <label>Full name</label>
+              <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Email</label>
+                <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Password (leave blank to keep current)</label>
+                <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+              </div>
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Department</label>
+                <input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Designation</label>
+                <input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} placeholder="e.g. Assistant Professor" />
+              </div>
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Employee ID</label>
+                <input value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Phone</label>
+                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              </div>
+            </div>
+            <div className="btn-row">
+              <button className="btn btn-gold" type="submit" disabled={busy}>
+                {busy ? 'Saving…' : 'Save changes'}
+              </button>
+              <button className="btn btn-ghost" type="button" onClick={() => { setShowEdit(false); setForm(emptyForm); }} disabled={busy}>
                 Cancel
               </button>
             </div>
