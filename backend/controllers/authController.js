@@ -370,6 +370,50 @@ const otpLogin = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Update user profile (name, email, profileImage)
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  const { name, email } = req.body;
+
+  if (email && email.toLowerCase() !== user.email.toLowerCase()) {
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'Email is already in use' });
+    }
+    user.email = email;
+  }
+
+  if (name) user.name = name;
+
+  if (req.file) {
+    if (user.profileImagePublicId) {
+      try {
+        const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
+        await deleteFromCloudinary(user.profileImagePublicId);
+      } catch (err) {
+        console.error('Failed to delete old profile photo from Cloudinary:', err);
+      }
+    }
+    user.profileImage = req.file.path;
+    user.profileImagePublicId = req.file.filename;
+  }
+
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Profile updated successfully',
+    user
+  });
+});
+
 module.exports = {
   googleAuth,
   registerStudent,
@@ -380,5 +424,6 @@ module.exports = {
   getMe,
   logout,
   updatePassword,
+  updateProfile,
 };
 

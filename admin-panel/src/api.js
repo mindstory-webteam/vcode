@@ -57,6 +57,8 @@ const downloadBlob = (blob, filename) => {
 export const login = (email, password) => api.post('/auth/login', { email, password });
 export const getMe = () => api.get('/auth/me');
 export const logout = () => api.post('/auth/logout');
+export const updateProfile = (formData) => api.put('/auth/profile', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updatePassword = (currentPassword, newPassword) => api.put('/auth/update-password', { currentPassword, newPassword });
 
 // ---- SuperAdmin ----
 export const getDashboardStats = () => api.get('/superadmin/dashboard');

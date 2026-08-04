@@ -10,6 +10,7 @@ const {
   getMe,
   logout,
   updatePassword,
+  updateProfile,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const { uploadProfileImage } = require('../middleware/uploadMiddleware');
@@ -26,5 +27,6 @@ router.post('/otp-login', otpLogin);
 router.get('/me', protect, getMe);
 router.post('/logout', protect, logout);
 router.put('/update-password', protect, updatePassword);
+router.put('/profile', protect, uploadProfileImage.single('profileImage'), updateProfile);
 
 module.exports = router;

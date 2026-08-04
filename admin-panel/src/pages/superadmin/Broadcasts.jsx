@@ -25,6 +25,8 @@ export default function Broadcasts() {
   const [searchingStudents, setSearchingStudents] = useState(false);
   const [departmentsList, setDepartmentsList] = useState([]);
   const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [deletingBulk, setDeletingBulk] = useState(false);
 
   const triggerStudentSearch = async (val) => {
     if (!val.trim()) {
@@ -78,6 +80,10 @@ export default function Broadcasts() {
     fetchHistory();
     fetchDepartments();
   }, []);
+
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [activeTab]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -148,10 +154,35 @@ export default function Broadcasts() {
       if (res.data && res.data.success) {
         toast.success('Broadcast deleted globally!');
         setHistory(prev => prev.filter(h => h._id !== id));
+        setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
       }
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || 'Failed to delete broadcast');
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) setSelectedIds(history.map(h => h._id));
+    else setSelectedIds([]);
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!await confirm(`Are you sure you want to permanently delete the ${selectedIds.length} selected broadcasts? This will cancel any pending schedules and remove them from all users' notification lists.`)) return;
+    setDeletingBulk(true);
+    try {
+      await Promise.all(selectedIds.map(id => deleteNotificationAdmin(id)));
+      toast.success('Successfully deleted selected broadcasts!');
+      setHistory(prev => prev.filter(h => !selectedIds.includes(h._id)));
+      setSelectedIds([]);
+    } catch (err) {
+      toast.error('Failed to delete some broadcasts.');
+    } finally {
+      setDeletingBulk(false);
     }
   };
 
@@ -602,32 +633,64 @@ export default function Broadcasts() {
 
         {/* Broadcast History */}
         {activeTab === 'history' && (
-          <div className="card">
-            {loadingHistory ? (
-              <div className="loading-line">Reading archives…</div>
-            ) : history.length === 0 ? (
-              <div className="muted" style={{ textAlign: 'center', padding: '3rem 0', fontSize: '0.9rem' }}>
-                No broadcast history found.
+          <>
+            {selectedIds.length > 0 && (
+              <div style={{ marginBottom: 16, background: '#fcf3f3', border: '1px solid #f2dede', borderRadius: 6, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#a94442' }}>{selectedIds.length} broadcasts selected</span>
+                <button
+                  className="btn btn-brick btn-sm"
+                  onClick={handleBulkDelete}
+                  disabled={deletingBulk}
+                  title="Delete Selected"
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
-            ) : (
-              <table className="ledger">
-                <thead>
-                  <tr>
-                    <th>Announcement Details</th>
-                    <th>Target Audience</th>
-                    <th>Release/Scheduled Time</th>
-                    <th>Created On</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((h) => {
-                    const isFuture = h.scheduledFor && new Date(h.scheduledFor).getTime() > Date.now();
-                    return (
-                      <tr key={h._id}>
-                        <td style={{ maxWidth: '450px' }}>
-                          <div className="cell-name" style={{ fontWeight: '600', color: '#1e293b' }}>{h.title}</div>
+            )}
+
+            <div className="card">
+              {loadingHistory ? (
+                <div className="loading-line">Reading archives…</div>
+              ) : history.length === 0 ? (
+                <div className="muted" style={{ textAlign: 'center', padding: '3rem 0', fontSize: '0.9rem' }}>
+                  No broadcast history found.
+                </div>
+              ) : (
+                <table className="ledger">
+                  <thead>
+                    <tr>
+                      <th style={{ width: 44, paddingRight: 0, textAlign: 'center' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={history.length > 0 && selectedIds.length === history.length} 
+                          onChange={handleSelectAll} 
+                          style={{ cursor: 'pointer' }} 
+                        />
+                      </th>
+                      <th>Announcement Details</th>
+                      <th>Target Audience</th>
+                      <th>Release/Scheduled Time</th>
+                      <th>Created On</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((h) => {
+                      const isFuture = h.scheduledFor && new Date(h.scheduledFor).getTime() > Date.now();
+                      return (
+                        <tr key={h._id}>
+                          <td style={{ width: 44, paddingRight: 0, textAlign: 'center' }}>
+                            <input 
+                              type="checkbox" 
+                              checked={selectedIds.includes(h._id)} 
+                              onChange={() => toggleSelect(h._id)} 
+                              style={{ cursor: 'pointer' }} 
+                            />
+                          </td>
+                          <td style={{ maxWidth: '450px' }}>
+                            <div className="cell-name" style={{ fontWeight: '600', color: '#1e293b' }}>{h.title}</div>
                           <div className="cell-sub" style={{
                             whiteSpace: 'pre-wrap',
                             wordBreak: 'break-word',
@@ -702,10 +765,11 @@ export default function Broadcasts() {
                       </tr>
                     );
                   })}
-                </tbody>
-              </table>
-            )}
-          </div>
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
         )}
       </div>
     </Layout>
