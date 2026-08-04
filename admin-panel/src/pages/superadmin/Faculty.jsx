@@ -102,9 +102,7 @@ export default function Faculty() {
     setBusy(true);
     try {
       const dataToSubmit = { ...form };
-      if (!dataToSubmit.password) {
-        delete dataToSubmit.password;
-      }
+      delete dataToSubmit.password;
       await updateFaculty(editingFaculty._id, dataToSubmit);
       toast.success('Faculty updated successfully!');
       setShowEdit(false);
@@ -284,15 +282,9 @@ export default function Faculty() {
               <label>Full name</label>
               <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
-            <div className="field-row">
-              <div className="field">
-                <label>Email</label>
-                <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              </div>
-              <div className="field">
-                <label>Password (leave blank to keep current)</label>
-                <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-              </div>
+            <div className="field">
+              <label>Email</label>
+              <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
             <div className="field-row">
               <div className="field">
