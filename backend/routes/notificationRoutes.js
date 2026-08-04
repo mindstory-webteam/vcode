@@ -86,6 +86,7 @@ router.get('/mine', protect, async (req, res) => {
         {
           $or: [
             { targetType: 'all' },
+            { targetType: { $exists: false } },
             { targetType: 'department', targetDepartment: userDept },
             { targetType: 'student', targetUser: req.user._id }
           ]
@@ -120,6 +121,7 @@ router.put('/read-all', protect, async (req, res) => {
         readBy: { $ne: req.user._id },
         $or: [
           { targetType: 'all' },
+          { targetType: { $exists: false } },
           { targetType: 'department', targetDepartment: userDept },
           { targetType: 'student', targetUser: req.user._id }
         ]
@@ -184,16 +186,37 @@ router.get('/search-students', protect, authorize('superadmin'), async (req, res
     const regex = new RegExp(query, 'i');
     const students = await User.find({
       role: 'student',
-      $or: [
-        { name: regex },
-        { email: regex },
-        { 'studentInfo.rollNumber': regex }
-      ]
-    }).limit(10).select('_id name email role studentInfo');
+      name: regex
+    }).limit(10).select('_id name email role studentInfo profileImage');
 
     res.json({
       success: true,
       students
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @route   GET /api/notifications/departments
+// @desc    Get distinct student departments
+// @access  Private/SuperAdmin
+router.get('/departments', protect, authorize('superadmin'), async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const departments = await User.distinct('studentInfo.department', {
+      role: 'student',
+      'studentInfo.department': { $ne: null, $exists: true }
+    });
+    const cleanDepartments = departments
+      .map(d => d ? d.trim() : '')
+      .filter(d => d !== '')
+      .sort();
+    const uniqueDepts = [...new Set(cleanDepartments)];
+
+    res.json({
+      success: true,
+      departments: uniqueDepts
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

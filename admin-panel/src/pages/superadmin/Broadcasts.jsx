@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
 import { Trash2, Send, Clock, Calendar } from 'lucide-react';
 import StampBadge from '../../components/StampBadge.jsx';
-import { getNotificationsAdmin, sendBroadcastNotification, deleteNotificationAdmin, searchStudentsAdmin } from '../../api.js';
+import { getNotificationsAdmin, sendBroadcastNotification, deleteNotificationAdmin, searchStudentsAdmin, getDistinctDepartmentsAdmin, fileUrl } from '../../api.js';
 
 export default function Broadcasts() {
   const confirm = useConfirm();
@@ -23,6 +23,8 @@ export default function Broadcasts() {
   const [studentResults, setStudentResults] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchingStudents, setSearchingStudents] = useState(false);
+  const [departmentsList, setDepartmentsList] = useState([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
 
   const triggerStudentSearch = async (val) => {
     if (!val.trim()) {
@@ -57,8 +59,24 @@ export default function Broadcasts() {
     }
   };
 
+  const fetchDepartments = async () => {
+    try {
+      setLoadingDepartments(true);
+      const res = await getDistinctDepartmentsAdmin();
+      if (res.data && res.data.success) {
+        setDepartmentsList(res.data.departments || []);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Could not load departments list');
+    } finally {
+      setLoadingDepartments(false);
+    }
+  };
+
   useEffect(() => {
     fetchHistory();
+    fetchDepartments();
   }, []);
 
   const handleSend = async (e) => {
@@ -318,10 +336,16 @@ export default function Broadcasts() {
                             outline: 'none'
                           }}
                         >
-                          <option value="">-- Choose Department --</option>
-                          {['CSE', 'ECE', 'ME', 'Civil', 'EE'].map((d) => (
-                            <option key={d} value={d}>{d}</option>
-                          ))}
+                          <option value=""> Choose Department </option>
+                          {loadingDepartments ? (
+                            <option disabled>Loading departments...</option>
+                          ) : departmentsList.length > 0 ? (
+                            departmentsList.map((d) => (
+                              <option key={d} value={d}>{d}</option>
+                            ))
+                          ) : (
+                            <option disabled>No departments found in DB</option>
+                          )}
                         </select>
                       </div>
                     )}
@@ -341,10 +365,34 @@ export default function Broadcasts() {
                             borderRadius: '6px',
                             fontSize: '0.875rem'
                           }}>
-                            <div style={{ minWidth: 0 }}>
-                              <strong style={{ color: '#1e3a8a', display: 'block', fontSize: '0.85rem' }}>{selectedStudent.name}</strong>
-                              <div style={{ fontSize: '0.75rem', color: '#3b82f6', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {selectedStudent.email} {selectedStudent.studentInfo?.rollNumber ? `· Roll: ${selectedStudent.studentInfo.rollNumber}` : ''}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                              {selectedStudent.profileImage ? (
+                                <img
+                                  src={fileUrl(selectedStudent.profileImage)}
+                                  alt={selectedStudent.name}
+                                  style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                <div style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  background: '#bfdbfe',
+                                  color: '#1e3a8a',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.85rem'
+                                }}>
+                                  {selectedStudent.name?.[0]?.toUpperCase()}
+                                </div>
+                              )}
+                              <div style={{ minWidth: 0 }}>
+                                <strong style={{ color: '#1e3a8a', display: 'block', fontSize: '0.85rem' }}>{selectedStudent.name}</strong>
+                                <div style={{ fontSize: '0.75rem', color: '#3b82f6', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {selectedStudent.email}
+                                </div>
                               </div>
                             </div>
                             <button
@@ -368,11 +416,20 @@ export default function Broadcasts() {
                           <div>
                             <input
                               type="text"
-                              placeholder="Type name, email, or roll no..."
+                              placeholder="Search by name"
                               value={searchQuery}
                               onChange={(e) => {
                                 setSearchQuery(e.target.value);
                                 triggerStudentSearch(e.target.value);
+                              }}
+                              style={{
+                                width: '100%',
+                                background: '#fff',
+                                border: '1px solid #cbd5e1',
+                                borderRadius: '6px',
+                                padding: '8px 10px',
+                                fontSize: '0.875rem',
+                                outline: 'none'
                               }}
                             />
                             {searchingStudents && <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Searching...</div>}
@@ -404,11 +461,41 @@ export default function Broadcasts() {
                                       padding: '8px 12px',
                                       borderBottom: '1px solid #f1f5f9',
                                       cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '10px',
+                                      transition: 'background 0.15s ease'
                                     }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
                                   >
-                                    <div style={{ fontWeight: '600', fontSize: '0.85rem', color: '#1e293b' }}>{s.name}</div>
-                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                                      {s.email} {s.studentInfo?.rollNumber ? `· Roll: ${s.studentInfo.rollNumber}` : ''}
+                                    {s.profileImage ? (
+                                      <img
+                                        src={fileUrl(s.profileImage)}
+                                        alt={s.name}
+                                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                                      />
+                                    ) : (
+                                      <div style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        background: '#e2e8f0',
+                                        color: '#475569',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.85rem'
+                                      }}>
+                                        {s.name?.[0]?.toUpperCase()}
+                                      </div>
+                                    )}
+                                    <div style={{ minWidth: 0 }}>
+                                      <div style={{ fontWeight: '600', fontSize: '0.85rem', color: '#1e293b' }}>{s.name}</div>
+                                      <div style={{ fontSize: '0.75rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {s.email}
+                                      </div>
                                     </div>
                                   </div>
                                 ))}

@@ -337,5 +337,7 @@ export const deleteNotificationAdmin = (id) =>
   api.delete(`/notifications/${id}`);
 export const searchStudentsAdmin = (query) =>
   api.get(`/notifications/search-students?query=${encodeURIComponent(query)}`);
+export const getDistinctDepartmentsAdmin = () =>
+  api.get('/notifications/departments');
 
 export default api;
