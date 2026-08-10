@@ -35,6 +35,8 @@ const scheduleNotification = (notification) => {
     try {
       const freshNotif = await Notification.findById(notification._id);
       if (freshNotif) {
+        freshNotif.sentAt = new Date();
+        await freshNotif.save();
         emitNotification(freshNotif);
       }
     } catch (err) {

@@ -187,7 +187,7 @@ export default function Navbar() {
                           <span className="text-xs font-semibold text-gray-800 break-words">{n.title}</span>
                           <span className="text-xs text-gray-500 leading-relaxed break-words">{n.message}</span>
                           <span className="text-[9px] text-gray-400 mt-1 font-mono">
-                            {new Date(n.createdAt).toLocaleDateString()} {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(n.sentAt || n.scheduledFor || n.createdAt).toLocaleDateString()} {new Date(n.sentAt || n.scheduledFor || n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                         <button

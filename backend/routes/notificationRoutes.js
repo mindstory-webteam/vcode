@@ -41,6 +41,7 @@ router.post('/broadcast', protect, authorize('superadmin'), async (req, res) => 
       targetDepartment: targetType === 'department' ? targetDepartment : null,
       targetUser: targetType === 'student' ? targetUser : null,
       scheduledFor: parsedScheduledFor,
+      sentAt: isFuture ? null : (parsedScheduledFor || new Date()),
     });
 
     // Populate targetUser details if present so socket payload and DB return match
@@ -92,7 +93,13 @@ router.get('/mine', protect, async (req, res) => {
           ]
         }
       ]
-    }).sort({ createdAt: -1 });
+    }).lean();
+
+    notifications.sort((a, b) => {
+      const timeA = new Date(a.sentAt || a.scheduledFor || a.createdAt).getTime();
+      const timeB = new Date(b.sentAt || b.scheduledFor || b.createdAt).getTime();
+      return timeB - timeA;
+    });
 
     res.json({
       success: true,

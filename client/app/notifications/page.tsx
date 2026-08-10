@@ -95,7 +95,7 @@ export default function NotificationsPage() {
                   <h3 className="text-base font-semibold text-gray-900 mb-1">{n.title}</h3>
                   <p className="text-sm text-gray-600 leading-relaxed">{n.message}</p>
                   <span className="text-xs text-gray-400 mt-2 block font-mono">
-                    {new Date(n.createdAt).toLocaleDateString()} {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(n.sentAt || n.scheduledFor || n.createdAt).toLocaleDateString()} {new Date(n.sentAt || n.scheduledFor || n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
                 <button
