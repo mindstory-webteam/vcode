@@ -93,6 +93,22 @@ const emptyGradeCard = {
   verification: { docId: '', issuedDate: '', verifyUrl: '', verificationCode: '' },
 };
 
+// Read-only look for server-generated fields (program code)
+const readOnlyInputStyle = {
+  background: '#f5f4f8',
+  color: '#6b6478',
+  cursor: 'not-allowed',
+  fontFamily: 'var(--font-mono, monospace)',
+  letterSpacing: '0.04em',
+};
+
+const autoHintStyle = {
+  display: 'block',
+  fontSize: 11,
+  color: 'var(--muted, #8a8398)',
+  marginTop: 4,
+};
+
 function hydrateGradeCard(gc) {
   if (!gc) return JSON.parse(JSON.stringify(emptyGradeCard));
   return {
@@ -126,10 +142,18 @@ function hydrateGradeCard(gc) {
   };
 }
 
+// NOTE: program.code is passed straight through — the server owns it. Blank means
+// "generate one"; a value means "keep it". Nothing here edits that code.
 function serializeGradeCard(gc) {
   const num = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
   return {
-    program: gc.program,
+    program: {
+      name: gc.program.name,
+      code: gc.program.code || '', // read-only, server-generated
+      durationLabel: gc.program.durationLabel,
+      batch: gc.program.batch,
+      summary: gc.program.summary,
+    },
     overallGrade: gc.overallGrade || null,
     industryReadiness: num(gc.industryReadiness),
     placementStatus: gc.placementStatus,
@@ -364,8 +388,13 @@ export default function SuperAdminStudentReport() {
     setGradeCardError('');
     setGradeCardBusy(true);
     try {
-      await updateGradeCardAdmin(studentId, serializeGradeCard(gradeCardForm));
-      toast.success('Grade card saved successfully!');
+      const { data } = await updateGradeCardAdmin(studentId, serializeGradeCard(gradeCardForm));
+      const newCode = data?.report?.gradeCard?.program?.code;
+      toast.success(
+        newCode && !gradeCardForm.program.code
+          ? `Grade card saved — program code ${newCode} assigned`
+          : 'Grade card saved successfully!'
+      );
       setShowGradeCardModal(false);
       load();
     } catch (err) {
@@ -475,7 +504,7 @@ export default function SuperAdminStudentReport() {
     setError('');
     setEntriesExportBusy(true);
     try {
-      await exportEntriesAdmin(studentId, student?.name);
+      await exportEntriesAdmin(studentId, report?.student?.name);
       toast.success('Entries exported successfully!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not export entries');
@@ -496,6 +525,11 @@ export default function SuperAdminStudentReport() {
       const { data } = await importGradeCardAdmin(studentId, file);
       toast.success(data?.message || 'Grade card imported successfully!');
       setGradeCardImportMessage(data?.message || 'Grade card imported successfully');
+      // Re-hydrate the open editor so the (possibly newly generated) program
+      // code shows up straight away instead of staying blank until reload.
+      if (data?.report?.gradeCard) {
+        setGradeCardForm(hydrateGradeCard(data.report.gradeCard));
+      }
       load();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not import the grade card');
@@ -510,7 +544,7 @@ export default function SuperAdminStudentReport() {
     setError('');
     setGradeCardExportBusy(true);
     try {
-      await exportGradeCardAdmin(studentId, student?.name);
+      await exportGradeCardAdmin(studentId, report?.student?.name);
       toast.success('Grade card exported successfully!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not export the grade card');
@@ -545,7 +579,7 @@ export default function SuperAdminStudentReport() {
     setError('');
     setFullReportExportBusy(true);
     try {
-      await exportFullProgressReportAdmin(studentId, student?.name);
+      await exportFullProgressReportAdmin(studentId, report?.student?.name);
       toast.success('Progress report exported successfully!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not export the progress report');
@@ -680,6 +714,7 @@ export default function SuperAdminStudentReport() {
               <div><strong>Email:</strong> {student?.email || 'N/A'}</div>
               <div><strong>Phone:</strong> {student?.phone || 'N/A'}</div>
               <div><strong>Roll number:</strong> {student?.studentInfo?.rollNumber || 'N/A'}</div>
+              <div><strong>Program code:</strong> <span className="cell-mono">{gc?.program?.code || 'Not assigned yet'}</span></div>
               <div><strong>Department:</strong> {student?.studentInfo?.department || 'N/A'}</div>
               <div><strong>Course:</strong> {student?.studentInfo?.course || 'N/A'}</div>
               <div><strong>Assigned faculty:</strong> {report?.faculty?.name || 'Unassigned'}</div>
@@ -768,6 +803,14 @@ export default function SuperAdminStudentReport() {
           {gc?.overallGrade && (
             <div className="card card-pad" style={{ marginBottom: 24 }}>
               <div className="section-title">Grade card</div>
+
+              {gc.program?.code && (
+                <p className="muted" style={{ margin: '0 0 12px', fontSize: 12.5 }}>
+                  <strong>Program code:</strong>{' '}
+                  <span className="cell-mono" style={{ letterSpacing: '0.04em' }}>{gc.program.code}</span>
+                  <span style={{ marginLeft: 8, fontSize: 11 }}>(auto-generated)</span>
+                </p>
+              )}
 
               <table className="ledger" style={{ marginBottom: 16 }}>
                 <thead>
@@ -1028,7 +1071,19 @@ export default function SuperAdminStudentReport() {
               </div>
               <div className="field">
                 <label>Program code</label>
-                <input value={gradeCardForm.program.code} onChange={(e) => setGradeCardForm({ ...gradeCardForm, program: { ...gradeCardForm.program, code: e.target.value } })} placeholder="e.g. VC-240001" />
+                <input
+                  value={gradeCardForm.program.code || ''}
+                  readOnly
+                  disabled
+                  tabIndex={-1}
+                  placeholder="Assigned automatically on save"
+                  style={readOnlyInputStyle}
+                />
+                <span style={autoHintStyle}>
+                  {gradeCardForm.program.code
+                    ? 'System-generated — permanent for this student.'
+                    : 'A unique code is generated by the system when you save.'}
+                </span>
               </div>
             </div>
             <div className="field-row">

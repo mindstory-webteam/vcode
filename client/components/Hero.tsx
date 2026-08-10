@@ -16,6 +16,17 @@ export default function Hero() {
   const fallbackPhoto = "/dummy-profile-img.jpg";
   const [photoSrc, setPhotoSrc] = useState(student.photo ?? fallbackPhoto);
 
+  // The program code is generated server-side (VC-260001, VC-260002, …) and
+  // stored on gradeCard.program.code. Fall back to the roll-number-derived id
+  // only for older records that were created before auto-generation existed.
+  const displayCode =
+    student.programCode?.trim() ||
+    (student.id
+      ? student.id.startsWith("VC-")
+        ? student.id
+        : `VC-${student.id}`
+      : "—");
+
   useEffect(() => {
     setPhotoSrc(student.photo ?? fallbackPhoto);
   }, [student.photo, fallbackPhoto]);
@@ -116,8 +127,11 @@ export default function Hero() {
 
             {/* Meta row */}
             <div className="mt-4 sm:mt-5 flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm md:text-[15px] text-gray-600">
-              <span className="font-mono text-gray-900 font-semibold tracking-widest uppercase text-xs md:text-sm">
-                {student.id.startsWith("VC-") ? student.id : `VC-${student.id}`}
+              <span
+                title="Program code"
+                className="font-mono text-gray-900 font-semibold tracking-widest uppercase text-xs md:text-sm"
+              >
+                {displayCode}
               </span>
               <div className="flex items-center gap-2">
                 <Briefcase size={16} className="opacity-60 shrink-0" />
@@ -201,8 +215,8 @@ export default function Hero() {
 
                   {/* Action links */}
                   <div className="flex items-center gap-4 mt-1">
-                    <a
-                      href={student.certificatePdf}
+                    
+                   <a   href={student.certificatePdf}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 text-[#005bb5] hover:text-blue-800 transition-colors font-semibold text-sm sm:text-[15px]"
@@ -210,8 +224,8 @@ export default function Hero() {
                       <Eye size={16} className="shrink-0" />
                       View
                     </a>
-                    <a
-                      href={student.certificatePdf}
+                    
+                   <a   href={student.certificatePdf}
                       target="_blank"
                       rel="noopener noreferrer"
                       download

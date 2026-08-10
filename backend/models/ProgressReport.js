@@ -134,7 +134,7 @@ const gradeCardSchema = new mongoose.Schema(
     // Header / program info
     program: {
       name: { type: String, trim: true, default: '' }, // e.g. 'Digital Marketing Professional Program'
-      code: { type: String, trim: true, default: '' }, // e.g. 'VC-240001'
+      code: { type: String, trim: true, default: '' }, // AUTO-GENERATED, e.g. 'VC-260001'
       durationLabel: { type: String, trim: true, default: '' }, // e.g. '3 Months'
       batch: { type: String, trim: true, default: '' }, // e.g. 'Jul 2026'
       summary: { type: String, trim: true, default: '' }, // short description paragraph
@@ -243,33 +243,93 @@ const progressReportSchema = new mongoose.Schema(
 );
 
 const socketHelper = require('../socketHelper');
+const generateProgramCode = require('../utils/generateProgramCode');
 
+// ---------------------------------------------------------------------------
+// AUTO PROGRAM CODE + duplicate guards
+//
+// - Empty gradeCard.program.code  -> generated automatically (VC-260001, ...)
+// - Controllers replace the whole `program` object on partial updates, which
+//   would blank the code; the previously stored code is restored so a student
+//   keeps the SAME code for life.
+// - A manually typed code is respected as long as nobody else owns it.
+// - To deliberately release the code (e.g. deleteGradeCard), set
+//   `report.$locals.clearProgramCode = true` before save().
+// ---------------------------------------------------------------------------
 progressReportSchema.pre('save', async function (next) {
   const doc = this;
-  const progCode = doc.gradeCard?.program?.code;
-  const verCode = doc.gradeCard?.verification?.verificationCode;
 
-  if (progCode && progCode.trim() !== '') {
-    const duplicate = await mongoose.model('ProgressReport').findOne({
-      _id: { $ne: doc._id },
-      'gradeCard.program.code': progCode.trim()
-    });
-    if (duplicate) {
-      return next(new Error(`Program Code "${progCode}" is already assigned to another student.`));
+  try {
+    if (!doc.gradeCard) doc.gradeCard = {};
+    if (!doc.gradeCard.program) doc.gradeCard.program = {};
+
+    const clearing = doc.$locals && doc.$locals.clearProgramCode === true;
+    let progCode = (doc.gradeCard.program.code || '').trim();
+
+    if (clearing) {
+      doc.gradeCard.program.code = '';
+      progCode = '';
+    } else {
+      // 1. Restore the existing code if this save didn't carry one
+      if (!progCode && !doc.isNew) {
+        const prev = await mongoose
+          .model('ProgressReport')
+          .findById(doc._id)
+          .select('gradeCard.program.code')
+          .lean();
+        if (prev?.gradeCard?.program?.code) {
+          progCode = prev.gradeCard.program.code.trim();
+        }
+      }
+
+      // 2. Still nothing -> generate a fresh one (retry if it collides with a
+      //    manually entered code)
+      if (!progCode) {
+        for (let i = 0; i < 5; i += 1) {
+          const candidate = await generateProgramCode();
+          const taken = await mongoose.model('ProgressReport').findOne({
+            _id: { $ne: doc._id },
+            'gradeCard.program.code': candidate,
+          });
+          if (!taken) {
+            progCode = candidate;
+            break;
+          }
+        }
+        if (!progCode) {
+          return next(new Error('Could not generate a unique Program Code, please try again.'));
+        }
+      }
+
+      doc.gradeCard.program.code = progCode;
     }
-  }
 
-  if (verCode && verCode.trim() !== '') {
-    const duplicate = await mongoose.model('ProgressReport').findOne({
-      _id: { $ne: doc._id },
-      'gradeCard.verification.verificationCode': verCode.trim()
-    });
-    if (duplicate) {
-      return next(new Error(`Verification Code "${verCode}" is already assigned to another student.`));
+    // 3. Uniqueness checks (original behaviour kept)
+    if (progCode) {
+      const duplicate = await mongoose.model('ProgressReport').findOne({
+        _id: { $ne: doc._id },
+        'gradeCard.program.code': progCode,
+      });
+      if (duplicate) {
+        return next(new Error(`Program Code "${progCode}" is already assigned to another student.`));
+      }
     }
-  }
 
-  next();
+    const verCode = doc.gradeCard?.verification?.verificationCode;
+    if (verCode && verCode.trim() !== '') {
+      const duplicate = await mongoose.model('ProgressReport').findOne({
+        _id: { $ne: doc._id },
+        'gradeCard.verification.verificationCode': verCode.trim(),
+      });
+      if (duplicate) {
+        return next(new Error(`Verification Code "${verCode}" is already assigned to another student.`));
+      }
+    }
+
+    return next();
+  } catch (err) {
+    return next(err);
+  }
 });
 
 progressReportSchema.post('save', function (doc) {
