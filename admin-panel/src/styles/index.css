@@ -417,8 +417,8 @@ button { font-family: var(--font-body); }
 
 .stamp-pending { color: var(--orange-deep); }
 .stamp-approved { color: var(--teal); }
-.stamp-rejected { color: var(--brick); background: rgba(168, 67, 46, 0.08); }
-.stamp-approved, .stamp-pending, .stamp-active, .stamp-inactive {
+.stamp-rejected { color: var(--brick); }
+.stamp-approved, .stamp-pending, .stamp-rejected, .stamp-active, .stamp-inactive {
   border: none !important;
   background: none !important;
   padding: 0 !important;

@@ -521,17 +521,21 @@ function PendingStatus({ email, initialStatus }: { email: string; initialStatus:
         className="relative hidden w-[38%] flex-col items-center justify-center overflow-hidden lg:flex"
         style={{ background: "linear-gradient(160deg, #6b2d72 0%, #853a8c 50%, #5a2460 100%)" }}
       >
+        {/* Animated boxes grid — background layer */}
+        <Boxes />
+        {/* Radial gradient mask for smooth edge fade */}
         <div
-          className="pointer-events-none absolute inset-0"
-          style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 65%)" }}
+          className="pointer-events-none absolute inset-0 z-10"
+          style={{ background: "radial-gradient(ellipse at 50% 50%, transparent 20%, rgba(90, 36, 96, 0.6) 65%, #5a2460 100%)" }}
         />
-        <div className="relative z-10 flex flex-col items-center gap-10 px-10">
+        {/* Cat logo + tagline — sits above the grid */}
+        <div className="relative z-20 flex flex-col items-center gap-10 px-10">
           <VcaCat />
           <p className="text-center text-sm font-medium leading-relaxed text-white/65">
             Your academic journey,<br />all in one place.
           </p>
         </div>
-        <div className="absolute bottom-6 z-10 flex gap-5 text-[11px] text-white">
+        <div className="absolute bottom-6 z-40 flex gap-5 text-[11px] text-white">
           <a href="https://vcamasterclass.com/about-us" target="_blank" rel="noopener noreferrer" className="hover:underline opacity-80 hover:opacity-100 transition-opacity">About</a>
           <a href="https://vcamasterclass.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:underline opacity-80 hover:opacity-100 transition-opacity">Privacy</a>
           <a href="https://vcamasterclass.com/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="hover:underline opacity-80 hover:opacity-100 transition-opacity">Terms of Use</a>

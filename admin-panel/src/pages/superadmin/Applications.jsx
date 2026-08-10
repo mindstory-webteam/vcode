@@ -33,34 +33,6 @@ export default function Applications() {
   const [rejectReason, setRejectReason] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const [selectedIds, setSelectedIds] = useState([]);
-  const [deletingBulk, setDeletingBulk] = useState(false);
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) setSelectedIds(applications.map(a => a._id));
-    else setSelectedIds([]);
-  };
-
-  const toggleSelect = (id) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-  };
-
-  const handleBulkDelete = async () => {
-    if (!await confirm(`Are you sure you want to permanently delete ${selectedIds.length} applications?`)) return;
-    setDeletingBulk(true);
-    try {
-      await Promise.all(selectedIds.map(id => deleteApplication(id)));
-      toast.success('Successfully deleted selected applications!');
-      setSelectedIds([]);
-      load(true);
-    } catch (err) {
-      toast.error('Failed to delete some applications. They may already be deleted.');
-      setError('Failed to delete some applications. They may already be deleted.');
-    } finally {
-      setDeletingBulk(false);
-    }
-  };
-
   const load = (silent = false) => {
     if (!silent) setLoading(true);
     setError('');
@@ -76,7 +48,6 @@ export default function Applications() {
   };
 
   useEffect(() => {
-    setSelectedIds([]);
     load();
   }, [tab]);
 
@@ -151,21 +122,6 @@ export default function Applications() {
 
       {error && <div className="form-error">{error}</div>}
 
-      {selectedIds.length > 0 && (
-        <div style={{ marginBottom: 16, background: '#fcf3f3', border: '1px solid #f2dede', borderRadius: 6, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 14, fontWeight: 500, color: '#a94442' }}>{selectedIds.length} applications selected</span>
-          <button 
-            className="btn btn-brick btn-sm" 
-            onClick={handleBulkDelete} 
-            disabled={deletingBulk}
-            title="Delete Selected"
-            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      )}
-
       <div className="card">
         {loading ? (
           <div className="loading-line">Fetching applications…</div>
@@ -173,7 +129,6 @@ export default function Applications() {
           <table className="ledger">
             <thead>
               <tr>
-                <th style={{ width: 44, paddingRight: 0, textAlign: 'center' }}><input type="checkbox" checked={applications.length > 0 && selectedIds.length === applications.length} onChange={handleSelectAll} style={{ cursor: 'pointer' }} /></th>
                 <th>Applicant</th>
                 <th>Roll no.</th>
                 <th>Department</th>
@@ -185,12 +140,11 @@ export default function Applications() {
             <tbody>
               {applications.length === 0 && (
                 <tr className="empty-row">
-                  <td colSpan={7}>No {tab} applications right now.</td>
+                  <td colSpan={6}>No {tab} applications right now.</td>
                 </tr>
               )}
               {applications.map((app) => (
                 <tr key={app._id}>
-                  <td style={{ width: 44, paddingRight: 0, textAlign: 'center' }}><input type="checkbox" checked={selectedIds.includes(app._id)} onChange={() => toggleSelect(app._id)} style={{ cursor: 'pointer' }} /></td>
                   <td>
                     <div className="cell-name">{app.name}</div>
                     <div className="cell-sub">{app.email}</div>
@@ -211,14 +165,16 @@ export default function Applications() {
                           </button>
                         </>
                       )}
-                      <button 
-                        className="btn btn-brick btn-sm" 
-                        onClick={() => handleDelete(app)}
-                        title="Delete Application"
-                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {(tab === 'approved' || tab === 'rejected') && (
+                        <button
+                          className="btn btn-brick btn-sm"
+                          onClick={() => handleDelete(app)}
+                          title="Delete Application"
+                          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
