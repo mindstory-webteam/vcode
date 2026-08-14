@@ -19,6 +19,9 @@ const googleAuth = asyncHandler(async (req, res) => {
   let user = await User.findOne({ email: normalizedEmail });
 
   if (user) {
+    if (user.role === 'faculty' || user.role === 'superadmin') {
+      return res.status(403).json({ success: false, message: 'Faculty and Admin accounts cannot login to the Student Portal' });
+    }
     if (!user.isActive) {
       return res.status(403).json({ success: false, message: 'account deactivated by admin' });
     }
@@ -116,6 +119,9 @@ const checkApplicationStatus = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && user.status === 'approved') {
+    if (user.role === 'faculty' || user.role === 'superadmin') {
+      return res.status(403).json({ success: false, message: 'Faculty and Admin accounts cannot login to the Student Portal' });
+    }
     const token = generateToken(user._id, user.role);
     return res.json({
       success: true,
@@ -222,6 +228,12 @@ const requestOtp = asyncHandler(async (req, res) => {
   }
 
   const normalizedEmail = email.toLowerCase().trim();
+
+  // Block faculty and admin accounts from requesting OTP for Student Portal
+  const existingUser = await User.findOne({ email: normalizedEmail });
+  if (existingUser && (existingUser.role === 'faculty' || existingUser.role === 'superadmin')) {
+    return res.status(403).json({ success: false, message: 'Faculty and Admin accounts cannot login to the Student Portal' });
+  }
 
   // Validate check for active or rejected student applications
   const checkRes = await StudentApplication.findOne({ email: normalizedEmail });
@@ -330,6 +342,9 @@ const otpLogin = asyncHandler(async (req, res) => {
   let user = await User.findOne({ email: normalizedEmail });
 
   if (user) {
+    if (user.role === 'faculty' || user.role === 'superadmin') {
+      return res.status(403).json({ success: false, message: 'Faculty and Admin accounts cannot login to the Student Portal' });
+    }
     if (!user.isActive) {
       return res.status(403).json({ success: false, message: 'account deactivated by admin' });
     }

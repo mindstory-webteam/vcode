@@ -41,7 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const data = await api.get("/api/auth/me");
-      setUser(data.user);
+      if (data.user && (data.user.role === "faculty" || data.user.role === "superadmin")) {
+        setUser(null);
+      } else {
+        setUser(data.user);
+      }
     } catch (err: any) {
       setUser(null);
       if (typeof window !== "undefined") {
@@ -58,6 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await api.post("/api/auth/login", { email, password });
+    if (data.user && (data.user.role === "faculty" || data.user.role === "superadmin")) {
+      throw new Error("Faculty and Admin accounts cannot login to the Student Portal");
+    }
     if (data.token && typeof window !== "undefined") {
       localStorage.setItem("token", data.token);
     }
@@ -70,6 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.pendingApproval) {
       return data;
     }
+    if (data.user && (data.user.role === "faculty" || data.user.role === "superadmin")) {
+      throw new Error("Faculty and Admin accounts cannot login to the Student Portal");
+    }
     if (data.token && typeof window !== "undefined") {
       localStorage.setItem("token", data.token);
     }
@@ -79,6 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const otpLogin = useCallback(async (email: string, passcode: string) => {
     const data = await api.post("/api/auth/otp-login", { email, passcode });
+    if (data.user && (data.user.role === "faculty" || data.user.role === "superadmin")) {
+      throw new Error("Faculty and Admin accounts cannot login to the Student Portal");
+    }
     if (data.token && typeof window !== "undefined") {
       localStorage.setItem("token", data.token);
     }
