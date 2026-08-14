@@ -5,7 +5,7 @@ import StampBadge from '../../components/StampBadge.jsx';
 import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
 import { Trash2 } from 'lucide-react';
-import { getAllFaculty, createFaculty, updateFaculty, toggleUserActive, deleteUser } from '../../api.js';
+import { getAllFaculty, createFaculty, updateFaculty, toggleUserActive, deleteUser, fileUrl } from '../../api.js';
 
 const emptyForm = {
   name: '', email: '', password: '', phone: '',
@@ -194,8 +194,30 @@ export default function Faculty() {
                 <tr key={f._id}>
                   <td style={{ width: 44, paddingRight: 0, textAlign: 'center' }}><input type="checkbox" checked={selectedIds.includes(f._id)} onChange={() => toggleSelect(f._id)} style={{ cursor: 'pointer' }} /></td>
                   <td>
-                    <div className="cell-name">{f.name}</div>
-                    <div className="cell-sub">{f.email}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {f.profileImage ? (
+                        <img
+                          src={fileUrl(f.profileImage)}
+                          alt={f.name}
+                          style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--paper-line)', cursor: 'pointer' }}
+                          onClick={() => handleEditClick(f)}
+                          title="Click to edit faculty details"
+                        />
+                      ) : (
+                        <div
+                          className="avatar-initial"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleEditClick(f)}
+                          title="Click to edit faculty details"
+                        >
+                          {f.name?.[0]?.toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <div className="cell-name" style={{ cursor: 'pointer' }} onClick={() => handleEditClick(f)} title="Click to edit faculty details">{f.name}</div>
+                        <div className="cell-sub">{f.email}</div>
+                      </div>
+                    </div>
                   </td>
                   <td>{f.facultyInfo?.department || 'N/A'}</td>
                   <td>{f.facultyInfo?.designation || 'N/A'}</td>
