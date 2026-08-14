@@ -1,6 +1,7 @@
 const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const ProgressReport = require('../models/ProgressReport');
+const Todo = require('../models/Todo');
 const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
 const XLSX = require('xlsx');
 const { buildGradeCardWorkbook, parseGradeCardWorkbook } = require('../utils/gradeCardExcel');
@@ -841,6 +842,144 @@ const deleteStudentProfilePhoto = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Get todos created by logged-in faculty (personal to-dos)
+// @route   GET /api/faculty/todos
+// @access  Private/Faculty
+const getMyTodos = asyncHandler(async (req, res) => {
+  const todos = await Todo.find({ createdBy: req.user._id })
+    .populate('createdBy', 'name email profileImage');
+  res.json({ success: true, todos });
+});
+
+// @desc    Update status of a personal todo
+// @route   PUT /api/faculty/todos/:id/status
+// @access  Private/Faculty
+const updateTodoStatus = asyncHandler(async (req, res) => {
+  const { status } = req.body;
+  
+  if (!['pending', 'in-progress', 'completed'].includes(status)) {
+    return res.status(400).json({ success: false, message: 'Invalid status value' });
+  }
+
+  const todo = await Todo.findById(req.params.id);
+
+  if (!todo) {
+    return res.status(404).json({ success: false, message: 'To-Do not found' });
+  }
+
+  // Ensure this todo belongs to the logged-in faculty member
+  if (todo.createdBy.toString() !== req.user._id.toString()) {
+    return res.status(403).json({ success: false, message: 'You are not authorized to update this to-do' });
+  }
+
+  todo.status = status;
+  await todo.save();
+
+  const populatedTodo = await Todo.findById(todo._id)
+    .populate('createdBy', 'name email profileImage');
+
+  // Notify socket rooms
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${req.user._id.toString()}`).emit('todo_updated', populatedTodo);
+  }
+
+  res.json({ success: true, todo: populatedTodo });
+});
+
+// @desc    Create todo (Faculty personal to-do)
+// @route   POST /api/faculty/todos
+// @access  Private/Faculty
+const createMyTodo = asyncHandler(async (req, res) => {
+  const { title, description, dueDate, priority, status } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ success: false, message: 'Please provide a todo title' });
+  }
+
+  const todo = await Todo.create({
+    title,
+    description,
+    dueDate: dueDate || undefined,
+    priority: priority || 'medium',
+    status: status || 'pending',
+    createdBy: req.user._id,
+  });
+
+  const populatedTodo = await Todo.findById(todo._id)
+    .populate('createdBy', 'name email profileImage');
+
+  // Notify socket rooms
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${req.user._id.toString()}`).emit('todo_assigned', populatedTodo);
+  }
+
+  res.status(201).json({ success: true, todo: populatedTodo });
+});
+
+// @desc    Update todo details (Faculty personal to-do)
+// @route   PUT /api/faculty/todos/:id
+// @access  Private/Faculty
+const updateMyTodo = asyncHandler(async (req, res) => {
+  const { title, description, dueDate, priority, status } = req.body;
+  const todo = await Todo.findById(req.params.id);
+
+  if (!todo) {
+    return res.status(404).json({ success: false, message: 'To-Do not found' });
+  }
+
+  // Ensure this todo belongs to the logged-in faculty member
+  if (todo.createdBy.toString() !== req.user._id.toString()) {
+    return res.status(403).json({ success: false, message: 'You are not authorized to update this to-do' });
+  }
+
+  todo.title = title || todo.title;
+  todo.description = description !== undefined ? description : todo.description;
+  todo.dueDate = dueDate !== undefined ? dueDate : todo.dueDate;
+  todo.priority = priority || todo.priority;
+  todo.status = status || todo.status;
+
+  await todo.save();
+
+  const populatedTodo = await Todo.findById(todo._id)
+    .populate('createdBy', 'name email profileImage');
+
+  // Notify socket rooms
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${req.user._id.toString()}`).emit('todo_updated', populatedTodo);
+  }
+
+  res.json({ success: true, todo: populatedTodo });
+});
+
+// @desc    Delete a personal todo (Faculty)
+// @route   DELETE /api/faculty/todos/:id
+// @access  Private/Faculty
+const deleteMyTodo = asyncHandler(async (req, res) => {
+  const todo = await Todo.findById(req.params.id);
+
+  if (!todo) {
+    return res.status(404).json({ success: false, message: 'To-Do not found' });
+  }
+
+  // Ensure this todo belongs to the logged-in faculty member
+  if (todo.createdBy.toString() !== req.user._id.toString()) {
+    return res.status(403).json({ success: false, message: 'You are not authorized to delete this to-do' });
+  }
+
+  await Todo.findByIdAndDelete(req.params.id);
+
+  // Notify socket rooms
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${req.user._id.toString()}`).emit('todo_removed', { todoId: todo._id });
+  }
+
+  res.json({ success: true, message: 'To-Do deleted successfully' });
+});
+
 module.exports = {
   getMyStudents,
   getStudentProgressReport,
@@ -862,4 +1001,9 @@ module.exports = {
   importGradeCard,
   exportFullProgressReport,
   importFullProgressReport,
+  getMyTodos,
+  updateTodoStatus,
+  createMyTodo,
+  updateMyTodo,
+  deleteMyTodo,
 };

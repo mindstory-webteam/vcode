@@ -2,6 +2,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const StudentApplication = require('../models/StudentApplication');
 const ProgressReport = require('../models/ProgressReport');
+const Todo = require('../models/Todo');
 const { deleteFromCloudinary } = require('../middleware/uploadMiddleware');
 const { generateToken } = require('../utils/generateToken');
 const XLSX = require('xlsx');
@@ -1552,6 +1553,108 @@ const deleteCertificateFromProgressReportAdmin = asyncHandler(async (req, res) =
   });
 });
 
+// @desc    Get all todos for logged-in superadmin
+// @route   GET /api/superadmin/todos
+// @access  Private/SuperAdmin
+const getAllTodos = asyncHandler(async (req, res) => {
+  const todos = await Todo.find({ createdBy: req.user._id })
+    .populate('createdBy', 'name email profileImage');
+  res.json({ success: true, todos });
+});
+
+// @desc    Create personal to-do
+// @route   POST /api/superadmin/todos
+// @access  Private/SuperAdmin
+const createTodo = asyncHandler(async (req, res) => {
+  const { title, description, dueDate, priority, status } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ success: false, message: 'Please provide a todo title' });
+  }
+
+  const todo = await Todo.create({
+    title,
+    description,
+    dueDate: dueDate || undefined,
+    status: status || 'pending',
+    priority: priority || 'medium',
+    createdBy: req.user._id,
+  });
+
+  const populatedTodo = await Todo.findById(todo._id)
+    .populate('createdBy', 'name email profileImage');
+
+  // Real-time notification via Socket.io
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${req.user._id.toString()}`).emit('todo_assigned', populatedTodo);
+  }
+
+  res.status(201).json({ success: true, todo: populatedTodo });
+});
+
+// @desc    Update a personal to-do
+// @route   PUT /api/superadmin/todos/:id
+// @access  Private/SuperAdmin
+const updateTodo = asyncHandler(async (req, res) => {
+  const { title, description, dueDate, status, priority } = req.body;
+  const todo = await Todo.findById(req.params.id);
+
+  if (!todo) {
+    return res.status(404).json({ success: false, message: 'To-Do not found' });
+  }
+
+  // Ensure todo belongs to the logged-in superadmin
+  if (todo.createdBy.toString() !== req.user._id.toString()) {
+    return res.status(403).json({ success: false, message: 'You are not authorized to update this to-do' });
+  }
+
+  todo.title = title || todo.title;
+  todo.description = description !== undefined ? description : todo.description;
+  todo.dueDate = dueDate !== undefined ? dueDate : todo.dueDate;
+  todo.status = status || todo.status;
+  todo.priority = priority || todo.priority;
+
+  await todo.save();
+
+  const populatedTodo = await Todo.findById(todo._id)
+    .populate('createdBy', 'name email profileImage');
+
+  // Notify socket rooms
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${req.user._id.toString()}`).emit('todo_updated', populatedTodo);
+  }
+
+  res.json({ success: true, todo: populatedTodo });
+});
+
+// @desc    Delete a personal to-do
+// @route   DELETE /api/superadmin/todos/:id
+// @access  Private/SuperAdmin
+const deleteTodo = asyncHandler(async (req, res) => {
+  const todo = await Todo.findById(req.params.id);
+
+  if (!todo) {
+    return res.status(404).json({ success: false, message: 'To-Do not found' });
+  }
+
+  // Ensure todo belongs to the logged-in superadmin
+  if (todo.createdBy.toString() !== req.user._id.toString()) {
+    return res.status(403).json({ success: false, message: 'You are not authorized to delete this to-do' });
+  }
+
+  await Todo.findByIdAndDelete(req.params.id);
+
+  // Notify socket rooms
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${req.user._id.toString()}`).emit('todo_removed', { todoId: todo._id });
+  }
+
+  res.json({ success: true, message: 'To-Do deleted successfully' });
+});
+
 module.exports = {
   createFaculty,
   updateFaculty,
@@ -1592,4 +1695,8 @@ module.exports = {
   updateStudentProfileAdmin,
   uploadCertificateToProgressReportAdmin,
   deleteCertificateFromProgressReportAdmin,
+  getAllTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
 };

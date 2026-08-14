@@ -21,12 +21,24 @@ const {
   deleteGradeCard,
   exportFullProgressReport,
   importFullProgressReport,
+  getMyTodos,
+  updateTodoStatus,
+  createMyTodo,
+  updateMyTodo,
+  deleteMyTodo,
 } = require('../controllers/facultyController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { uploadProfileImage, uploadExcel } = require('../middleware/uploadMiddleware');
 
 // Every route here requires a logged-in faculty member
 router.use(protect, authorize('faculty'));
+
+// To-Do management
+router.get('/todos', getMyTodos);
+router.post('/todos', createMyTodo);
+router.put('/todos/:id', updateMyTodo);
+router.put('/todos/:id/status', updateTodoStatus);
+router.delete('/todos/:id', deleteMyTodo);
 
 router.get('/students', getMyStudents);
 router.get('/students/:studentId/progress-report', getStudentProgressReport);

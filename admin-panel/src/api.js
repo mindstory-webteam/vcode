@@ -343,4 +343,16 @@ export const searchStudentsAdmin = (query) =>
 export const getDistinctDepartmentsAdmin = () =>
   api.get('/notifications/departments');
 
+// ---- To-Dos ----
+export const getTodosAdmin = () => api.get('/superadmin/todos');
+export const createTodoAdmin = (data) => api.post('/superadmin/todos', data);
+export const updateTodoAdmin = (id, data) => api.put(`/superadmin/todos/${id}`, data);
+export const deleteTodoAdmin = (id) => api.delete(`/superadmin/todos/${id}`);
+
+export const getMyTodosFaculty = () => api.get('/faculty/todos');
+export const createTodoFaculty = (data) => api.post('/faculty/todos', data);
+export const updateTodoFaculty = (id, data) => api.put(`/faculty/todos/${id}`, data);
+export const updateTodoStatusFaculty = (id, status) => api.put(`/faculty/todos/${id}/status`, { status });
+export const deleteTodoFaculty = (id) => api.delete(`/faculty/todos/${id}`);
+
 export default api;

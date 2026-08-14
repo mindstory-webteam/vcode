@@ -46,6 +46,15 @@ const IconBell = () => (
   </svg>
 );
 
+const IconTasks = () => (
+  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <line x1="9" y1="9" x2="15" y2="9" />
+    <line x1="9" y1="13" x2="15" y2="13" />
+    <line x1="9" y1="17" x2="13" y2="17" />
+  </svg>
+);
+
 const IconChevron = () => (
   <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
     <path d="M9 6l6 6-6 6" />
@@ -70,6 +79,7 @@ const SUPERADMIN_NAV = [
   },
   { num: '04', to: '/superadmin/faculty', label: 'Faculty', Icon: IconFaculty },
   { num: '05', to: '/superadmin/notifications', label: 'Broadcasts', Icon: IconBell },
+  { num: '06', to: '/superadmin/todos', label: 'To-Do Board', Icon: IconTasks },
 ];
 
 const FACULTY_NAV = [
@@ -82,6 +92,7 @@ const FACULTY_NAV = [
       { to: '/faculty/attendance', label: 'Attendance' },
     ],
   },
+  { num: '02', to: '/faculty/todos', label: 'To-Do Board', Icon: IconTasks },
 ];
 
 export default function Layout({ children }) {

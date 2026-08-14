@@ -16,6 +16,8 @@ import FacultyAttendance from './pages/faculty/Attendance.jsx';
 import SuperAdminAttendance from './pages/superadmin/Attendance.jsx';
 import FacultyAttendanceList from './pages/faculty/AttendanceList.jsx';
 import SuperAdminAttendanceList from './pages/superadmin/AttendanceList.jsx';
+import SuperAdminTodos from './pages/superadmin/Todos.jsx';
+import FacultyTodos from './pages/faculty/Todos.jsx';
 
 import { ConfirmProvider } from './context/ConfirmContext.jsx';
 
@@ -75,6 +77,10 @@ export default function App() {
           path="/superadmin/notifications"
           element={<ProtectedRoute roles={['superadmin']}><Broadcasts /></ProtectedRoute>}
         />
+        <Route
+          path="/superadmin/todos"
+          element={<ProtectedRoute roles={['superadmin']}><SuperAdminTodos /></ProtectedRoute>}
+        />
 
         <Route path="/faculty/students/:studentId/attendance" element={<FacultyAttendance />} />
         <Route path="/superadmin/students/:studentId/attendance" element={<SuperAdminAttendance />} />
@@ -88,6 +94,10 @@ export default function App() {
         <Route
           path="/faculty/students/:studentId"
           element={<ProtectedRoute roles={['faculty']}><StudentReport /></ProtectedRoute>}
+        />
+        <Route
+          path="/faculty/todos"
+          element={<ProtectedRoute roles={['faculty']}><FacultyTodos /></ProtectedRoute>}
         />
 
         <Route path="*" element={<Navigate to="/" replace />} />

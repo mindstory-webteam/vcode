@@ -40,6 +40,10 @@ const {
   updateStudentProfileAdmin,
   uploadCertificateToProgressReportAdmin,
   deleteCertificateFromProgressReportAdmin,
+  getAllTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
 } = require('../controllers/superadminController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { uploadProfileImage, uploadExcel, uploadDocument } = require('../middleware/uploadMiddleware');
@@ -61,6 +65,12 @@ router.get('/applications/:id', getApplicationById);
 router.put('/applications/:id/approve', approveApplication);
 router.put('/applications/:id/reject', rejectApplication);
 router.delete('/applications/:id', deleteApplication);
+
+// To-Do management
+router.get('/todos', getAllTodos);
+router.post('/todos', createTodo);
+router.put('/todos/:id', updateTodo);
+router.delete('/todos/:id', deleteTodo);
 
 // Student management & bulk import
 // NOTE: Static sub-paths MUST come before :id/:studentId parameterised routes
