@@ -4,7 +4,7 @@ import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
 import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import { getAllFaculty, createFaculty, updateFaculty, toggleUserActive, deleteUser, fileUrl } from '../../api.js';
 
 const emptyForm = {
@@ -224,11 +224,11 @@ export default function Faculty() {
                   <td><StampBadge status={f.isActive ? 'active' : 'inactive'} /></td>
                   <td>
                     <div className="btn-row">
-                      <button className="btn btn-ghost btn-sm" onClick={() => handleEditClick(f)}>
-                        Edit
-                      </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => handleToggleActive(f)}>
                         {f.isActive ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button className="btn btn-ghost btn-xs" style={{ padding: 4 }} onClick={() => handleEditClick(f)} title="Edit Faculty">
+                        <Edit size={13} style={{ color: 'var(--purple)' }} />
                       </button>
                       <button
                         className="btn btn-brick btn-sm"

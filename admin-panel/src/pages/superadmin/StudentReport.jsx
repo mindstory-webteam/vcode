@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import Layout from '../../components/Layout.jsx';
 import Modal from '../../components/Modal.jsx';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import {
   getStudentProgressReportAdmin,
   addProgressEntryAdmin,
@@ -916,7 +916,7 @@ export default function SuperAdminStudentReport() {
                   <span className="stamp stamp-active" style={{ fontSize: 9.5 }}>{entry.category}</span>
                 </div>
                 <div className="btn-row">
-                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(entry)}>Edit</button>
+                  <button className="btn btn-ghost btn-xs" style={{ padding: 4 }} onClick={() => openEdit(entry)} title="Edit Entry"><Edit size={13} style={{ color: 'var(--purple)' }} /></button>
                   <button
                     className="btn btn-brick btn-sm"
                     onClick={() => handleDeleteEntry(entry)}

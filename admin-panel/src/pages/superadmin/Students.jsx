@@ -5,7 +5,7 @@ import Modal from '../../components/Modal.jsx';
 import StampBadge from '../../components/StampBadge.jsx';
 import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import {
   getAllStudents,
   getAllFaculty,
@@ -352,9 +352,6 @@ export default function Students() {
                   <td><StampBadge status={s.isActive ? 'active' : 'inactive'} /></td>
                   <td>
                     <div className="btn-row">
-                      <button className="btn btn-ghost btn-sm" onClick={() => handleEditClick(s)}>
-                        Edit
-                      </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/superadmin/students/${s._id}`)}>
                         Student Report
                       </button>
@@ -363,6 +360,9 @@ export default function Students() {
                       </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => handleToggleActive(s)}>
                         {s.isActive ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button className="btn btn-ghost btn-xs" style={{ padding: 4 }} onClick={() => handleEditClick(s)} title="Edit Student">
+                        <Edit size={13} style={{ color: 'var(--purple)' }} />
                       </button>
                       <button
                         className="btn btn-brick btn-sm"

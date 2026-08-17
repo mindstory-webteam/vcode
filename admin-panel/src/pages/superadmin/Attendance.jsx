@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import { toast } from 'react-toastify';
 import { useConfirm } from '../../context/ConfirmContext.jsx';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import {
   getStudentProgressReportAdmin,
   markAttendanceAdmin,
@@ -360,7 +360,7 @@ export default function SuperAdminAttendance() {
                       <td>{r.markedBy?.name || 'N/A'}</td>
                       <td>
                         <div className="btn-row">
-                          <button className="btn btn-ghost btn-sm" onClick={() => startEdit(r)}>Edit</button>
+                          <button className="btn btn-ghost btn-xs" style={{ padding: 4 }} onClick={() => startEdit(r)} title="Edit Attendance"><Edit size={13} style={{ color: 'var(--purple)' }} /></button>
                           <button 
                             className="btn btn-brick btn-sm" 
                             onClick={() => handleDelete(r)}

@@ -196,56 +196,24 @@ export default function Broadcasts() {
       </div>
 
       {/* Tabs bar */}
-      <div style={{
-        display: 'flex',
-        gap: '1rem',
-        borderBottom: '1px solid #e2e8f0',
-        marginBottom: '2rem',
-        paddingBottom: '0.1rem'
-      }}>
-        <button
-          type="button"
+      <div className="tab-row">
+        <div
+          className={`tab-item${activeTab === 'new' ? ' active' : ''}`}
           onClick={() => setActiveTab('new')}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '0.75rem 1.25rem',
-            fontSize: '0.95rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            color: activeTab === 'new' ? '#3b82f6' : '#64748b',
-            borderBottom: activeTab === 'new' ? '2px solid #3b82f6' : '2px solid transparent',
-            marginBottom: '-2px',
-            transition: 'all 0.2s ease',
-          }}
         >
           New Broadcast
-        </button>
-        <button
-          type="button"
+        </div>
+        <div
+          className={`tab-item${activeTab === 'history' ? ' active' : ''}`}
           onClick={() => setActiveTab('history')}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '0.75rem 1.25rem',
-            fontSize: '0.95rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            color: activeTab === 'history' ? '#3b82f6' : '#64748b',
-            borderBottom: activeTab === 'history' ? '2px solid #3b82f6' : '2px solid transparent',
-            marginBottom: '-2px',
-            transition: 'all 0.2s ease',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           Broadcast History
           {history.length > 0 && (
             <span style={{
               fontSize: '0.75rem',
-              background: activeTab === 'history' ? '#eff6ff' : '#f1f5f9',
-              color: activeTab === 'history' ? '#3b82f6' : '#64748b',
+              background: activeTab === 'history' ? '#f3f0ff' : '#f1f5f9',
+              color: activeTab === 'history' ? 'var(--purple-deep)' : 'var(--muted)',
               padding: '2px 8px',
               borderRadius: '12px',
               fontWeight: '500'
@@ -253,7 +221,7 @@ export default function Broadcasts() {
               {history.length}
             </span>
           )}
-        </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
